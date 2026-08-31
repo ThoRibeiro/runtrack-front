@@ -28,8 +28,12 @@ export function SectionHeader({
       }}
       testID={testID}
     >
-      <View accessibilityRole="header">
-        <Text variant="section">{title}</Text>
+      {/* `accessible` autant que le rôle : sans lui, VoiceOver ne s'arrête
+          pas dessus et la section n'a pas de titre annoncé. */}
+      <View accessible accessibilityRole="header" accessibilityLabel={title}>
+        <Text variant="section" decorative>
+          {title}
+        </Text>
       </View>
       {onAction !== undefined && (
         <Pressable

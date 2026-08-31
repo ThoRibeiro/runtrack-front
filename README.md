@@ -47,7 +47,7 @@ détail est dans [`docs/decisions-lot-1.md`](docs/decisions-lot-1.md).
 
 ## État
 
-**Lots 1 à 4 livrés.**
+**Lots 1 à 5 livrés.**
 
 1. Monorepo, TypeScript strict, lint, CI, les deux coques démarrent sur un écran vide.
 2. Design system : tokens (couleur, espace, typo, mouvement, dimensions), les trois thèmes
@@ -66,5 +66,11 @@ et les chemins d'API du §0 ne sont pas ceux du back-end livré
    lues par leur `code`, et **le refresh unique du §11**. 97 tests, plus 65 assertions qui
    vérifient que le contrat du serveur n'a pas bougé.
 
-Reste les lots 5 à 13. Le prochain est l'**authentification de bout en bout**, sur les deux
-cibles, avec stockage sécurisé.
+5. **Authentification de bout en bout** sur les deux cibles : inscription, connexion, mot
+   de passe oublié, réinitialisation, confirmation d'adresse. Stockage sécurisé — Keychain
+   et Keystore sur mobile, session **chiffrée** sur le web, jamais `localStorage`. Couche
+   d'internationalisation, et une phrase par code d'erreur dont l'exhaustivité est prouvée
+   à la compilation.
+
+Reste les lots 6 à 13. Le prochain est la **consultation** : fil, course, profil, social,
+listes virtualisées et pagination par curseur.

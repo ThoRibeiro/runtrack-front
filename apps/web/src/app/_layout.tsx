@@ -5,13 +5,15 @@ import {
   PlusJakartaSans_700Bold,
   useFonts,
 } from '@expo-google-fonts/plus-jakarta-sans';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { RuntimeProvider, SessionProvider, createQueryClient } from '@runtrack/features';
 import { ThemeProvider, ToastProvider } from '@runtrack/ui';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { runtime } from '../config/runtime';
 
 /**
  * Root layout of the web shell.
@@ -21,6 +23,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
  * web has no recorder (§2) and gains the public share pages.
  */
 void SplashScreen.preventAutoHideAsync();
+
+const queryClient = createQueryClient();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -39,11 +43,17 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <ThemeProvider>
-          <ToastProvider>
-            <Stack screenOptions={{ headerShown: false }} />
-          </ToastProvider>
-        </ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <RuntimeProvider runtime={runtime}>
+            <SessionProvider>
+              <ThemeProvider>
+                <ToastProvider>
+                  <Stack screenOptions={{ headerShown: false }} />
+                </ToastProvider>
+              </ThemeProvider>
+            </SessionProvider>
+          </RuntimeProvider>
+        </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
