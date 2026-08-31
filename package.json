@@ -30,5 +30,11 @@
     "typescript": "6.0.3",
     "typescript-eslint": "^8.68.0",
     "vitest": "^4.1.11"
+  },
+  "pnpm": {
+    "//": "Expo SDK 57 pins Reanimated 4.5.1, which asserts the Worklets version at import. Left to resolve on its own, pnpm hoists 0.12.1 and every test fails on a version assertion rather than on anything real.",
+    "overrides": {
+      "react-native-worklets": "0.10.1"
+    }
   }
 }

@@ -15,4 +15,12 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
+// The design-system gallery is a development tool. A runtime `__DEV__` guard is
+// not enough: the import is static, so Metro bundles the gallery — and every
+// component it mounts — into the production build anyway. Blocking the route
+// file removes it from the file-system router altogether.
+if (process.env.NODE_ENV === 'production') {
+  config.resolver.blockList = [/src[\\/]app[\\/]gallery\.tsx$/];
+}
+
 module.exports = config;

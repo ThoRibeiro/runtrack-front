@@ -146,7 +146,9 @@ export default tseslint.config(
   // ---------------------------------------------------------------------------
   {
     files: ['apps/**/*.{ts,tsx}', 'packages/{ui,features,adapters}/src/**/*.{ts,tsx}'],
-    ignores: ['packages/ui/src/tokens/**'],
+    // The token module is the one place a colour is spelled out — and a test
+    // that asserts a ratio has to name the two colours it is comparing.
+    ignores: ['packages/ui/src/tokens/**', '**/*.test.{ts,tsx}'],
     rules: {
       'no-restricted-syntax': [
         'error',

@@ -1,13 +1,50 @@
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+  useFonts,
+} from '@expo-google-fonts/plus-jakarta-sans';
+import { ThemeProvider, ToastProvider } from '@runtrack/ui';
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+
+import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 /**
  * Root layout of the web shell.
  *
- * It is deliberately a separate file from the mobile one: the web shell has no
- * recorder (§2) and gains the public share pages, so the two route trees
- * diverge by construction rather than by a runtime `Platform.OS` check that
- * would still ship the recorder in the web bundle.
+ * The same providers as the mobile shell, minus the status bar: a browser tab
+ * has none. It stays a separate file because the two route trees diverge — the
+ * web has no recorder (§2) and gains the public share pages.
  */
+void SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
-  return <Stack screenOptions={{ headerShown: false }} />;
+  const [fontsLoaded] = useFonts({
+    PlusJakartaSans_400Regular,
+    PlusJakartaSans_500Medium,
+    PlusJakartaSans_600SemiBold,
+    PlusJakartaSans_700Bold,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded) void SplashScreen.hideAsync();
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <ToastProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+          </ToastProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
 }

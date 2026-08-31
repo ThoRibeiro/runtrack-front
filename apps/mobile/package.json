@@ -13,17 +13,27 @@
     "test": "echo \"aucun test de coque au lot 1\" && exit 0"
   },
   "dependencies": {
+    "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
     "@runtrack/core": "workspace:*",
+    "@runtrack/ui": "workspace:*",
+    "@shopify/flash-list": "^2.3.2",
     "expo": "~57.0.18",
     "expo-constants": "~57.0.16",
+    "expo-font": "~57.0.2",
+    "expo-haptics": "~57.0.2",
     "expo-linking": "~57.0.8",
     "expo-router": "~57.0.17",
+    "expo-splash-screen": "~57.0.8",
     "expo-status-bar": "~57.0.1",
     "expo-system-ui": "~57.0.3",
     "react": "19.2.3",
     "react-native": "0.86.3",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "~4.26.0"
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.13.0",
+    "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

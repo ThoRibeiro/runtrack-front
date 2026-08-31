@@ -18,6 +18,9 @@ pnpm mobile     # Expo — iOS + Android
 pnpm web        # react-native-web, sur http://localhost:8081
 ```
 
+La **galerie du design system** — tous les composants, tous leurs états, les trois thèmes —
+est sur `/gallery` en développement. Elle est retirée du bundle de production.
+
 ## Vérifier
 
 ```bash
@@ -44,8 +47,16 @@ détail est dans [`docs/decisions-lot-1.md`](docs/decisions-lot-1.md).
 
 ## État
 
-**Lot 1 livré** : monorepo, TypeScript strict, lint, CI, les deux coques démarrent sur un
-écran vide, décisions écrites.
+**Lots 1 et 2 livrés.**
 
-Reste les lots 2 à 13, à commencer par le **design system** — aucun écran ne s'écrit avant
-sa fin.
+1. Monorepo, TypeScript strict, lint, CI, les deux coques démarrent sur un écran vide.
+2. Design system : tokens (couleur, espace, typo, mouvement, dimensions), les trois thèmes
+   déclarés token par token, 36 composants, les primitives d'animation, la galerie et
+   **166 tests** — dont 119 assertions de contraste sur les trois thèmes.
+
+Trois valeurs de couleur du cahier des charges ont été corrigées parce que le test de
+contraste les a trouvées sous le seuil AA : le détail, mesures à l'appui, est dans
+[`docs/decisions-lot-2.md`](docs/decisions-lot-2.md).
+
+Reste les lots 3 à 13. Le prochain est **`packages/core`** — domaine, cas d'usage, ports,
+90 % de couverture, aucune implémentation.
