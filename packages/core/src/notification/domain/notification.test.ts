@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { activityId, notificationId, userId } from '../../shared/identity/ids';
-import { NOTIFICATION_TYPES, destinationOf, unreadCount, type Notification } from './notification';
+import { notificationId, userId } from '../../shared/identity/ids';
+import { destinationOf, parseDeepLink, unreadCount, type Notification } from './notification';
 import { covers, localMinutes, quietHours, shouldNotify } from './quietHours';
 import { DEVICE_PLATFORMS } from '../ports/pushRegistry';
 import { FOLLOW_STATUSES } from '../../social/ports/socialGateway';
@@ -10,65 +10,71 @@ const notification = (overrides: Partial<Notification>): Notification => ({
   type: 'NEW_FOLLOWER',
   createdAt: 1_700_000_000_000,
   readAt: undefined,
+  unread: true,
   actorId: userId('u2'),
-  activityId: activityId('a1'),
+  deepLink: '/users/u2',
+  aggregateCount: 1,
   ...overrides,
 });
 
 describe('liens profonds', () => {
-  it('ouvre le suivi en direct quand un ami démarre', () => {
-    expect(destinationOf(notification({ type: 'FRIEND_STARTED_ACTIVITY' }))).toEqual({
+  it('ouvre le suivi en direct', () => {
+    expect(parseDeepLink('/activities/a1/live')).toEqual({
       route: 'activity-live',
       activityId: 'a1',
     });
   });
 
-  it('ouvre la course pour une fin, un like ou un commentaire', () => {
-    for (const type of [
-      'FRIEND_FINISHED_ACTIVITY',
-      'ACTIVITY_LIKED',
-      'ACTIVITY_COMMENTED',
-    ] as const) {
-      expect(destinationOf(notification({ type }))).toEqual({
-        route: 'activity',
-        activityId: 'a1',
-      });
-    }
+  it('ouvre la course', () => {
+    expect(parseDeepLink('/activities/a1')).toEqual({ route: 'activity', activityId: 'a1' });
   });
 
-  it('ouvre le profil pour un nouvel abonné ou une demande acceptée', () => {
-    for (const type of ['NEW_FOLLOWER', 'FOLLOW_ACCEPTED'] as const) {
-      expect(destinationOf(notification({ type }))).toEqual({ route: 'user', userId: 'u2' });
-    }
-  });
-
-  it('ouvre la boîte de demandes pour une demande d’abonnement', () => {
-    expect(destinationOf(notification({ type: 'FOLLOW_REQUEST' }))).toEqual({
-      route: 'follow-requests',
+  it('ouvre le fil de commentaires, à l’ancre du commentaire', () => {
+    expect(parseDeepLink('/activities/a1/comments#c9')).toEqual({
+      route: 'activity-comments',
+      activityId: 'a1',
+      commentId: 'c9',
     });
   });
 
-  it('ne mène nulle part quand la cible manque, plutôt que vers un écran vide', () => {
-    expect(
-      destinationOf(notification({ type: 'ACTIVITY_LIKED', activityId: undefined })),
-    ).toBeUndefined();
-    expect(
-      destinationOf(notification({ type: 'NEW_FOLLOWER', actorId: undefined })),
-    ).toBeUndefined();
+  it('ouvre le fil de commentaires sans ancre', () => {
+    expect(parseDeepLink('/activities/a1/comments')).toEqual({
+      route: 'activity-comments',
+      activityId: 'a1',
+      commentId: undefined,
+    });
   });
 
-  it('sait quoi faire de chaque type connu', () => {
-    // Le jour où le serveur en ajoute un, ce test le signale.
-    const handled = NOTIFICATION_TYPES.filter(
-      (type) => destinationOf(notification({ type })) !== undefined,
-    );
-    expect(handled).toHaveLength(NOTIFICATION_TYPES.length);
+  it('ouvre un profil', () => {
+    expect(parseDeepLink('/users/u2')).toEqual({ route: 'user', userId: 'u2' });
+  });
+
+  it('ouvre la boîte de demandes d’abonnement', () => {
+    expect(parseDeepLink('/me/follow-requests')).toEqual({ route: 'follow-requests' });
+  });
+
+  it('n’ouvre rien sur un chemin que cette version ne connaît pas', () => {
+    // Un serveur plus récent peut envoyer une destination inédite : ouvrir le
+    // mauvais écran serait pire que de n’en ouvrir aucun.
+    expect(parseDeepLink('/badges/42')).toBeUndefined();
+    expect(parseDeepLink('')).toBeUndefined();
+  });
+
+  it('lit la destination portée par la notification, sans la redériver', () => {
+    // Le serveur fabrique le chemin ; en recalculer une seconde version côté
+    // client ferait deux vérités qui divergent au premier changement.
+    expect(destinationOf(notification({ deepLink: '/activities/a7/live' }))).toEqual({
+      route: 'activity-live',
+      activityId: 'a7',
+    });
   });
 });
 
 describe('compteur de non-lues', () => {
   it('ne compte que celles qui n’ont pas été lues', () => {
-    expect(unreadCount([notification({}), notification({ readAt: 1 }), notification({})])).toBe(2);
+    expect(
+      unreadCount([notification({}), notification({ readAt: 1, unread: false }), notification({})]),
+    ).toBe(2);
   });
 });
 

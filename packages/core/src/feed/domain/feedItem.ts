@@ -1,6 +1,6 @@
 import type { ActivityId, UserId } from '../../shared/identity/ids';
 import type { Instant } from '../../shared/time/clock';
-import type { ActivityStats, ActivityType } from '../../activity/domain/activity';
+import type { ActivityStatus, ActivityType } from '../../activity/domain/activity';
 
 export interface FeedAuthor {
   id: UserId;
@@ -9,17 +9,30 @@ export interface FeedAuthor {
   avatarUrl: string | undefined;
 }
 
+/**
+ * One card in the feed.
+ *
+ * Deliberately thin, and it matches what `GET /feed/v1` actually returns: a
+ * distance, a moving time, two counters. No track, no full statistics — the
+ * feed fans out on read (a server-side decision), and loading a polyline per
+ * card would make the first screen unusable. The track is fetched when a card
+ * is opened.
+ */
 export interface FeedItem {
   activityId: ActivityId;
   author: FeedAuthor;
   type: ActivityType;
   title: string;
+  status: ActivityStatus;
+  distanceMetres: number;
+  movingTimeSeconds: number;
   startedAt: Instant;
-  stats: ActivityStats;
-  /** The historical track, encoded. Decoded by `measure/polyline`, off the main thread. */
-  polyline: string | undefined;
+  endedAt: Instant | undefined;
   likeCount: number;
   commentCount: number;
-  likedByMe: boolean;
-  live: boolean;
+}
+
+/** A card still running gets the live treatment: §10's "Suivre en direct". */
+export function isLive(item: FeedItem): boolean {
+  return item.status.kind === 'live' || item.status.kind === 'paused';
 }

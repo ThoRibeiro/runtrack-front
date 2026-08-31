@@ -14,26 +14,26 @@ export interface PublicProfile {
   displayName: string;
   avatarUrl: string | undefined;
   bio: string | undefined;
-  followerCount: number;
-  followingCount: number;
-  activityCount: number;
-  /** What the viewer is allowed to see of this account. */
-  visibility: Visibility;
-}
-
-export interface Physiology {
-  birthDate: string | undefined;
-  sex: BiologicalSex;
-  heightCentimetres: number | undefined;
-  weightKilograms: number | undefined;
-  maxHeartRate: number | undefined;
-  restingHeartRate: number | undefined;
+  /** Who may see this account's activities by default. */
+  accountScope: Visibility;
 }
 
 export interface MyProfile extends PublicProfile {
   email: string;
   status: AccountStatus;
-  physiology: Physiology;
+  registeredAt: Instant;
+}
+
+/**
+ * Read and written through its own endpoint, not folded into the profile: it is
+ * health data, and keeping it separate keeps it out of every profile response.
+ */
+export interface Physiology {
+  /** ISO date, no time: a birth date has no hour. */
+  birthDate: string | undefined;
+  biologicalSex: BiologicalSex;
+  weightKilograms: number | undefined;
+  heightCentimetres: number | undefined;
 }
 
 export const STATS_PERIODS = ['WEEK', 'MONTH', 'YEAR', 'ALL'] as const;

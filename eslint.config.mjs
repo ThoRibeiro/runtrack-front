@@ -45,6 +45,9 @@ export default tseslint.config(
       '**/android/**',
       '**/ios/**',
       '**/*.d.ts',
+      // Généré par openapi-typescript : le corriger à la main serait le perdre
+      // à la prochaine génération.
+      'packages/api/src/generated/**',
     ],
   },
 
@@ -189,7 +192,7 @@ export default tseslint.config(
 
   // Config files run in node and are not part of the typed project graph.
   {
-    files: ['**/*.config.{js,mjs,cjs,ts}', '**/*.setup.{js,mjs,cjs,ts}'],
+    files: ['**/*.config.{js,mjs,cjs,ts}', '**/*.setup.{js,mjs,cjs,ts}', '**/scripts/**/*.mjs'],
     ...tseslint.configs.disableTypeChecked,
     rules: {
       ...tseslint.configs.disableTypeChecked.rules,

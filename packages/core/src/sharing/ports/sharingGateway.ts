@@ -7,13 +7,17 @@ import type { Instant } from '../../shared/time/clock';
  */
 export interface ShareLink {
   id: ShareLinkId;
+  /** The whole secret. Never logged, never put in an analytics event. */
   token: string;
+  url: string;
   createdAt: Instant;
   expiresAt: Instant | undefined;
+  revokedAt: Instant | undefined;
+  viewCount: number;
 }
 
 export interface SharingGateway {
   linksOf(activityId: ActivityId): Promise<readonly ShareLink[]>;
-  create(activityId: ActivityId, expiresAt?: Instant): Promise<ShareLink>;
+  create(activityId: ActivityId, validForHours?: number): Promise<ShareLink>;
   revoke(id: ShareLinkId): Promise<void>;
 }

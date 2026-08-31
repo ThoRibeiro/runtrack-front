@@ -1,4 +1,5 @@
-import type { ActivityId, NotificationId, UserId } from '../../shared/identity/ids';
+import type { ActivityId, CommentId, NotificationId, UserId } from '../../shared/identity/ids';
+import { activityId, commentId, userId } from '../../shared/identity/ids';
 import type { Instant } from '../../shared/time/clock';
 
 export const NOTIFICATION_TYPES = [
@@ -18,46 +19,77 @@ export interface Notification {
   type: NotificationType;
   createdAt: Instant;
   readAt: Instant | undefined;
+  unread: boolean;
   actorId: UserId | undefined;
-  activityId: ActivityId | undefined;
+  /**
+   * Where it leads, as a **path** — the server builds it, the client owns the
+   * scheme and the host. `parseDeepLink` turns it into something typed.
+   */
+  deepLink: string;
+  /** "Trois personnes ont aimé votre course" is one notification, not three. */
+  aggregateCount: number;
 }
 
 /**
- * Where a notification leads. §11 lists the four deep links, and they must open
- * the screen directly — application closed included.
+ * Where a notification leads (§11).
  *
- * The mapping lives in the hexagon rather than in a router: the destination of a
- * `FOLLOW_REQUEST` is a product decision, not a navigation detail, and both
- * shells have to agree on it.
+ * The destination is **not** derived from the type here: the server sends the
+ * path, and deriving a second version of it client-side would give two truths
+ * that diverge on the first change. What the hexagon does is turn that string
+ * into something a `switch` cannot get wrong.
  */
 export type DeepLink =
   | { route: 'activity-live'; activityId: ActivityId }
   | { route: 'activity'; activityId: ActivityId }
+  | { route: 'activity-comments'; activityId: ActivityId; commentId: CommentId | undefined }
   | { route: 'user'; userId: UserId }
   | { route: 'follow-requests' };
 
-export function destinationOf(notification: Notification): DeepLink | undefined {
-  switch (notification.type) {
-    case 'FRIEND_STARTED_ACTIVITY':
-      return notification.activityId === undefined
-        ? undefined
-        : { route: 'activity-live', activityId: notification.activityId };
-    case 'FRIEND_FINISHED_ACTIVITY':
-    case 'ACTIVITY_LIKED':
-    case 'ACTIVITY_COMMENTED':
-      return notification.activityId === undefined
-        ? undefined
-        : { route: 'activity', activityId: notification.activityId };
-    case 'NEW_FOLLOWER':
-    case 'FOLLOW_ACCEPTED':
-      return notification.actorId === undefined
-        ? undefined
-        : { route: 'user', userId: notification.actorId };
-    case 'FOLLOW_REQUEST':
-      return { route: 'follow-requests' };
+const ACTIVITY_LIVE = /^\/activities\/([^/]+)\/live$/;
+const ACTIVITY_COMMENTS = /^\/activities\/([^/]+)\/comments(?:#(.+))?$/;
+const ACTIVITY = /^\/activities\/([^/]+)$/;
+const USER = /^\/users\/([^/]+)$/;
+
+/**
+ * Returns `undefined` on a path this version does not know. A newer server may
+ * send a destination this build has never heard of, and opening the wrong
+ * screen is worse than opening none.
+ */
+export function parseDeepLink(link: string): DeepLink | undefined {
+  const live = ACTIVITY_LIVE.exec(link);
+  if (live?.[1] !== undefined) {
+    return { route: 'activity-live', activityId: activityId(live[1]) };
   }
+
+  const comments = ACTIVITY_COMMENTS.exec(link);
+  if (comments?.[1] !== undefined) {
+    const anchor = comments[2];
+    return {
+      route: 'activity-comments',
+      activityId: activityId(comments[1]),
+      commentId: anchor === undefined ? undefined : commentId(anchor),
+    };
+  }
+
+  const activity = ACTIVITY.exec(link);
+  if (activity?.[1] !== undefined) {
+    return { route: 'activity', activityId: activityId(activity[1]) };
+  }
+
+  const user = USER.exec(link);
+  if (user?.[1] !== undefined) {
+    return { route: 'user', userId: userId(user[1]) };
+  }
+
+  if (link === '/me/follow-requests') return { route: 'follow-requests' };
+
+  return undefined;
+}
+
+export function destinationOf(notification: Notification): DeepLink | undefined {
+  return parseDeepLink(notification.deepLink);
 }
 
 export function unreadCount(notifications: readonly Notification[]): number {
-  return notifications.filter((notification) => notification.readAt === undefined).length;
+  return notifications.filter((notification) => notification.unread).length;
 }

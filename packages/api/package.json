@@ -1,0 +1,31 @@
+{
+  "name": "@runtrack/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "generate": "openapi-typescript openapi/openapi.json --output src/generated/schema.ts --root-types",
+    "openapi:refresh": "node scripts/refresh-openapi.mjs"
+  },
+  "dependencies": {
+    "@runtrack/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@vitest/coverage-v8": "^4.1.11",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "6.0.3",
+    "vitest": "^4.1.11"
+  },
+  "volta": {
+    "extends": "../../package.json"
+  }
+}

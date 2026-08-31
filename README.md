@@ -47,7 +47,7 @@ détail est dans [`docs/decisions-lot-1.md`](docs/decisions-lot-1.md).
 
 ## État
 
-**Lots 1 à 3 livrés.**
+**Lots 1 à 4 livrés.**
 
 1. Monorepo, TypeScript strict, lint, CI, les deux coques démarrent sur un écran vide.
 2. Design system : tokens (couleur, espace, typo, mouvement, dimensions), les trois thèmes
@@ -62,5 +62,9 @@ contraste les a trouvées sous le seuil AA ([`docs/decisions-lot-2.md`](docs/dec
 et les chemins d'API du §0 ne sont pas ceux du back-end livré
 ([`docs/decisions-lot-3.md`](docs/decisions-lot-3.md), §1).
 
-Reste les lots 4 à 13. Le prochain est **`packages/api`** — types générés depuis l'OpenAPI,
-lecture des erreurs `problem+json` par leur `code`, et le refresh unique du §11.
+4. `packages/api` : types générés depuis l'OpenAPI, client HTTP, erreurs `problem+json`
+   lues par leur `code`, et **le refresh unique du §11**. 97 tests, plus 65 assertions qui
+   vérifient que le contrat du serveur n'a pas bougé.
+
+Reste les lots 5 à 13. Le prochain est l'**authentification de bout en bout**, sur les deux
+cibles, avec stockage sécurisé.

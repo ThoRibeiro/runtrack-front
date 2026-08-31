@@ -1,22 +1,29 @@
 import type { Page, PageRequest } from '../../shared/paging/page';
 import type { ActivityId, CommentId, UserId } from '../../shared/identity/ids';
 import type { Instant } from '../../shared/time/clock';
-import type { FeedAuthor } from '../../feed/domain/feedItem';
 
+/**
+ * The server sends an author **id**, not an author object: a thread of two
+ * hundred comments would otherwise repeat the same profile two hundred times.
+ * The shell resolves the ids it needs, once.
+ */
 export interface Comment {
   id: CommentId;
-  author: FeedAuthor;
+  activityId: ActivityId;
+  authorId: UserId;
   body: string;
   postedAt: Instant;
   editedAt: Instant | undefined;
   parentId: CommentId | undefined;
+  /** A deleted comment keeps its place in the thread, without its body. */
   deleted: boolean;
 }
 
 export interface Likes {
-  count: number;
-  likedByMe: boolean;
-  recent: readonly UserId[];
+  total: number;
+  likedByViewer: boolean;
+  /** A handful of recent likers, for the "aimé par …" line. */
+  recentUserIds: readonly UserId[];
 }
 
 export interface EngagementGateway {
