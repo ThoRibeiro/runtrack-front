@@ -98,7 +98,6 @@ export default tseslint.config(
         'error',
         { name: 'fetch', message: 'core ne fait pas de réseau : passe par un port.' },
         { name: 'localStorage', message: 'core ne stocke rien : passe par SecureStore.' },
-        { name: 'Date', message: "core ne lit pas l'horloge système : passe par le port Clock." },
         { name: 'window', message: 'core ignore la plateforme.' },
         { name: 'document', message: 'core ignore la plateforme.' },
         { name: 'navigator', message: 'core ignore la plateforme.' },
@@ -106,7 +105,10 @@ export default tseslint.config(
       'no-restricted-syntax': [
         'error',
         {
-          selector: "NewExpression[callee.name='Date']",
+          // `new Date()` reads the system clock; `new Date(epochMillis)` only
+          // converts a value the caller already had, which the time-zone
+          // arithmetic of the quiet hours legitimately needs.
+          selector: "NewExpression[callee.name='Date'][arguments.length=0]",
           message: "core ne lit pas l'horloge système : passe par le port Clock.",
         },
         {

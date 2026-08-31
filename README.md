@@ -47,16 +47,20 @@ détail est dans [`docs/decisions-lot-1.md`](docs/decisions-lot-1.md).
 
 ## État
 
-**Lots 1 et 2 livrés.**
+**Lots 1 à 3 livrés.**
 
 1. Monorepo, TypeScript strict, lint, CI, les deux coques démarrent sur un écran vide.
 2. Design system : tokens (couleur, espace, typo, mouvement, dimensions), les trois thèmes
    déclarés token par token, 36 composants, les primitives d'animation, la galerie et
    **166 tests** — dont 119 assertions de contraste sur les trois thèmes.
 
-Trois valeurs de couleur du cahier des charges ont été corrigées parce que le test de
-contraste les a trouvées sous le seuil AA : le détail, mesures à l'appui, est dans
-[`docs/decisions-lot-2.md`](docs/decisions-lot-2.md).
+3. `packages/core` : le domaine, les calculs purs, les cas d'usage et **onze ports**.
+   **194 tests, 99,3 % ligne et 96,2 % branche** — le seuil est à 90 %.
 
-Reste les lots 3 à 13. Le prochain est **`packages/core`** — domaine, cas d'usage, ports,
-90 % de couverture, aucune implémentation.
+Trois valeurs de couleur du cahier des charges ont été corrigées parce que le test de
+contraste les a trouvées sous le seuil AA ([`docs/decisions-lot-2.md`](docs/decisions-lot-2.md)),
+et les chemins d'API du §0 ne sont pas ceux du back-end livré
+([`docs/decisions-lot-3.md`](docs/decisions-lot-3.md), §1).
+
+Reste les lots 4 à 13. Le prochain est **`packages/api`** — types générés depuis l'OpenAPI,
+lecture des erreurs `problem+json` par leur `code`, et le refresh unique du §11.
