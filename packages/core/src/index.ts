@@ -151,7 +151,12 @@ export { isLive } from './feed/domain/feedItem';
 export type { FeedAuthor, FeedItem } from './feed/domain/feedItem';
 export type { FeedGateway } from './feed/ports/feedGateway';
 export { FOLLOW_STATUSES } from './social/ports/socialGateway';
-export type { FollowRequest, FollowStatus, SocialGateway } from './social/ports/socialGateway';
+export type {
+  FollowRequest,
+  FollowStatus,
+  SocialGateway,
+  UserIdList,
+} from './social/ports/socialGateway';
 export type { Comment, EngagementGateway, Likes } from './engagement/ports/engagementGateway';
 export type { ShareLink, SharingGateway } from './sharing/ports/sharingGateway';
 

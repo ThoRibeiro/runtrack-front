@@ -27,6 +27,12 @@ export interface MetricCardProps {
   unit?: string | undefined;
   /** Reads the unit in full: "battements par minute" rather than "bpm". */
   spokenUnit?: string | undefined;
+  /**
+   * Replaces the whole spoken value when what is written is not readable aloud.
+   * "5:12" comes out as "five colon twelve"; the caller says "5 minutes 12 par
+   * kilomètre" instead, and the unit is not repeated after it.
+   */
+  spokenValue?: string | undefined;
   status?: string | undefined;
   icon: IconName;
   accent?: MetricAccent | undefined;
@@ -40,6 +46,7 @@ export function MetricCard({
   unit,
   spokenUnit,
   status,
+  spokenValue,
   icon,
   accent = 'brand',
   chart,
@@ -53,7 +60,7 @@ export function MetricCard({
       ? { fill: theme.colours.brand.surface, on: theme.colours.brand.text }
       : theme.colours.accent[accent];
 
-  const spoken = [title, `${value} ${spokenUnit ?? unit ?? ''}`.trim(), status]
+  const spoken = [title, spokenValue ?? `${value} ${spokenUnit ?? unit ?? ''}`.trim(), status]
     .filter((part) => part !== undefined && part !== '')
     .join(', ');
 

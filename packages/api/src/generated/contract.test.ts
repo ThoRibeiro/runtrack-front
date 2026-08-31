@@ -58,6 +58,17 @@ const CALLED: [method: string, path: string][] = [
   ['put', '/user/v1/me/visibility'],
   ['get', '/user/v1/me/stats'],
   ['get', '/feed/v1'],
+  ['get', '/user/v1'],
+  ['get', '/user/v1/{handle}'],
+  ['get', '/user/v1/{id}/followers'],
+  ['get', '/user/v1/{id}/following'],
+  ['post', '/user/v1/{id}/follow'],
+  ['delete', '/user/v1/{id}/follow'],
+  ['post', '/user/v1/{id}/block'],
+  ['delete', '/user/v1/{id}/block'],
+  ['get', '/user/v1/me/follow-requests'],
+  ['post', '/user/v1/me/follow-requests/{id}/accept'],
+  ['post', '/user/v1/me/follow-requests/{id}/reject'],
 ];
 
 /** Chaque champ que les mappeurs lisent. */
@@ -97,6 +108,12 @@ const READ: [schema: string, field: string][] = [
   ['FeedPage', 'nextCursor'],
   ['NotificationResponse', 'deepLink'],
   ['NotificationResponse', 'unread'],
+  ['UserIdList', 'userIds'],
+  ['UserIdList', 'count'],
+  ['PendingRequest', 'requestId'],
+  ['PendingRequest', 'followerId'],
+  ['FollowResponse', 'status'],
+  ['FollowResponse', 'pending'],
 ];
 
 describe('le contrat n’a pas bougé', () => {

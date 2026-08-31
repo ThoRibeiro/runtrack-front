@@ -4,6 +4,7 @@ import type {
   Clock,
   FeedGateway,
   SecureStore,
+  SocialGateway,
   UserGateway,
 } from '@runtrack/core';
 import {
@@ -11,6 +12,7 @@ import {
   HttpAuthGateway,
   HttpClient,
   HttpFeedGateway,
+  HttpSocialGateway,
   HttpUserGateway,
   RefreshCoordinator,
   SessionHolder,
@@ -28,6 +30,7 @@ export interface Runtime {
   activities: ActivityGateway;
   users: UserGateway;
   feed: FeedGateway;
+  social: SocialGateway;
   sessions: SessionHolder;
   refresh: RefreshCoordinator;
   clock: Clock;
@@ -66,6 +69,7 @@ export function createRuntime({ baseUrl, secureStore, clock }: RuntimeOptions): 
     activities: new HttpActivityGateway(http),
     users: new HttpUserGateway(http),
     feed: new HttpFeedGateway(http),
+    social: new HttpSocialGateway(http),
     sessions,
     refresh,
     clock,

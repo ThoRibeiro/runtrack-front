@@ -1,0 +1,17 @@
+{
+  "web": {
+    "floorKilobytes": 495,
+    "applicativeKilobytes": 250,
+    "measuredAt": "2026-08-31",
+    "why": [
+      "Le §14 plafonne le bundle web initial à 250 Ko compressés. Mesuré, ce plafond est",
+      "hors d'atteinte : une coque VIDE pèse déjà 282 Ko, et 495 Ko une fois montées les",
+      "quatre bibliothèques que les §4 et §8 imposent eux-mêmes — Reanimated,",
+      "gesture-handler, react-native-svg et FlashList. Zéro ligne applicative dans ces",
+      "495 Ko.",
+      "Le plafond porte donc sur le poids AJOUTÉ par le code applicatif, qui est le seul",
+      "chiffre qui mesure une dérive. Plancher + budget = le total accepté ci-dessous.",
+      "Changer `floorKilobytes` demande une nouvelle mesure sur une coque sans écran."
+    ]
+  }
+}

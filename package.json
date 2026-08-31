@@ -18,7 +18,8 @@
     "verify": "turbo run lint typecheck test",
     "web": "pnpm --filter @runtrack/web start",
     "mobile": "pnpm --filter @runtrack/mobile start",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "budget": "node scripts/check-web-budget.mjs --export"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

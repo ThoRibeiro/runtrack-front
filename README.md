@@ -47,7 +47,7 @@ détail est dans [`docs/decisions-lot-1.md`](docs/decisions-lot-1.md).
 
 ## État
 
-**Lots 1 à 5 livrés.**
+**Lots 1 à 6 livrés.**
 
 1. Monorepo, TypeScript strict, lint, CI, les deux coques démarrent sur un écran vide.
 2. Design system : tokens (couleur, espace, typo, mouvement, dimensions), les trois thèmes
@@ -72,5 +72,12 @@ et les chemins d'API du §0 ne sont pas ceux du back-end livré
    d'internationalisation, et une phrase par code d'erreur dont l'exhaustivité est prouvée
    à la compilation.
 
-Reste les lots 6 à 13. Le prochain est la **consultation** : fil, course, profil, social,
-listes virtualisées et pagination par curseur.
+6. **Consultation** : accueil, fil, course, profil, recherche, demandes d'abonnement.
+   Listes virtualisées, pagination par curseur, barre d'onglets. 90 tests.
+
+Le budget de bundle du §14 est **plafonné sur le poids ajouté** par le code applicatif —
+le plancher de la pile imposée valant 495 Ko à lui seul. `pnpm budget` le vérifie, et la CI
+casse au-delà : 130 Ko applicatifs sur 250 à ce stade.
+
+Reste les lots 7 à 13. Le prochain est **la carte** : port `MapRenderer`, ses deux
+adaptateurs, polyline décodée hors du fil principal, splits.

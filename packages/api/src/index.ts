@@ -14,6 +14,7 @@ export { HttpAuthGateway, toSession } from './gateways/httpAuthGateway';
 export { HttpActivityGateway } from './gateways/httpActivityGateway';
 export { HttpUserGateway } from './gateways/httpUserGateway';
 export { HttpFeedGateway } from './gateways/httpFeedGateway';
+export { HttpSocialGateway } from './gateways/httpSocialGateway';
 
 export {
   narrow,

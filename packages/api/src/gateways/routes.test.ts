@@ -4,6 +4,7 @@ import { aHarness } from '../testing/harness';
 import { bodyOf } from '../testing/expect';
 import { HttpActivityGateway } from './httpActivityGateway';
 import { HttpAuthGateway } from './httpAuthGateway';
+import { HttpSocialGateway } from './httpSocialGateway';
 import { HttpUserGateway } from './httpUserGateway';
 
 /**
@@ -136,6 +137,83 @@ const ROUTES: Route[] = [
     body: {},
   },
   {
+    name: 'profil public par pseudonyme',
+    call: (h) => new HttpSocialGateway(h.client).profileOf('camille'),
+    method: 'GET',
+    path: '/user/v1/camille',
+    body: { id: 'u-7', handle: 'camille' },
+  },
+  {
+    name: 'recherche de coureur',
+    call: (h) => new HttpSocialGateway(h.client).search('cam'),
+    method: 'GET',
+    path: '/user/v1?search=cam',
+    body: [],
+  },
+  {
+    name: 'liste des abonnés',
+    call: (h) => new HttpSocialGateway(h.client).followers(U2),
+    method: 'GET',
+    path: '/user/v1/u2/followers',
+    body: { userIds: ['u-1'], count: 128 },
+  },
+  {
+    name: 'liste des abonnements',
+    call: (h) => new HttpSocialGateway(h.client).following(U2),
+    method: 'GET',
+    path: '/user/v1/u2/following',
+    body: { userIds: [], count: 0 },
+  },
+  {
+    name: 'suivre',
+    call: (h) => new HttpSocialGateway(h.client).follow(U2),
+    method: 'POST',
+    path: '/user/v1/u2/follow',
+    body: { status: 'PENDING', pending: true },
+  },
+  {
+    name: 'ne plus suivre',
+    call: (h) => new HttpSocialGateway(h.client).unfollow(U2),
+    method: 'DELETE',
+    path: '/user/v1/u2/follow',
+    body: {},
+  },
+  {
+    name: 'bloquer',
+    call: (h) => new HttpSocialGateway(h.client).block(U2),
+    method: 'POST',
+    path: '/user/v1/u2/block',
+    body: {},
+  },
+  {
+    name: 'débloquer',
+    call: (h) => new HttpSocialGateway(h.client).unblock(U2),
+    method: 'DELETE',
+    path: '/user/v1/u2/block',
+    body: {},
+  },
+  {
+    name: 'demandes en attente',
+    call: (h) => new HttpSocialGateway(h.client).pendingRequests(),
+    method: 'GET',
+    path: '/user/v1/me/follow-requests',
+    body: [],
+  },
+  {
+    name: 'accepter une demande',
+    call: (h) => new HttpSocialGateway(h.client).acceptRequest(U2),
+    method: 'POST',
+    path: '/user/v1/me/follow-requests/u2/accept',
+    body: {},
+  },
+  {
+    name: 'refuser une demande',
+    call: (h) => new HttpSocialGateway(h.client).rejectRequest(U2),
+    method: 'POST',
+    path: '/user/v1/me/follow-requests/u2/reject',
+    body: {},
+  },
+  {
     name: 'inscription',
     call: (h) =>
       new HttpAuthGateway(h.client, h.clock).signUp({
@@ -228,5 +306,55 @@ describe('appels en deux temps', () => {
     await new HttpActivityGateway(harness.client).changeVisibility(A1, 'PUBLIC');
 
     expect(harness.transport.sent.map((request) => request.method)).toEqual(['PUT', 'GET']);
+  });
+});
+
+describe('HttpSocialGateway', () => {
+  it('transpose une liste d’identifiants et garde le compte du serveur', async () => {
+    // Le compte du serveur, pas `userIds.length` : c'est celui qu'affiche
+    // l'en-tête de profil, et il reste juste si la liste est un jour tronquée.
+    const harness = aHarness();
+    harness.transport.answerWith(() => ({ body: { userIds: ['u-1', 'u-2'], count: 128 } }));
+
+    const list = await new HttpSocialGateway(harness.client).followers(U2);
+
+    expect(list.userIds).toEqual(['u-1', 'u-2']);
+    expect(list.count).toBe(128);
+  });
+
+  it('replie sur la longueur quand le serveur omet le compte', async () => {
+    const harness = aHarness();
+    harness.transport.answerWith(() => ({ body: { userIds: ['u-1'] } }));
+
+    expect((await new HttpSocialGateway(harness.client).followers(U2)).count).toBe(1);
+  });
+
+  it('lit l’état d’abonnement, en repliant sur le drapeau « pending »', async () => {
+    const harness = aHarness();
+    harness.transport.answerWith(() => ({ body: { pending: true } }));
+
+    expect(await new HttpSocialGateway(harness.client).follow(U2)).toBe('PENDING');
+  });
+
+  it('transpose une demande en attente', async () => {
+    const harness = aHarness();
+    harness.transport.answerWith(() => ({
+      body: [{ requestId: 'r1', followerId: 'u-9', requestedAt: '2026-01-15T08:00:00Z' }],
+    }));
+
+    const requests = await new HttpSocialGateway(harness.client).pendingRequests();
+
+    expect(requests[0]).toEqual({
+      requestId: 'r1',
+      followerId: 'u-9',
+      requestedAt: Date.UTC(2026, 0, 15, 8, 0, 0),
+    });
+  });
+
+  it('refuse une demande sans auteur, qui ne mènerait à rien', async () => {
+    const harness = aHarness();
+    harness.transport.answerWith(() => ({ body: [{ requestId: 'r1' }] }));
+
+    await expect(new HttpSocialGateway(harness.client).pendingRequests()).rejects.toThrow();
   });
 });

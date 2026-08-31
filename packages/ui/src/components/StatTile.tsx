@@ -9,14 +9,23 @@ export interface StatTileProps {
   value: string;
   unit?: string | undefined;
   spokenUnit?: string | undefined;
+  /** Same reason as `MetricCard`: "1:04:22" is not a sentence. */
+  spokenValue?: string | undefined;
   testID?: string | undefined;
 }
 
-export function StatTile({ label, value, unit, spokenUnit, testID }: StatTileProps): ReactNode {
+export function StatTile({
+  label,
+  value,
+  unit,
+  spokenUnit,
+  spokenValue,
+  testID,
+}: StatTileProps): ReactNode {
   return (
     <View
       accessible
-      accessibilityLabel={`${label}, ${value} ${spokenUnit ?? unit ?? ''}`.trim()}
+      accessibilityLabel={`${label}, ${spokenValue ?? `${value} ${spokenUnit ?? unit ?? ''}`}`.trim()}
       testID={testID}
       style={{ gap: space.xxs, minWidth: space['4xl'] }}
     >

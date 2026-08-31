@@ -35,3 +35,6 @@ jobs:
 
       - name: Format
         run: pnpm exec prettier --check .
+
+      - name: Budget de bundle
+        run: pnpm budget
