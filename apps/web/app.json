@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "RunTrack",
+    "slug": "runtrack-web",
+    "version": "0.1.0",
+    "scheme": "runtrack",
+    "userInterfaceStyle": "automatic",
+    "platforms": ["web"],
+    "web": {
+      "output": "static",
+      "bundler": "metro",
+      "lang": "fr"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "sitemap": false
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

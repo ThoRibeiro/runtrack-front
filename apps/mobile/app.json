@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "RunTrack",
+    "slug": "runtrack",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "runtrack",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "platforms": ["ios", "android"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "fr.runtrack.app"
+    },
+    "android": {
+      "package": "fr.runtrack.app",
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

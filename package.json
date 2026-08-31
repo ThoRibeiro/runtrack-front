@@ -1,0 +1,34 @@
+{
+  "name": "runtrack-front",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.29.2",
+  "volta": {
+    "node": "22.21.1",
+    "pnpm": "10.29.2"
+  },
+  "engines": {
+    "node": ">=22.12.0 <23"
+  },
+  "scripts": {
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "build": "turbo run build",
+    "verify": "turbo run lint typecheck test",
+    "web": "pnpm --filter @runtrack/web start",
+    "mobile": "pnpm --filter @runtrack/mobile start",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@vitest/coverage-v8": "^4.1.11",
+    "eslint": "^10.9.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "prettier": "^3.6.2",
+    "turbo": "^2.10.12",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.68.0",
+    "vitest": "^4.1.11"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "//": "La frontière de l'hexagone, rendue structurelle. Sans lib DOM et sans @types, `fetch`, `localStorage`, `EventSource` et `process` ne compilent tout simplement pas ici : la règle de lint dit pourquoi, ce fichier rend la faute impossible.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "types": []
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
+}
