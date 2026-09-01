@@ -25,6 +25,15 @@ est sur `/gallery` en développement. Elle est retirée du bundle de production.
 
 ```bash
 pnpm verify     # lint + typecheck + tests, ce que la CI exécute
+pnpm budget     # construit l'export web et vérifie le poids ajouté (§14)
+pnpm e2e        # Playwright : parcours web et audit d'accessibilité (§5, §13)
+pnpm lcp        # mesure le LCP en 4G simulée, export servi au préalable
+```
+
+La première exécution de `pnpm e2e` demande un navigateur :
+
+```bash
+pnpm --filter @runtrack/web exec playwright install chromium
 ```
 
 ## Structure
@@ -47,7 +56,7 @@ détail est dans [`docs/decisions-lot-1.md`](docs/decisions-lot-1.md).
 
 ## État
 
-**Lots 1 à 12 livrés.**
+**Les treize lots sont livrés.**
 
 1. Monorepo, TypeScript strict, lint, CI, les deux coques démarrent sur un écran vide.
 2. Design system : tokens (couleur, espace, typo, mouvement, dimensions), les trois thèmes
@@ -125,6 +134,15 @@ et les chemins d'API du §0 ne sont pas ceux du back-end livré
     spinner : `onlineManager` est branché sur le port réseau, et les écrans disent « hors
     connexion » ([`docs/decisions-lot-12.md`](docs/decisions-lot-12.md), §2).
 
+13. **Mesures, accessibilité et livraison** : suite de bout en bout Playwright contre
+    l'export de production, **zéro violation `@axe-core/playwright`** en WCAG 2.2 AA, LCP
+    mesuré en 4G simulée, parcours Maestro écrits, et ce README.
+
+    Cette suite a trouvé **six vrais défauts** au premier passage — dont un
+    `autocomplete` invalide, l'absence de `lang="fr"`, des pages sans titre et une erreur
+    React sur une route inconnue ([`docs/decisions-lot-13.md`](docs/decisions-lot-13.md),
+    §1).
+
 Le budget de bundle du §14 est **plafonné sur le poids ajouté** par le code applicatif —
 le plancher de la pile imposée valant 495 Ko à lui seul — et porte sur le **bundle
 initial** : MapLibre est chargé à la demande, dans un morceau séparé qui n'arrive qu'à
@@ -139,6 +157,30 @@ par le système après un kill, batterie sur une heure de course : rien de tout 
 simule, et c'est la première chose à faire sur un _dev build_
 ([`docs/decisions-lot-9.md`](docs/decisions-lot-9.md), §9).
 
-Reste le lot 13 : performance mesurée contre les budgets du §14, fluidité au profileur,
-conformité WCAG 2.2 AA (outils automatiques **et** passe manuelle), README complet et builds
-de production.
+**Le budget LCP du §14 n'est pas tenu, et c'est structurel.** Mesuré : 4 620 ms en 4G
+simulée contre 2 500 visés — et 192 ms sans bridage, donc l'écart est du transfert. 641 Ko
+compressés à 200 Ko/s font 3,2 s à eux seuls, dont 495 Ko de plancher de pile : une coque
+**vide** dépasserait déjà le budget. Les leviers restants sont hors du code applicatif —
+HTTP/2, Brotli, un CDN ([`docs/decisions-lot-13.md`](docs/decisions-lot-13.md), §3).
+
+## Ce qui reste dû avant une mise en ligne
+
+Le §13 demande des choses qui ne se simulent pas. Elles sont écrites ici plutôt que passées
+sous silence :
+
+- **une passe manuelle VoiceOver / TalkBack**, rideau d'écran activé, sur le chemin
+  critique. Le §5 est explicite : les outils automatiques couvrent environ un tiers des
+  critères, et aucun n'attrape « les quatre fragments décousus » ;
+- **la fluidité mesurée au profileur, fil JS chargé** — pendant qu'une course tourne et
+  qu'un flux SSE arrive à la seconde (§4) ;
+- **l'enregistreur sur un appareil** : service de premier plan tenu trois heures, relance
+  par le système après un kill, batterie sur une heure de course (§6) ;
+- **les parcours Maestro**, écrits dans `apps/mobile/.maestro/` et jamais exécutés : ils
+  demandent un _dev build_, les modules natifs étant absents d'Expo Go ;
+- **les builds iOS et Android**, qui demandent Xcode, un SDK Android ou un projet EAS. Le
+  build web de production, lui, est produit et mesuré à chaque CI ;
+- **un fournisseur de tuiles** : `EXPO_PUBLIC_MAP_STYLE_URL` vaut par défaut le style de
+  démonstration de MapLibre ;
+- côté back-end, **un endpoint qui résout un identifiant de compte en profil**. Sans lui,
+  les listes d'abonnés (lot 6) et les auteurs de commentaires (lot 11) ne peuvent pas être
+  nommés.

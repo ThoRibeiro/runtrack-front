@@ -1,0 +1,63 @@
+# §13 : le chemin critique du §6, en bout-en-bout mobile.
+#
+# Il demande un *dev build* : `expo-location`, `expo-sqlite` et
+# `react-native-maps` sont des modules natifs, absents d'Expo Go. Pour le lancer :
+#
+#     pnpm --filter @runtrack/mobile exec expo prebuild
+#     pnpm --filter @runtrack/mobile exec expo run:ios   # ou run:android
+#     maestro test apps/mobile/.maestro/record-a-run.yaml
+#
+# Il n'a jamais été exécuté ici — cette machine n'a ni simulateur ni appareil
+# branché. Le dire vaut mieux que laisser croire le contraire.
+appId: fr.runtrack.app
+---
+- launchApp:
+    clearState: true
+
+- assertVisible: 'Adresse e-mail'
+- tapOn: 'Adresse e-mail'
+- inputText: 'thomas@example.test'
+- tapOn:
+    id: 'sign-in-password'
+- inputText: 'motdepasse'
+- tapOn:
+    id: 'sign-in-submit'
+
+# L'onglet « Courir » n'existe que sur mobile : §2, le web n'enregistre pas.
+- tapOn: 'Courir'
+- assertVisible: 'Prêt à courir ?'
+
+# §6 : l'explication précède la boîte de dialogue système.
+- assertVisible:
+    text: '.*en permanence.*'
+- tapOn:
+    id: 'prepare-start'
+
+# La permission « toujours » : deux boîtes sur Android, une sur iOS.
+- runFlow:
+    when:
+      visible: 'Autoriser'
+    commands:
+      - tapOn: 'Autoriser'
+
+- assertVisible:
+    id: 'recording-screen'
+- assertVisible: 'Enregistrement'
+
+# Pause, reprise : le GPS s'arrête et repart (lot 9).
+- tapOn:
+    id: 'recording-pause'
+- assertVisible: 'En pause'
+- tapOn:
+    id: 'recording-pause'
+- assertVisible: 'Enregistrement'
+
+# Terminer passe par une confirmation : §6, un appui de travers au km 18.
+- tapOn:
+    id: 'recording-finish'
+- assertVisible: 'Terminer la course ?'
+- tapOn:
+    id: 'recording-confirm-confirm'
+
+- assertVisible:
+    id: 'activity-screen'

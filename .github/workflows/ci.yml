@@ -38,3 +38,11 @@ jobs:
 
       - name: Budget de bundle
         run: pnpm budget
+
+      # §5 : « zéro violation, sinon le build tombe ». L'export de production
+      # est déjà construit par l'étape précédente.
+      - name: Navigateur pour le bout-en-bout
+        run: pnpm --filter @runtrack/web exec playwright install --with-deps chromium
+
+      - name: Bout-en-bout web et accessibilité
+        run: pnpm e2e

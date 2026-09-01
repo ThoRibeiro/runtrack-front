@@ -130,6 +130,10 @@ export const fr = {
   'activity.notFound': 'Course introuvable',
   'activity.splitFocused': 'Kilomètre {index} affiché sur la carte',
 
+  'notFound.title': 'Page introuvable',
+  'notFound.detail': 'Le lien que vous avez suivi ne mène nulle part.',
+  'notFound.home': 'Revenir à l’accueil',
+
   'offline.title': 'Pas de connexion',
   'offline.feed': 'Votre fil se rechargera dès le retour du réseau.',
   'offline.activity': 'Cette course n’a pas encore été ouverte hors connexion.',

@@ -20,7 +20,21 @@ export interface InputProps {
   icon?: IconName | undefined;
   keyboardType?: KeyboardTypeOptions | undefined;
   secureTextEntry?: boolean | undefined;
-  autoComplete?: 'email' | 'password' | 'new-password' | 'name' | 'off' | undefined;
+  /**
+   * The HTML autofill tokens, spelled as HTML spells them.
+   *
+   * `'password'` is **not** one of them — axe reports it as an invalid
+   * autocomplete attribute, and a password manager does not know what to do
+   * with it. The value for a sign-in field is `current-password`; for a new
+   * one, `new-password`. React Native maps both onto its own vocabulary.
+   */
+  autoComplete?:
+    | 'email'
+    | 'current-password'
+    | 'new-password'
+    | 'name'
+    | 'off'
+    | undefined;
   editable?: boolean | undefined;
   testID?: string | undefined;
 }

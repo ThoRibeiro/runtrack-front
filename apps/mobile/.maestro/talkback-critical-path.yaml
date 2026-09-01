@@ -1,0 +1,39 @@
+# §5 : « un parcours Maestro sous TalkBack sur le chemin critique ».
+#
+# Ce que ce fichier vérifie et que le précédent ne vérifie pas : que chaque
+# élément touché **porte un nom**. Maestro sélectionne par texte accessible, donc
+# un `tapOn` qui réussit sous TalkBack prouve qu'un lecteur d'écran aurait trouvé
+# la cible — ce qu'un `tapOn` par identifiant ne prouve pas.
+#
+# À lancer TalkBack activé :
+#     adb shell settings put secure enabled_accessibility_services \
+#       com.google.android.marvin.talkback/.TalkBackService
+#     maestro test apps/mobile/.maestro/talkback-critical-path.yaml
+#
+# Jamais exécuté ici, faute d'appareil.
+appId: fr.runtrack.app
+---
+- launchApp
+
+# Tout ce qui suit se désigne par son nom accessible, jamais par un identifiant.
+- tapOn: 'Courir'
+- tapOn: 'Démarrer la course'
+
+- assertVisible: 'Enregistrement'
+# §5 : les gros nombres sont annoncés avec leur unité, pas nus.
+- assertVisible:
+    text: '.*kilomètres parcourus.*'
+
+- tapOn: 'Pause'
+- assertVisible: 'En pause'
+- tapOn: 'Reprendre'
+
+- tapOn: 'Terminer'
+- tapOn: 'Terminer'
+
+# La course terminée : la carte porte un nom, et les tuiles se lisent d'un bloc.
+- assertVisible: 'Carte du parcours'
+- assertVisible:
+    text: 'Distance, .* kilomètres'
+- tapOn: 'Partager'
+- assertVisible: 'Partager cette course'

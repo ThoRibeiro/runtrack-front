@@ -99,7 +99,7 @@ export function SignInScreen({
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            autoComplete="password"
+            autoComplete="current-password"
             testID="sign-in-password"
           />
         )}

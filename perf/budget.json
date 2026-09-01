@@ -4,14 +4,32 @@
     "applicativeKilobytes": 250,
     "measuredAt": "2026-08-31",
     "why": [
-      "Le §14 plafonne le bundle web initial à 250 Ko compressés. Mesuré, ce plafond est",
-      "hors d'atteinte : une coque VIDE pèse déjà 282 Ko, et 495 Ko une fois montées les",
-      "quatre bibliothèques que les §4 et §8 imposent eux-mêmes — Reanimated,",
-      "gesture-handler, react-native-svg et FlashList. Zéro ligne applicative dans ces",
+      "Le \u00a714 plafonne le bundle web initial \u00e0 250 Ko compress\u00e9s. Mesur\u00e9, ce plafond est",
+      "hors d'atteinte : une coque VIDE p\u00e8se d\u00e9j\u00e0 282 Ko, et 495 Ko une fois mont\u00e9es les",
+      "quatre biblioth\u00e8ques que les \u00a74 et \u00a78 imposent eux-m\u00eames \u2014 Reanimated,",
+      "gesture-handler, react-native-svg et FlashList. Z\u00e9ro ligne applicative dans ces",
       "495 Ko.",
-      "Le plafond porte donc sur le poids AJOUTÉ par le code applicatif, qui est le seul",
-      "chiffre qui mesure une dérive. Plancher + budget = le total accepté ci-dessous.",
-      "Changer `floorKilobytes` demande une nouvelle mesure sur une coque sans écran."
-    ]
+      "Le plafond porte donc sur le poids AJOUT\u00c9 par le code applicatif, qui est le seul",
+      "chiffre qui mesure une d\u00e9rive. Plancher + budget = le total accept\u00e9 ci-dessous.",
+      "Changer `floorKilobytes` demande une nouvelle mesure sur une coque sans \u00e9cran."
+    ],
+    "lcp": {
+      "budgetMillis": 2500,
+      "measuredMillis": 4610,
+      "ceilingMillis": 6000,
+      "measuredAt": "2026-09-01",
+      "why": [
+        "Le \u00a714 vise un LCP \u2264 2,5 s en 4G simul\u00e9e (1,6 Mbps, 150 ms de latence).",
+        "Mesur\u00e9 sur l'export de production : 4 620 / 4 604 / 4 604 ms \u2014 stable. Sans",
+        "bridage : 192 ms. L'\u00e9cart est donc du transfert, pas du rendu.",
+        "Et il est structurel : 641 Ko compress\u00e9s \u00e0 200 Ko/s font 3,2 s de",
+        "t\u00e9l\u00e9chargement \u00e0 eux seuls, dont 495 Ko de plancher de pile \u2014 une coque VIDE",
+        "d\u00e9passerait d\u00e9j\u00e0 les 2,5 s. Voir `floorKilobytes` ci-dessus.",
+        "`ceilingMillis` est un d\u00e9tecteur de r\u00e9gression, pas la cible : il casse le",
+        "build si le LCP d\u00e9rive au-del\u00e0 de la mesure plus une marge de machine.",
+        "Les leviers restants sont hors du code applicatif : HTTP/2, Brotli, un CDN",
+        "proche, et le d\u00e9coupage par route si Expo Router stabilise `asyncRoutes`."
+      ]
+    }
   }
 }

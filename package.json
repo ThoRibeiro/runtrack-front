@@ -19,7 +19,9 @@
     "web": "pnpm --filter @runtrack/web start",
     "mobile": "pnpm --filter @runtrack/mobile start",
     "format": "prettier --write .",
-    "budget": "node scripts/check-web-budget.mjs --export"
+    "budget": "node scripts/check-web-budget.mjs --export",
+    "lcp": "node perf/measure-lcp.mjs",
+    "e2e": "pnpm --filter @runtrack/web e2e"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
