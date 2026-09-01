@@ -26,4 +26,9 @@ export const queryKeys = {
   followers: (id: UserId) => ['social', 'followers', id] as const,
   following: (id: UserId) => ['social', 'following', id] as const,
   followRequests: ['social', 'follow-requests'] as const,
+
+  notifications: ['notification', 'inbox'] as const,
+  unreadCount: ['notification', 'unread-count'] as const,
+  notificationPreferences: ['notification', 'preferences'] as const,
+  devices: ['notification', 'devices'] as const,
 } as const;

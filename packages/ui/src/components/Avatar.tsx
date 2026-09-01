@@ -12,6 +12,14 @@ export interface AvatarProps {
   name: string;
   uri?: string | undefined;
   size?: AvatarSizeToken | undefined;
+  /**
+   * Hides it from the screen reader when a parent already reads the row.
+   *
+   * §5 says an avatar announces the person's name, never "avatar" — which is
+   * right when it stands alone. Inside a row that is already one announcement,
+   * repeating the name makes the reader say it twice.
+   */
+  decorative?: boolean | undefined;
   testID?: string | undefined;
 }
 
@@ -28,15 +36,23 @@ function initialsOf(name: string): string {
   );
 }
 
-export function Avatar({ name, uri, size = 'md', testID }: AvatarProps): ReactNode {
+export function Avatar({
+  name,
+  uri,
+  size = 'md',
+  decorative = false,
+  testID,
+}: AvatarProps): ReactNode {
   const theme = useTheme();
   const diameter = avatarSize[size];
 
   return (
     <View
-      accessible
+      accessible={!decorative}
       accessibilityRole="image"
-      accessibilityLabel={name}
+      accessibilityLabel={decorative ? undefined : name}
+      accessibilityElementsHidden={decorative}
+      importantForAccessibility={decorative ? 'no-hide-descendants' : 'auto'}
       testID={testID}
       style={{
         width: diameter,

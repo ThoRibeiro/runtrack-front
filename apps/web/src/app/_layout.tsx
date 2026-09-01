@@ -6,7 +6,12 @@ import {
   useFonts,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { RuntimeProvider, SessionProvider, createQueryClient } from '@runtrack/features';
+import {
+  NotificationStreamProvider,
+  RuntimeProvider,
+  SessionProvider,
+  createQueryClient,
+} from '@runtrack/features';
 import { ThemeProvider, ToastProvider } from '@runtrack/ui';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -46,11 +51,18 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <RuntimeProvider runtime={runtime}>
             <SessionProvider>
-              <ThemeProvider>
-                <ToastProvider>
-                  <Stack screenOptions={{ headerShown: false }} />
-                </ToastProvider>
-              </ThemeProvider>
+              {/*
+                §12 : le web reçoit le flux de notifications comme le mobile. Ce
+                qu'il n'a pas, c'est le push : pas de jeton, donc pas de
+                `PushRegistry` dans son runtime.
+              */}
+              <NotificationStreamProvider>
+                <ThemeProvider>
+                  <ToastProvider>
+                    <Stack screenOptions={{ headerShown: false }} />
+                  </ToastProvider>
+                </ThemeProvider>
+              </NotificationStreamProvider>
             </SessionProvider>
           </RuntimeProvider>
         </QueryClientProvider>

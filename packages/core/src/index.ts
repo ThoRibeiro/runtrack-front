@@ -162,7 +162,12 @@ export type { Comment, EngagementGateway, Likes } from './engagement/ports/engag
 export type { ShareLink, SharingGateway } from './sharing/ports/sharingGateway';
 
 // Notifications.
-export { NOTIFICATION_TYPES, destinationOf, unreadCount } from './notification/domain/notification';
+export {
+  NOTIFICATION_TYPES,
+  destinationOf,
+  parseDeepLink,
+  unreadCount,
+} from './notification/domain/notification';
 export type { DeepLink, Notification, NotificationType } from './notification/domain/notification';
 export { covers, localMinutes, quietHours, shouldNotify } from './notification/domain/quietHours';
 export type { NotificationPreferences, QuietHours } from './notification/domain/quietHours';

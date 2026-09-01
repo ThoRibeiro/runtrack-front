@@ -15,9 +15,16 @@ import {
 } from '@runtrack/core';
 import { FakeLiveStream, FakeLocationTracker, InMemoryPointBuffer } from '@runtrack/core/testing';
 import { ChunkedTrackDecoder, type MapSurfaceComponent } from '@runtrack/adapters';
-import { SessionHolder, RefreshCoordinator } from '@runtrack/api';
+import { HttpClient, HttpDeviceGateway, SessionHolder, RefreshCoordinator } from '@runtrack/api';
 import { ThemeProvider } from '@runtrack/ui';
-import { FakeActivityGateway, FakeFeedGateway, FakeSocialGateway, FakeUserGateway } from './fakes';
+import {
+  FakeActivityGateway,
+  FakeFeedGateway,
+  FakeNotificationGateway,
+  FakeNotificationStream,
+  FakeSocialGateway,
+  FakeUserGateway,
+} from './fakes';
 import { RecordingProvider } from '../recording/RecordingProvider';
 import { RuntimeProvider } from '../runtime/RuntimeProvider';
 import type { Runtime } from '../runtime/runtime';
@@ -166,6 +173,8 @@ export interface Harness {
   tracker: FakeLocationTracker;
   buffer: InMemoryPointBuffer;
   network: TestNetworkMonitor;
+  notifications: FakeNotificationGateway;
+  notificationStream: FakeNotificationStream;
 }
 
 /** A network a test switches on and off by hand. */
@@ -204,6 +213,8 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
   const social = new FakeSocialGateway();
 
   const live = new FakeLiveStream();
+  const notifications = new FakeNotificationGateway();
+  const notificationStream = new FakeNotificationStream();
   const scheduler = new ManualScheduler();
   const tracker = new FakeLocationTracker();
   const buffer = new InMemoryPointBuffer();
@@ -231,6 +242,19 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     // The real one: a decode is a decode, and slicing it is what §8 asks for.
     trackDecoder: new ChunkedTrackDecoder(),
     live,
+    notifications,
+    notificationStream,
+    // Les appareils passent par un vrai client HTTP, branché sur un transport
+    // qui n'existe pas : aucun test d'écran n'en liste, et l'inventer serait
+    // une doublure de plus à tenir.
+    devices: new HttpDeviceGateway(
+      new HttpClient({
+        baseUrl: 'https://api.test',
+        clock,
+        fetch: () => Promise.reject(new Error('hors ligne')),
+      }),
+    ),
+    push: undefined,
     scheduler,
     // §7's jitter, pinned: a test that reconnects has to know when.
     random: new FixedRandom(0.5),
@@ -251,6 +275,8 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     tracker,
     buffer,
     network,
+    notifications,
+    notificationStream,
   };
 }
 

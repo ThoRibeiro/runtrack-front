@@ -71,6 +71,16 @@ export function covers(window: QuietHours, moment: Instant): boolean {
 export interface NotificationPreferences {
   mutedTypes: readonly string[];
   quietHours: QuietHours | undefined;
+  /**
+   * Every kind the **server** knows about.
+   *
+   * It comes down with the preferences rather than being a constant here, and
+   * the server's own comment says why: a settings screen holding its own list
+   * diverges from the server's the first time a kind is added. `NOTIFICATION_TYPES`
+   * stays, for the switches that have to be exhaustive at compile time; this is
+   * what the screen enumerates.
+   */
+  availableTypes: readonly string[];
 }
 
 /** Whether a notification of this type should reach the phone right now. */

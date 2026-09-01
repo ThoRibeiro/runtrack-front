@@ -6,8 +6,14 @@ import {
   useFonts,
 } from '@expo-google-fonts/plus-jakarta-sans';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { RuntimeProvider, SessionProvider, createQueryClient } from '@runtrack/features';
+import {
+  NotificationStreamProvider,
+  RuntimeProvider,
+  SessionProvider,
+  createQueryClient,
+} from '@runtrack/features';
 import { RecordingProvider } from '@runtrack/features/recording';
+import { PushLinks } from '../config/pushLinks';
 import { ThemeProvider, ToastProvider } from '@runtrack/ui';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -58,12 +64,16 @@ export default function RootLayout() {
                 screen the deep link opens.
               */}
               <RecordingProvider>
-                <ThemeProvider>
-                  <ToastProvider>
-                    <StatusBar style="auto" />
-                    <Stack screenOptions={{ headerShown: false }} />
-                  </ToastProvider>
-                </ThemeProvider>
+                <NotificationStreamProvider>
+                  <PushLinks>
+                    <ThemeProvider>
+                      <ToastProvider>
+                        <StatusBar style="auto" />
+                        <Stack screenOptions={{ headerShown: false }} />
+                      </ToastProvider>
+                    </ThemeProvider>
+                  </PushLinks>
+                </NotificationStreamProvider>
               </RecordingProvider>
             </SessionProvider>
           </RuntimeProvider>

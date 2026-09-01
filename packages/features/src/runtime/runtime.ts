@@ -6,6 +6,9 @@ import type {
   LiveStream,
   LocationTracker,
   NetworkMonitor,
+  NotificationGateway,
+  NotificationStream,
+  PushRegistry,
   PointBuffer,
   Random,
   Scheduler,
@@ -24,12 +27,15 @@ import {
   HttpActivityGateway,
   HttpAuthGateway,
   HttpClient,
+  HttpDeviceGateway,
   HttpFeedGateway,
+  HttpNotificationGateway,
   HttpSocialGateway,
   HttpUserGateway,
   RefreshCoordinator,
   SessionHolder,
   SseLiveStream,
+  SseNotificationStream,
   sseTransportForRuntime,
 } from '@runtrack/api';
 
@@ -58,6 +64,15 @@ export interface Runtime {
   trackDecoder: TrackDecoder;
   /** §7: the SSE stream, behind its port — `EventSource` is not an option. */
   live: LiveStream;
+  notifications: NotificationGateway;
+  /** §12: the second stream, the inbox. */
+  notificationStream: NotificationStream;
+  devices: HttpDeviceGateway;
+  /**
+   * §12: FCM and APNs tokens. `undefined` on the web, which has none — the
+   * port exists so that this is an absent capability rather than a branch.
+   */
+  push: PushRegistry | undefined;
   /** The watchdog and the backoff of §7 need both of these to be testable. */
   scheduler: Scheduler;
   random: Random;
@@ -86,6 +101,15 @@ export interface RuntimeOptions {
   trackDecoder?: TrackDecoder | undefined;
   /** Mobile only (§2). */
   recording?: RecordingCapability | undefined;
+  /**
+   * Mobile only (§12): a browser has no push token.
+   *
+   * A factory rather than an instance: a push registry needs the device
+   * gateway, which is built here. Handing it in afterwards would mean either
+   * mutating the runtime or building a second HTTP client for the same three
+   * endpoints.
+   */
+  push?: ((devices: HttpDeviceGateway) => PushRegistry) | undefined;
 }
 
 export function createRuntime({
@@ -95,6 +119,7 @@ export function createRuntime({
   map,
   trackDecoder,
   recording,
+  push,
 }: RuntimeOptions): Runtime {
   const sessions = new SessionHolder(secureStore);
 
@@ -119,11 +144,18 @@ export function createRuntime({
 
   // The stream carries the same bearer and renews through the same coordinator
   // as every request: §11's single flight covers the live connection too.
+  const transport = sseTransportForRuntime();
   const live = new SseLiveStream({
     baseUrl,
-    transport: sseTransportForRuntime(),
+    transport,
     session: { holder: sessions, refresh },
   });
+  const notificationStream = new SseNotificationStream({
+    baseUrl,
+    transport,
+    session: { holder: sessions, refresh },
+  });
+  const devices = new HttpDeviceGateway(http);
 
   return {
     auth,
@@ -137,6 +169,10 @@ export function createRuntime({
     map,
     trackDecoder: trackDecoder ?? new ChunkedTrackDecoder(),
     live,
+    notifications: new HttpNotificationGateway(http),
+    notificationStream,
+    devices,
+    push: push?.(devices),
     scheduler: new SystemScheduler(),
     random: new SystemRandom(),
     recording,

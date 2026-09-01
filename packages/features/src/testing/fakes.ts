@@ -1,5 +1,6 @@
 import {
   activityId,
+  notificationId,
   userId,
   type Activity,
   type ActivityGateway,
@@ -9,6 +10,12 @@ import {
   type FollowRequest,
   type FollowStatus,
   type IngestionOutcome,
+  type LiveMessage,
+  type Notification,
+  type NotificationGateway,
+  type NotificationId,
+  type NotificationPreferences,
+  type NotificationStream,
   type PointBatch,
   type StartActivityCommand,
   type MyProfile,
@@ -326,5 +333,95 @@ export class FakeSocialGateway implements SocialGateway {
   rejectRequest(id: UserId): Promise<void> {
     this.answered.push({ id, accept: false });
     return Promise.resolve();
+  }
+}
+
+export function aNotification(overrides: Partial<Notification> = {}): Notification {
+  return {
+    id: notificationId('n1'),
+    type: 'ACTIVITY_LIKED',
+    createdAt: 1_700_000_000_000,
+    readAt: undefined,
+    unread: true,
+    actorId: userId('u-9'),
+    deepLink: '/activities/a1',
+    aggregateCount: 1,
+    ...overrides,
+  };
+}
+
+/** La boîte de réception, pilotée par le test. */
+export class FakeNotificationGateway implements NotificationGateway {
+  page: Page<Notification> = { items: [aNotification()] };
+  unread = 3;
+  prefs: NotificationPreferences = {
+    mutedTypes: [],
+    quietHours: undefined,
+    availableTypes: ['ACTIVITY_LIKED', 'NEW_FOLLOWER', 'FOLLOW_REQUEST'],
+  };
+  readonly markedRead: NotificationId[] = [];
+  markedAll = 0;
+  onInbox: (() => Promise<Page<Notification>>) | undefined;
+
+  inbox(): Promise<Page<Notification>> {
+    return this.onInbox === undefined ? Promise.resolve(this.page) : this.onInbox();
+  }
+
+  unreadCount(): Promise<number> {
+    return Promise.resolve(this.unread);
+  }
+
+  markRead(id: NotificationId): Promise<void> {
+    this.markedRead.push(id);
+    this.unread = Math.max(0, this.unread - 1);
+    return Promise.resolve();
+  }
+
+  markAllRead(): Promise<number> {
+    this.markedAll += 1;
+    const marked = this.unread;
+    this.unread = 0;
+    return Promise.resolve(marked);
+  }
+
+  preferences(): Promise<NotificationPreferences> {
+    return Promise.resolve(this.prefs);
+  }
+
+  updatePreferences(preferences: NotificationPreferences): Promise<NotificationPreferences> {
+    this.prefs = { ...preferences, availableTypes: this.prefs.availableTypes };
+    return Promise.resolve(this.prefs);
+  }
+}
+
+/** Le flux de la boîte, que le test alimente à la main. */
+export class FakeNotificationStream implements NotificationStream {
+  openCount = 0;
+  closed = 0;
+  lastEventIds: (string | undefined)[] = [];
+  private current:
+    { onMessage: (message: LiveMessage) => void; onError: (error: unknown) => void } | undefined;
+
+  open(request: {
+    lastEventId?: string | undefined;
+    onMessage: (message: LiveMessage) => void;
+    onError: (error: unknown) => void;
+  }): { close: () => void } {
+    this.openCount += 1;
+    this.lastEventIds.push(request.lastEventId);
+    this.current = request;
+    return {
+      close: () => {
+        this.closed += 1;
+      },
+    };
+  }
+
+  deliver(message: LiveMessage): void {
+    this.current?.onMessage(message);
+  }
+
+  fail(error: unknown): void {
+    this.current?.onError(error);
   }
 }

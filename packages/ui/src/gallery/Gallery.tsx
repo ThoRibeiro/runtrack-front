@@ -29,6 +29,7 @@ import {
   Sparkline,
   Spinner,
   StatTile,
+  Slider,
   Switch,
   TabBar,
   Tabs,
@@ -65,6 +66,7 @@ function Body(): ReactNode {
   const theme = useTheme();
   const [checked, setChecked] = useState(true);
   const [switched, setSwitched] = useState(false);
+  const [hour, setHour] = useState(22);
   const [radio, setRadio] = useState<'public' | 'followers' | 'private'>('followers');
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('week');
   const [tab, setTab] = useState('home');
@@ -215,6 +217,21 @@ function Body(): ReactNode {
           </FormField>
           <FormField label="Accepter les conditions" error="À cocher pour continuer">
             {(field) => <Checkbox field={field} value={checked} onValueChange={setChecked} />}
+          </FormField>
+          <FormField label="Ne rien recevoir à partir de">
+            {(field) => (
+              <Slider
+                field={field}
+                minimum={0}
+                maximum={23}
+                step={1}
+                defaultValue={22}
+                value={hour}
+                onValueChange={setHour}
+                // §5 : « 22 h », pas « 22 » — un nombre nu ne dit pas de quoi.
+                formatValue={(value: number) => `${String(value)} h`}
+              />
+            )}
           </FormField>
         </View>
       </Section>

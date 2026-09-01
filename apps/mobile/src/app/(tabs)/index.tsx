@@ -6,7 +6,7 @@ export default function HomeRoute(): ReactNode {
   return (
     <HomeScreen
       onOpenNotifications={() => {
-        router.push('/follow-requests');
+        router.navigate('/notifications');
       }}
       onOpenProfile={() => {
         router.navigate('/profile');

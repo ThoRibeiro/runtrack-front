@@ -15,6 +15,8 @@ export { HttpActivityGateway } from './gateways/httpActivityGateway';
 export { HttpUserGateway } from './gateways/httpUserGateway';
 export { HttpFeedGateway } from './gateways/httpFeedGateway';
 export { HttpSocialGateway } from './gateways/httpSocialGateway';
+export { HttpNotificationGateway } from './gateways/httpNotificationGateway';
+export { HttpDeviceGateway } from './gateways/httpDeviceGateway';
 
 export {
   narrow,
@@ -41,13 +43,26 @@ export {
   toRunnerTotals,
 } from './mappers/user';
 export { toFeedItem } from './mappers/feed';
+export {
+  toDevice,
+  toLocalTime,
+  toMinutes,
+  toNotification,
+  toPreferences,
+  toQuietHours,
+} from './mappers/notification';
+export type { Device } from './mappers/notification';
 
 export type { components, operations, paths } from './generated/schema';
 
 // Direct — le SSE, ses deux transports, et la traduction des événements.
 export { SseFrameParser } from './live/sseFrames';
 export { SseLiveStream } from './live/sseLiveStream';
+export { SseNotificationStream } from './live/sseNotificationStream';
+export { SseSubscriber } from './live/sseSubscriber';
 export type { SseLiveStreamOptions } from './live/sseLiveStream';
+export type { SseNotificationStreamOptions } from './live/sseNotificationStream';
+export type { SseSubscriberOptions, SseSubscriptionRequest } from './live/sseSubscriber';
 export { parseLiveEvent } from './live/liveParser';
 export {
   fetchSseTransport,

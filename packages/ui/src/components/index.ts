@@ -45,6 +45,8 @@ export { Sheet } from './Sheet';
 export type { SheetProps } from './Sheet';
 export { Skeleton } from './Skeleton';
 export type { SkeletonProps } from './Skeleton';
+export { Slider } from './Slider';
+export type { SliderProps } from './Slider';
 export { BarSeries, Sparkline } from './Sparkline';
 export type { SeriesProps } from './Sparkline';
 export { Spinner } from './Spinner';

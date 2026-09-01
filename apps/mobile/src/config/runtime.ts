@@ -7,6 +7,7 @@ import {
   openRecordingDatabase,
   useBufferInBackground,
 } from '@runtrack/adapters/recording/native';
+import { ExpoPushRegistry } from '@runtrack/adapters/notification/native';
 import { createRuntime, type Runtime } from '@runtrack/features';
 
 /**
@@ -48,4 +49,7 @@ export const runtime: Runtime = createRuntime({
     tracker: new ExpoLocationTracker(),
     network: new ExpoNetworkMonitor(),
   },
+  // Le registre reçoit la passerelle d'appareils que le runtime construit :
+  // une seule pile HTTP, et rien à muter après coup.
+  push: (devices) => new ExpoPushRegistry(devices),
 });

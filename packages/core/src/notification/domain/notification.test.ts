@@ -128,22 +128,40 @@ describe('faut-il notifier', () => {
 
   it('ne notifie pas une nature coupée', () => {
     expect(
-      shouldNotify({ mutedTypes: ['ACTIVITY_LIKED'], quietHours: undefined }, 'ACTIVITY_LIKED', 0),
+      shouldNotify(
+        { mutedTypes: ['ACTIVITY_LIKED'], quietHours: undefined, availableTypes: [] },
+        'ACTIVITY_LIKED',
+        0,
+      ),
     ).toBe(false);
   });
 
   it('notifie hors des heures calmes', () => {
-    const preferences = { mutedTypes: [], quietHours: quietHours(22 * 60, 7 * 60, paris) };
+    const preferences = {
+      mutedTypes: [],
+      quietHours: quietHours(22 * 60, 7 * 60, paris),
+      availableTypes: [],
+    };
     expect(shouldNotify(preferences, 'NEW_FOLLOWER', Date.UTC(2026, 0, 15, 11, 0))).toBe(true);
   });
 
   it('se tait pendant les heures calmes', () => {
-    const preferences = { mutedTypes: [], quietHours: quietHours(22 * 60, 7 * 60, paris) };
+    const preferences = {
+      mutedTypes: [],
+      quietHours: quietHours(22 * 60, 7 * 60, paris),
+      availableTypes: [],
+    };
     expect(shouldNotify(preferences, 'NEW_FOLLOWER', Date.UTC(2026, 0, 15, 23, 0))).toBe(false);
   });
 
   it('notifie toujours sans plage définie', () => {
-    expect(shouldNotify({ mutedTypes: [], quietHours: undefined }, 'NEW_FOLLOWER', 0)).toBe(true);
+    expect(
+      shouldNotify(
+        { mutedTypes: [], quietHours: undefined, availableTypes: [] },
+        'NEW_FOLLOWER',
+        0,
+      ),
+    ).toBe(true);
   });
 });
 
