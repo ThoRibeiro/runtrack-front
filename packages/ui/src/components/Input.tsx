@@ -28,13 +28,7 @@ export interface InputProps {
    * with it. The value for a sign-in field is `current-password`; for a new
    * one, `new-password`. React Native maps both onto its own vocabulary.
    */
-  autoComplete?:
-    | 'email'
-    | 'current-password'
-    | 'new-password'
-    | 'name'
-    | 'off'
-    | undefined;
+  autoComplete?: 'email' | 'current-password' | 'new-password' | 'name' | 'off' | undefined;
   editable?: boolean | undefined;
   testID?: string | undefined;
 }

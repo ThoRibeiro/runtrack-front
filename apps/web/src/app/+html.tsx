@@ -27,10 +27,7 @@ export default function Root({ children }: { children: ReactNode }): ReactNode {
           `maximum-scale` : §5 exige que la mise en page survive à 200 % de
           zoom, et empêcher de zoomer est la façon la plus directe de la violer.
         */}
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, viewport-fit=cover"
-        />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="description" content="RunTrack — suivi de courses à pied" />
         <title>RunTrack</title>
         <ScrollViewStyleReset />

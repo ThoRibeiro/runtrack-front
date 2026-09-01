@@ -14,7 +14,11 @@ import { View } from 'react-native';
 export default function NotFound(): ReactNode {
   return (
     <View style={{ flex: 1 }} testID="not-found">
-      <EmptyState icon="search" title={translate('notFound.title')} description={translate('notFound.detail')} />
+      <EmptyState
+        icon="search"
+        title={translate('notFound.title')}
+        description={translate('notFound.detail')}
+      />
       <Link href="/" accessibilityLabel={translate('notFound.home')}>
         {translate('notFound.home')}
       </Link>
