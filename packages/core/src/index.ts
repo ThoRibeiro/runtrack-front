@@ -97,6 +97,7 @@ export type {
 } from './recording/domain/ingestion';
 export type { InterruptedRecording, PointBuffer } from './recording/ports/pointBuffer';
 export type { LocationPermission, LocationTracker } from './recording/ports/locationTracker';
+export type { NetworkMonitor } from './recording/ports/networkMonitor';
 export { Recorder } from './recording/usecases/recorder';
 export type {
   RecorderDependencies,

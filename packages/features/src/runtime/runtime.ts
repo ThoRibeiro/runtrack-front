@@ -4,6 +4,9 @@ import type {
   Clock,
   FeedGateway,
   LiveStream,
+  LocationTracker,
+  NetworkMonitor,
+  PointBuffer,
   Random,
   Scheduler,
   SecureStore,
@@ -58,6 +61,20 @@ export interface Runtime {
   /** The watchdog and the backoff of §7 need both of these to be testable. */
   scheduler: Scheduler;
   random: Random;
+  /**
+   * §2: **the web cannot record.** A browser does not do background
+   * geolocation and its tab falls asleep — a fact to accept, not a limitation
+   * to work around. So this is `undefined` on the web shell, and the screens
+   * that need it only exist on mobile.
+   */
+  recording: RecordingCapability | undefined;
+}
+
+/** What §6 needs from the platform, and what the web shell cannot provide. */
+export interface RecordingCapability {
+  buffer: PointBuffer;
+  tracker: LocationTracker;
+  network: NetworkMonitor;
 }
 
 export interface RuntimeOptions {
@@ -67,6 +84,8 @@ export interface RuntimeOptions {
   map: MapSurfaceComponent;
   /** Defaults to the sliced decoder; a test hands in its own. */
   trackDecoder?: TrackDecoder | undefined;
+  /** Mobile only (§2). */
+  recording?: RecordingCapability | undefined;
 }
 
 export function createRuntime({
@@ -75,6 +94,7 @@ export function createRuntime({
   clock,
   map,
   trackDecoder,
+  recording,
 }: RuntimeOptions): Runtime {
   const sessions = new SessionHolder(secureStore);
 
@@ -119,5 +139,6 @@ export function createRuntime({
     live,
     scheduler: new SystemScheduler(),
     random: new SystemRandom(),
+    recording,
   };
 }

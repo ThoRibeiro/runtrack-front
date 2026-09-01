@@ -1,4 +1,9 @@
-import type { Activity, ActivityType, Visibility } from '../../activity/domain/activity';
+import type {
+  Activity,
+  ActivityStats,
+  ActivityType,
+  Visibility,
+} from '../../activity/domain/activity';
 import { acceptsPoints } from '../../activity/domain/activity';
 import type { LocationFix, RecordedPoint } from '../../activity/domain/track';
 import type { ActivityGateway } from '../../activity/ports/activityGateway';
@@ -53,11 +58,24 @@ export class Recorder {
   private skew: ClockSkew = { offset: 0 };
   private accuracyStreak = 0;
   private warnings: readonly RecordingWarning[] = [];
+  private lastStats: ActivityStats | undefined;
 
   constructor(private readonly deps: RecorderDependencies) {}
 
   get activity(): Activity | undefined {
     return this.current;
+  }
+
+  /**
+   * What the server has counted, as of the last flush.
+   *
+   * The server's figures and not a local sum: it filters implausible points and
+   * smooths elevation, so a distance computed on the phone drifts away from the
+   * one the run will end up having. The screen shows the truth, a few seconds
+   * late, rather than a number that will be corrected later.
+   */
+  get stats(): ActivityStats | undefined {
+    return this.lastStats;
   }
 
   /**
@@ -94,14 +112,13 @@ export class Recorder {
     this.current = activity;
     this.accuracyStreak = 0;
     this.warnings = [];
+    this.lastStats = activity.stats;
     await this.deps.buffer.remember({
       activityId: activity.id,
       skew: this.skew,
       startedAt: activity.startedAt,
     });
-    await this.deps.tracker.start((fix) => {
-      void this.record(fix);
-    });
+    await this.startTracking();
 
     return { kind: 'started', state: { activity, skew: this.skew, warnings: [] } };
   }
@@ -151,6 +168,7 @@ export class Recorder {
       // still owed to the server, whether it was rejected or never reached it.
       await this.deps.buffer.purgeUpTo(activity.id, outcome.lastAcceptedSequence);
       this.accuracyStreak = trailingAccuracyRejections(outcome, this.accuracyStreak);
+      this.lastStats = outcome.stats;
     }
 
     const remaining = await this.deps.buffer.pendingCount(activity.id);
@@ -159,12 +177,25 @@ export class Recorder {
     return this.warnings;
   }
 
+  /**
+   * Pausing stops the GPS as well as the activity.
+   *
+   * Two reasons, and both are §6's. A run is paused at a red light or a water
+   * fountain, and a phone that keeps a navigation-grade fix going meanwhile
+   * spends battery on a trace nobody wants. And the server refuses points on a
+   * paused activity — recording them anyway would fill the buffer with
+   * rejections and make the warning of §6 meaningless.
+   */
   async pause(): Promise<Activity | undefined> {
-    return this.transition((id) => this.deps.gateway.pause(id));
+    const paused = await this.transition((id) => this.deps.gateway.pause(id));
+    if (paused !== undefined) await this.deps.tracker.stop();
+    return paused;
   }
 
   async resume(): Promise<Activity | undefined> {
-    return this.transition((id) => this.deps.gateway.resume(id));
+    const resumed = await this.transition((id) => this.deps.gateway.resume(id));
+    if (resumed !== undefined) await this.startTracking();
+    return resumed;
   }
 
   /** Flushes first: finishing with points still buffered would lose the end of the run. */
@@ -214,9 +245,7 @@ export class Recorder {
     this.current = activity;
     this.skew = recording.skew;
     this.accuracyStreak = 0;
-    await this.deps.tracker.start((fix) => {
-      void this.record(fix);
-    });
+    await this.startTracking();
     return { activity, skew: this.skew, warnings: this.warnings };
   }
 
@@ -228,6 +257,12 @@ export class Recorder {
     const next = await move(activity.id);
     this.current = next;
     return next;
+  }
+
+  private async startTracking(): Promise<void> {
+    await this.deps.tracker.start((fix) => {
+      void this.record(fix);
+    });
   }
 
   private async stopTracking(): Promise<void> {

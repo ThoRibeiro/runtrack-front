@@ -29,3 +29,8 @@ export type {
 
 // Le temps et l'aléa de la plateforme, derrière leurs ports.
 export { SystemRandom, SystemScheduler } from './system/systemScheduler';
+
+// L'enregistrement n'est pas ici. §2 : seul le mobile enregistre, et tout ce que
+// cet index exporte finit dans le bundle web — un tampon SQLite compris.
+// Il vit derrière `@runtrack/adapters/recording/native`, qui de surcroît
+// enregistre une tâche système au chargement : rien à faire dans un navigateur.

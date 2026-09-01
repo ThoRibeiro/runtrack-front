@@ -247,6 +247,33 @@ describe('Recorder', () => {
       expect((await recorder.resume())?.status.kind).toBe('live');
     });
 
+    it('coupe le GPS en pause et le rallume à la reprise', async () => {
+      const startsBefore = tracker.starts;
+
+      await recorder.pause();
+      expect(tracker.stops).toBe(1);
+
+      await recorder.resume();
+      expect(tracker.starts).toBe(startsBefore + 1);
+    });
+
+    it('n’enregistre rien pendant une pause : le serveur refuserait ces points', async () => {
+      await recorder.pause();
+
+      expect(await recorder.record(aFix())).toBeUndefined();
+    });
+
+    it('ne touche pas au GPS quand la transition n’a pas eu lieu', async () => {
+      const fresh = new Recorder({ gateway, buffer, tracker, clock });
+      const { starts, stops } = tracker;
+
+      await fresh.pause();
+      await fresh.resume();
+
+      expect(tracker.stops).toBe(stops);
+      expect(tracker.starts).toBe(starts);
+    });
+
     it('ne transitionne pas sans course en cours', async () => {
       const fresh = new Recorder({ gateway, buffer, tracker, clock });
 

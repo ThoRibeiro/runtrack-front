@@ -7,6 +7,7 @@ import {
 } from '@expo-google-fonts/plus-jakarta-sans';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { RuntimeProvider, SessionProvider, createQueryClient } from '@runtrack/features';
+import { RecordingProvider } from '@runtrack/features/recording';
 import { ThemeProvider, ToastProvider } from '@runtrack/ui';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -51,12 +52,19 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <RuntimeProvider runtime={runtime}>
             <SessionProvider>
-              <ThemeProvider>
-                <ToastProvider>
-                  <StatusBar style="auto" />
-                  <Stack screenOptions={{ headerShown: false }} />
-                </ToastProvider>
-              </ThemeProvider>
+              {/*
+                §6: mounted here, above the router, because it looks for a run a
+                crash left behind — which has to happen once at launch, whatever
+                screen the deep link opens.
+              */}
+              <RecordingProvider>
+                <ThemeProvider>
+                  <ToastProvider>
+                    <StatusBar style="auto" />
+                    <Stack screenOptions={{ headerShown: false }} />
+                  </ToastProvider>
+                </ThemeProvider>
+              </RecordingProvider>
             </SessionProvider>
           </RuntimeProvider>
         </QueryClientProvider>

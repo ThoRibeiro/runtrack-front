@@ -9,14 +9,16 @@ import {
   userId,
   type AuthGateway,
   type MapRenderer,
+  type NetworkMonitor,
   type SecureStore,
   type Session,
 } from '@runtrack/core';
-import { FakeLiveStream } from '@runtrack/core/testing';
+import { FakeLiveStream, FakeLocationTracker, InMemoryPointBuffer } from '@runtrack/core/testing';
 import { ChunkedTrackDecoder, type MapSurfaceComponent } from '@runtrack/adapters';
 import { SessionHolder, RefreshCoordinator } from '@runtrack/api';
 import { ThemeProvider } from '@runtrack/ui';
 import { FakeActivityGateway, FakeFeedGateway, FakeSocialGateway, FakeUserGateway } from './fakes';
+import { RecordingProvider } from '../recording/RecordingProvider';
 import { RuntimeProvider } from '../runtime/RuntimeProvider';
 import type { Runtime } from '../runtime/runtime';
 import { SessionProvider } from '../session/SessionProvider';
@@ -161,6 +163,30 @@ export interface Harness {
   map: RecordingMapRenderer;
   live: FakeLiveStream;
   scheduler: ManualScheduler;
+  tracker: FakeLocationTracker;
+  buffer: InMemoryPointBuffer;
+  network: TestNetworkMonitor;
+}
+
+/** A network a test switches on and off by hand. */
+export class TestNetworkMonitor implements NetworkMonitor {
+  connected = true;
+  private listeners = new Set<() => void>();
+
+  isConnected(): Promise<boolean> {
+    return Promise.resolve(this.connected);
+  }
+
+  onRestored(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  /** The runner leaves the tunnel. */
+  restore(): void {
+    this.connected = true;
+    for (const listener of this.listeners) listener();
+  }
 }
 
 export function aRuntime(options: { session?: Session } = {}): Harness {
@@ -179,6 +205,9 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
 
   const live = new FakeLiveStream();
   const scheduler = new ManualScheduler();
+  const tracker = new FakeLocationTracker();
+  const buffer = new InMemoryPointBuffer();
+  const network = new TestNetworkMonitor();
   const map = new RecordingMapRenderer();
   const MapSurface: MapSurfaceComponent = ({ onReady, accessibilityLabel, testID }) => {
     // Handed over once, on mount, the way a real surface does when its canvas
@@ -205,9 +234,24 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     scheduler,
     // §7's jitter, pinned: a test that reconnects has to know when.
     random: new FixedRandom(0.5),
+    recording: { buffer, tracker, network },
   };
 
-  return { runtime, auth, feed, activities, users, social, store, map, live, scheduler };
+  return {
+    runtime,
+    auth,
+    feed,
+    activities,
+    users,
+    social,
+    store,
+    map,
+    live,
+    scheduler,
+    tracker,
+    buffer,
+    network,
+  };
 }
 
 /**
@@ -245,6 +289,35 @@ export function renderWithRuntime(node: ReactElement, harness: Harness): Promise
         <RuntimeProvider runtime={harness.runtime}>
           <SessionProvider>
             <ThemeProvider name="light">{children}</ThemeProvider>
+          </SessionProvider>
+        </RuntimeProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  return render(<Providers>{node}</Providers>);
+}
+
+/**
+ * The provider stack with the recorder in it.
+ *
+ * Separate from `renderWithRuntime` because §2 makes recording a mobile-only
+ * capability: mounting a recorder for every screen test would state the
+ * opposite, and the web shell genuinely does not have one.
+ */
+export function renderRecording(node: ReactElement, harness: Harness): Promise<RenderResult> {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0 }, mutations: { retry: false } },
+  });
+
+  function Providers({ children }: { children: ReactNode }): ReactNode {
+    return (
+      <QueryClientProvider client={client}>
+        <RuntimeProvider runtime={harness.runtime}>
+          <SessionProvider>
+            <RecordingProvider>
+              <ThemeProvider name="run">{children}</ThemeProvider>
+            </RecordingProvider>
           </SessionProvider>
         </RuntimeProvider>
       </QueryClientProvider>

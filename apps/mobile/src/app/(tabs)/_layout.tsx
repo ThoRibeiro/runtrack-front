@@ -7,9 +7,10 @@ import type { ReactNode } from 'react';
  * The four-tab bar of §3, drawn by the design system rather than by the router.
  *
  * Expo Router owns the routes; `TabBar` owns the look and the accessibility —
- * `selected` announced, the active tab named as well as coloured. Three tabs
- * for now: notifications arrive with lot 10, and a tab that leads nowhere is
- * worse than one that is not there.
+ * `selected` announced, the active tab named as well as coloured. Four tabs
+ * here and three on the web: **only mobile records** (§2), and the web does not
+ * show a greyed-out "démarrer une course" — it does not mention it at all.
+ * Notifications arrive with lot 10.
  *
  * The route guard lives here rather than in each screen: everything under this
  * layout needs a session, and saying it once is what stops a screen from
@@ -19,6 +20,7 @@ import type { ReactNode } from 'react';
 const TABS = [
   { key: '/', icon: 'home', label: 'Accueil' },
   { key: '/feed', icon: 'users', label: 'Fil' },
+  { key: '/record', icon: 'play', label: 'Courir' },
   { key: '/profile', icon: 'user', label: 'Profil' },
 ] as const satisfies readonly TabItem[];
 
@@ -54,6 +56,7 @@ export default function TabsLayout(): ReactNode {
     >
       <Tabs.Screen name="index" options={{ title: translate('home.ready') }} />
       <Tabs.Screen name="feed" options={{ title: translate('feed.title') }} />
+      <Tabs.Screen name="record" options={{ title: translate('record.prepareTitle') }} />
       <Tabs.Screen name="profile" options={{ title: translate('profile.activities') }} />
     </Tabs>
   );

@@ -122,6 +122,8 @@ export class InMemoryPointBuffer implements PointBuffer {
 export class FakeLocationTracker implements LocationTracker {
   started = false;
   stopped = false;
+  starts = 0;
+  stops = 0;
   private emit: ((fix: LocationFix) => void) | undefined;
 
   constructor(private granted: LocationPermission = 'granted-always') {}
@@ -136,18 +138,26 @@ export class FakeLocationTracker implements LocationTracker {
 
   start(onFix: (fix: LocationFix) => void): Promise<void> {
     this.started = true;
+    this.starts += 1;
     this.emit = onFix;
     return Promise.resolve();
   }
 
   stop(): Promise<void> {
     this.stopped = true;
+    this.stops += 1;
+    this.emit = undefined;
     return Promise.resolve();
   }
 
   /** Pushes a fix as the platform would. */
   produce(fix: LocationFix): void {
     this.emit?.(fix);
+  }
+
+  /** The runner says no to the system dialog. */
+  deny(): void {
+    this.granted = 'denied';
   }
 }
 

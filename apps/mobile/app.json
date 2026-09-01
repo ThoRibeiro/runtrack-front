@@ -10,13 +10,37 @@
     "platforms": ["ios", "android"],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "fr.runtrack.app"
+      "bundleIdentifier": "fr.runtrack.app",
+      "infoPlist": {
+        "UIBackgroundModes": ["location", "fetch"],
+        "NSLocationWhenInUseUsageDescription": "RunTrack enregistre votre trajet pendant que vous courez.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "RunTrack continue d\u2019enregistrer votre course quand l\u2019\u00e9cran est verrouill\u00e9 ou que le t\u00e9l\u00e9phone est dans une poche.",
+        "NSMotionUsageDescription": "La d\u00e9tection de mouvement affine la distance quand le signal GPS faiblit."
+      }
     },
     "android": {
       "package": "fr.runtrack.app",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
+      ]
     },
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "RunTrack continue d\u2019enregistrer votre course quand l\u2019\u00e9cran est verrouill\u00e9.",
+          "locationWhenInUsePermission": "RunTrack enregistre votre trajet pendant que vous courez.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

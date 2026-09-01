@@ -64,13 +64,20 @@ export function Modal({
           <Text variant="title">{title}</Text>
           {children}
           <View style={{ flexDirection: 'row', gap: space.sm }}>
-            <Button label={cancelLabel} variant="outline" onPress={onClose} style={{ flex: 1 }} />
+            <Button
+              label={cancelLabel}
+              variant="outline"
+              onPress={onClose}
+              style={{ flex: 1 }}
+              testID={testID === undefined ? undefined : `${testID}-cancel`}
+            />
             {confirmLabel !== undefined && (
               <Button
                 label={confirmLabel}
                 variant={destructive ? 'danger' : 'solid'}
                 onPress={onConfirm}
                 style={{ flex: 1 }}
+                testID={testID === undefined ? undefined : `${testID}-confirm`}
               />
             )}
           </View>

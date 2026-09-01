@@ -47,7 +47,7 @@ détail est dans [`docs/decisions-lot-1.md`](docs/decisions-lot-1.md).
 
 ## État
 
-**Lots 1 à 8 livrés.**
+**Lots 1 à 9 livrés.**
 
 1. Monorepo, TypeScript strict, lint, CI, les deux coques démarrent sur un écran vide.
 2. Design system : tokens (couleur, espace, typo, mouvement, dimensions), les trois thèmes
@@ -93,14 +93,29 @@ et les chemins d'API du §0 ne sont pas ceux du back-end livré
    Un `position` par seconde pendant trois heures ne provoque **aucun rendu** : la carte est
    nourrie impérativement, et le bandeau rend au plus une fois par seconde.
 
+9. **L'enregistreur** (mobile) : permission « toujours » demandée au bon moment, service de
+   premier plan Android, modes d'arrière-plan iOS, **tampon SQLite** écrit avant tout envoi,
+   lots idempotents toutes les sept secondes ou au retour du réseau, et reprise d'une course
+   qu'un crash a laissée. L'écran porte le **thème de course** (§3) et lui seul.
+
+   La tâche d'arrière-plan **écrit elle-même dans SQLite quand l'application a été tuée** :
+   c'est ce qui tient la promesse du §6
+   ([`docs/decisions-lot-9.md`](docs/decisions-lot-9.md), §1). Le tampon est testé contre un
+   vrai moteur SQLite, kill de l'application compris.
+
 Le budget de bundle du §14 est **plafonné sur le poids ajouté** par le code applicatif —
 le plancher de la pile imposée valant 495 Ko à lui seul — et porte sur le **bundle
 initial** : MapLibre est chargé à la demande, dans un morceau séparé qui n'arrive qu'à
-l'ouverture d'une course. `pnpm budget` le vérifie, et la CI casse au-delà : **141 Ko
+l'ouverture d'une course. `pnpm budget` le vérifie, et la CI casse au-delà : **146 Ko
 applicatifs sur 250** à ce stade, plus 273 Ko différés.
 
 Avant une mise en production, il manque un **fournisseur de tuiles** :
 `EXPO_PUBLIC_MAP_STYLE_URL` vaut par défaut le style de démonstration de MapLibre.
 
-Reste les lots 9 à 13. Le prochain est **l'enregistreur** : permissions, service de premier
-plan, tampon SQLite, envoi par lots idempotent, reprise après crash.
+**L'enregistreur demande un appareil.** Service de premier plan tenu trois heures, relance
+par le système après un kill, batterie sur une heure de course : rien de tout cela ne se
+simule, et c'est la première chose à faire sur un _dev build_
+([`docs/decisions-lot-9.md`](docs/decisions-lot-9.md), §9).
+
+Reste les lots 10 à 13. Le prochain est **les notifications** : push, liens profonds, boîte
+de réception, préférences et heures calmes, appareils.

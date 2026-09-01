@@ -8,6 +8,9 @@ import {
   type FeedItem,
   type FollowRequest,
   type FollowStatus,
+  type IngestionOutcome,
+  type PointBatch,
+  type StartActivityCommand,
   type MyProfile,
   type Page,
   type PublicProfile,
@@ -139,7 +142,20 @@ export class FakeActivityGateway implements ActivityGateway {
   activities: Page<Activity> = { items: [anActivity()] };
   onById: (() => Promise<Activity>) | undefined;
 
-  start(): Promise<Activity> {
+  /**
+   * Une course qui démarre est **vivante** : la doublure par défaut est
+   * terminée, parce que les écrans de consultation en montrent une, et un
+   * enregistreur qui démarrerait dessus n'accepterait aucun point.
+   */
+  start(command: StartActivityCommand): Promise<Activity> {
+    this.activity = anActivity({
+      type: command.type,
+      title: command.title,
+      visibility: command.visibility,
+      status: { kind: 'live', since: command.deviceTime },
+      startedAt: command.deviceTime,
+      endedAt: undefined,
+    });
     return Promise.resolve(this.activity);
   }
 
@@ -147,23 +163,40 @@ export class FakeActivityGateway implements ActivityGateway {
     return this.onById === undefined ? Promise.resolve(this.activity) : this.onById();
   }
 
-  ingest(): never {
-    throw new Error('non utilisé à ce lot');
+  readonly ingested: PointBatch[] = [];
+  /** Ce que répond la prochaine ingestion. Par défaut : tout est accepté. */
+  nextOutcome: ((batch: PointBatch) => IngestionOutcome) | undefined;
+
+  ingest(batch: PointBatch): Promise<IngestionOutcome> {
+    this.ingested.push(batch);
+    if (this.nextOutcome !== undefined) return Promise.resolve(this.nextOutcome(batch));
+
+    const last = batch.points[batch.points.length - 1];
+    return Promise.resolve({
+      stats: this.activity.stats,
+      lastAcceptedSequence: last?.sequenceNumber ?? -1,
+      acceptedCount: batch.points.length,
+      rejected: [],
+    });
   }
 
   pause(): Promise<Activity> {
+    this.activity = { ...this.activity, status: { kind: 'paused', since: 1 } };
     return Promise.resolve(this.activity);
   }
 
   resume(): Promise<Activity> {
+    this.activity = { ...this.activity, status: { kind: 'live', since: 2 } };
     return Promise.resolve(this.activity);
   }
 
   finish(): Promise<Activity> {
+    this.activity = { ...this.activity, status: { kind: 'finished', since: 3 } };
     return Promise.resolve(this.activity);
   }
 
   discard(): Promise<Activity> {
+    this.activity = { ...this.activity, status: { kind: 'discarded', since: 4 } };
     return Promise.resolve(this.activity);
   }
 
