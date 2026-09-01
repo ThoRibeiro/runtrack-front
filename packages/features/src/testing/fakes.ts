@@ -1,6 +1,8 @@
 import {
   activityId,
+  commentId,
   notificationId,
+  shareLinkId,
   userId,
   type Activity,
   type ActivityGateway,
@@ -9,7 +11,12 @@ import {
   type FeedItem,
   type FollowRequest,
   type FollowStatus,
+  type ActivityId,
+  type Comment,
+  type CommentId,
+  type EngagementGateway,
   type IngestionOutcome,
+  type Likes,
   type LiveMessage,
   type Notification,
   type NotificationGateway,
@@ -17,6 +24,9 @@ import {
   type NotificationPreferences,
   type NotificationStream,
   type PointBatch,
+  type ShareLink,
+  type ShareLinkId,
+  type SharingGateway,
   type StartActivityCommand,
   type MyProfile,
   type Page,
@@ -423,5 +433,108 @@ export class FakeNotificationStream implements NotificationStream {
 
   fail(error: unknown): void {
     this.current?.onError(error);
+  }
+}
+
+export function aComment(overrides: Partial<Comment> = {}): Comment {
+  return {
+    id: commentId('c1'),
+    activityId: activityId('a1'),
+    authorId: userId('u-9'),
+    body: 'Belle sortie',
+    postedAt: 1_700_000_000_000,
+    editedAt: undefined,
+    parentId: undefined,
+    deleted: false,
+    ...overrides,
+  };
+}
+
+/** J'aime et commentaires, pilotés par le test. */
+export class FakeEngagementGateway implements EngagementGateway {
+  likeState: Likes = { total: 2, likedByViewer: false, recentUserIds: [userId('u-9')] };
+  thread: Page<Comment> = { items: [aComment()] };
+  readonly posted: { body: string; parentId: CommentId | undefined }[] = [];
+  readonly deleted: CommentId[] = [];
+  onPost: (() => Promise<Comment>) | undefined;
+
+  likes(): Promise<Likes> {
+    return Promise.resolve(this.likeState);
+  }
+
+  like(): Promise<Likes> {
+    this.likeState = {
+      ...this.likeState,
+      total: this.likeState.total + 1,
+      likedByViewer: true,
+    };
+    return Promise.resolve(this.likeState);
+  }
+
+  unlike(): Promise<Likes> {
+    this.likeState = {
+      ...this.likeState,
+      total: Math.max(0, this.likeState.total - 1),
+      likedByViewer: false,
+    };
+    return Promise.resolve(this.likeState);
+  }
+
+  comments(): Promise<Page<Comment>> {
+    return Promise.resolve(this.thread);
+  }
+
+  postComment(_activityId: ActivityId, body: string, parentId?: CommentId): Promise<Comment> {
+    this.posted.push({ body, parentId });
+    if (this.onPost !== undefined) return this.onPost();
+    const posted = aComment({ id: commentId(`c-${String(this.posted.length + 1)}`), body });
+    this.thread = { items: [...this.thread.items, posted] };
+    return Promise.resolve(posted);
+  }
+
+  editComment(id: CommentId, body: string): Promise<Comment> {
+    return Promise.resolve(aComment({ id, body, editedAt: 1_700_000_100_000 }));
+  }
+
+  deleteComment(id: CommentId): Promise<void> {
+    this.deleted.push(id);
+    this.thread = {
+      items: this.thread.items.map((comment) =>
+        comment.id === id ? { ...comment, deleted: true, body: '' } : comment,
+      ),
+    };
+    return Promise.resolve();
+  }
+}
+
+/** Les liens de partage. */
+export class FakeSharingGateway implements SharingGateway {
+  links: ShareLink[] = [];
+  readonly revoked: ShareLinkId[] = [];
+  onCreate: (() => Promise<ShareLink>) | undefined;
+
+  linksOf(): Promise<readonly ShareLink[]> {
+    return Promise.resolve(this.links);
+  }
+
+  create(): Promise<ShareLink> {
+    if (this.onCreate !== undefined) return this.onCreate();
+    const created: ShareLink = {
+      id: shareLinkId('s1'),
+      token: 'jeton-clair',
+      url: '/shared/v1/jeton-clair',
+      createdAt: 1_700_000_000_000,
+      expiresAt: undefined,
+      revokedAt: undefined,
+      viewCount: 0,
+    };
+    this.links = [...this.links, created];
+    return Promise.resolve(created);
+  }
+
+  revoke(id: ShareLinkId): Promise<void> {
+    this.revoked.push(id);
+    this.links = this.links.filter((link) => link.id !== id);
+    return Promise.resolve();
   }
 }

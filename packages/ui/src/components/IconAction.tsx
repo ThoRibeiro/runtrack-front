@@ -21,6 +21,12 @@ export interface IconActionProps {
   onPress?: (() => void) | undefined;
   active?: boolean | undefined;
   disabled?: boolean | undefined;
+  /**
+   * Defaults to the label. Set it when the label alone does not carry the
+   * state — a heart labelled "12 j'aime" has to say *whether* it is liked,
+   * because §15 forbids leaving that to the fill colour.
+   */
+  accessibilityLabel?: string | undefined;
   testID?: string | undefined;
 }
 
@@ -30,6 +36,7 @@ export function IconAction({
   onPress,
   active = false,
   disabled = false,
+  accessibilityLabel,
   testID,
 }: IconActionProps): ReactNode {
   const theme = useTheme();
@@ -39,7 +46,7 @@ export function IconAction({
       onPress={onPress}
       disabled={disabled}
       haptic="light"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ selected: active }}
       enforceTouchTarget={false}
       testID={testID}

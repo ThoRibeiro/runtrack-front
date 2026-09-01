@@ -24,7 +24,9 @@ import {
   spokenPace,
 } from '../../format';
 import { describeError, translate } from '../../i18n';
+import { CommentThread, LikeButton, ShareSheet } from '../../engagement';
 import { ActivityMap, useDecodedTrack, useTrack } from '../../map';
+import { useRuntime } from '../../runtime/RuntimeProvider';
 import { useActivity, useSplits } from '../hooks/useActivity';
 
 /**
@@ -40,16 +42,20 @@ export interface ActivityScreenProps {
   id: ActivityId;
   onBack: () => void;
   onFollowLive: (id: ActivityId) => void;
-  onShare: (id: ActivityId) => void;
+  /** Handed a URL to put on the clipboard; the shell owns that. */
+  onCopyLink?: ((url: string) => void) | undefined;
 }
 
 export function ActivityScreen({
   id,
   onBack,
   onFollowLive,
-  onShare,
+  onCopyLink,
 }: ActivityScreenProps): ReactNode {
   const theme = useTheme();
+  const runtime = useRuntime();
+  const [sharing, setSharing] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const { height } = useWindowDimensions();
   const activity = useActivity(id);
   const [splitsOpen, setSplitsOpen] = useState(false);
@@ -176,11 +182,12 @@ export function ActivityScreen({
             }}
             testID="activity-follow-live"
           />
+          <LikeButton activityId={id} testID="activity-like" />
           <IconAction
             icon="share"
             label={translate('activity.share')}
             onPress={() => {
-              onShare(id);
+              setSharing(true);
             }}
             testID="activity-share"
           />
@@ -224,6 +231,21 @@ export function ActivityScreen({
 
         <View style={{ gap: space.sm }}>
           <IconAction
+            icon={commentsOpen ? 'chevron-down' : 'chevron-right'}
+            label={translate('engagement.comments')}
+            active={commentsOpen}
+            onPress={() => {
+              // Même règle que les kilomètres : un fil est une requête que
+              // personne n'a demandée tant que la section est fermée.
+              setCommentsOpen(!commentsOpen);
+            }}
+            testID="activity-comments-toggle"
+          />
+          {commentsOpen && <CommentThread activityId={id} testID="activity-comments" />}
+        </View>
+
+        <View style={{ gap: space.sm }}>
+          <IconAction
             icon={splitsOpen ? 'chevron-down' : 'chevron-right'}
             label={translate('activity.splits')}
             active={splitsOpen}
@@ -260,6 +282,16 @@ export function ActivityScreen({
             ))}
         </View>
       </ScrollView>
+
+      <ShareSheet
+        activityId={id}
+        visible={sharing}
+        baseUrl={runtime.baseUrl}
+        onCopy={onCopyLink}
+        onClose={() => {
+          setSharing(false);
+        }}
+      />
     </View>
   );
 }

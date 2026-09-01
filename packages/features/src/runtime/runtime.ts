@@ -3,6 +3,7 @@ import type {
   AuthGateway,
   Clock,
   FeedGateway,
+  EngagementGateway,
   LiveStream,
   LocationTracker,
   NetworkMonitor,
@@ -13,6 +14,7 @@ import type {
   Random,
   Scheduler,
   SecureStore,
+  SharingGateway,
   SocialGateway,
   TrackDecoder,
   UserGateway,
@@ -28,8 +30,10 @@ import {
   HttpAuthGateway,
   HttpClient,
   HttpDeviceGateway,
+  HttpEngagementGateway,
   HttpFeedGateway,
   HttpNotificationGateway,
+  HttpSharingGateway,
   HttpSocialGateway,
   HttpUserGateway,
   RefreshCoordinator,
@@ -47,12 +51,18 @@ import {
  * receives ports; it never builds one.
  */
 export interface Runtime {
+  /** The base URL, kept so a share page can build its own paths (§10, web). */
+  baseUrl: string;
   auth: AuthGateway;
   activities: ActivityGateway;
   users: UserGateway;
   feed: FeedGateway;
   social: SocialGateway;
+  engagement: EngagementGateway;
+  sharing: SharingGateway;
   sessions: SessionHolder;
+  /** For the share pages, which build `/shared/v1/{token}` paths of their own. */
+  http: HttpClient;
   refresh: RefreshCoordinator;
   clock: Clock;
   /**
@@ -156,14 +166,20 @@ export function createRuntime({
     session: { holder: sessions, refresh },
   });
   const devices = new HttpDeviceGateway(http);
+  // The share pages need the raw client: their paths are not the activity ones.
+  const httpClient = http;
 
   return {
+    baseUrl,
     auth,
     activities: new HttpActivityGateway(http),
     users: new HttpUserGateway(http),
     feed: new HttpFeedGateway(http),
     social: new HttpSocialGateway(http),
+    engagement: new HttpEngagementGateway(http),
+    sharing: new HttpSharingGateway(http),
     sessions,
+    http: httpClient,
     refresh,
     clock,
     map,

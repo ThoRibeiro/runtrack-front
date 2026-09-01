@@ -17,6 +17,9 @@ export { HttpFeedGateway } from './gateways/httpFeedGateway';
 export { HttpSocialGateway } from './gateways/httpSocialGateway';
 export { HttpNotificationGateway } from './gateways/httpNotificationGateway';
 export { HttpDeviceGateway } from './gateways/httpDeviceGateway';
+export { HttpEngagementGateway, toComment, toLikes } from './gateways/httpEngagementGateway';
+export { HttpSharingGateway, toShareLink } from './gateways/httpSharingGateway';
+export { SharedActivityGateway } from './gateways/sharedActivityGateway';
 
 export {
   narrow,

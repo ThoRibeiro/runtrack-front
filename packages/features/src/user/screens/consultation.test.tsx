@@ -63,13 +63,7 @@ describe('HomeScreen', () => {
 
 describe('ActivityScreen', () => {
   const activity = (props: Partial<Parameters<typeof ActivityScreen>[0]> = {}) => (
-    <ActivityScreen
-      id={activityId('a1')}
-      onBack={noop}
-      onFollowLive={noop}
-      onShare={noop}
-      {...props}
-    />
+    <ActivityScreen id={activityId('a1')} onBack={noop} onFollowLive={noop} {...props} />
   );
 
   it('montre les statistiques de la course, chacune nommée', async () => {

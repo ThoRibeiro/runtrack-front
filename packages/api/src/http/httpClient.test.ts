@@ -130,13 +130,16 @@ describe('en-têtes', () => {
     expect(harness.transport.sent[0]?.headers['idempotency-key']).toBe('a1:0-999');
   });
 
-  it('porte le jeton d’un lien de partage', async () => {
+  it('n’envoie aucun porteur sur un chemin de partage', async () => {
+    // Le jeton d'un lien voyage dans le chemin — `/shared/v1/{token}` — et le
+    // serveur le résout là. Un porteur de session en plus ferait répondre le
+    // serveur en tant que ce compte, pas en tant que porteur du lien.
     const harness = aHarness();
     harness.transport.answerWith(() => ({ body: {} }));
 
-    await harness.client.request('/race/v1/a1', { shareToken: 'jeton-de-partage' });
+    await harness.client.request('/shared/v1/jeton', { anonymous: true });
 
-    expect(harness.transport.sent[0]?.headers['x-share-token']).toBe('jeton-de-partage');
+    expect(harness.transport.sent[0]?.headers['authorization']).toBeUndefined();
   });
 
   it('accepte un 204 par le chemin sans corps', async () => {

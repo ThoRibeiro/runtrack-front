@@ -24,7 +24,14 @@ export interface SseSubscriberOptions {
   transport: SseTransport;
   session?: { holder: SessionHolder; refresh: RefreshCoordinator } | undefined;
   newCorrelationId?: CorrelationIdFactory | undefined;
-  shareToken?: string | undefined;
+  /**
+   * Opens the stream without a bearer.
+   *
+   * A share link is read by someone who may have no account: the token is in
+   * the URL — `/shared/v1/{token}/stream` — and the server resolves it there.
+   * Sending a session bearer as well would have it answer as that account.
+   */
+  anonymous?: boolean | undefined;
 }
 
 export interface SseSubscriptionRequest {
@@ -156,12 +163,11 @@ export class SseSubscriber {
     };
 
     if (lastEventId !== undefined) headers['Last-Event-ID'] = lastEventId;
-    if (this.options.shareToken !== undefined) {
-      headers['X-Share-Token'] = this.options.shareToken;
-    }
 
     const token = this.options.session?.holder.current()?.accessToken;
-    if (token !== undefined) headers['Authorization'] = `Bearer ${token}`;
+    if (token !== undefined && this.options.anonymous !== true) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
 
     return headers;
   }

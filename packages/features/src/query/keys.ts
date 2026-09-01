@@ -31,4 +31,11 @@ export const queryKeys = {
   unreadCount: ['notification', 'unread-count'] as const,
   notificationPreferences: ['notification', 'preferences'] as const,
   devices: ['notification', 'devices'] as const,
+
+  likes: (id: ActivityId) => ['activity', id, 'likes'] as const,
+  comments: (id: ActivityId) => ['activity', id, 'comments'] as const,
+  shareLinks: (id: ActivityId) => ['activity', id, 'share-links'] as const,
+  sharedActivity: (token: string) => ['shared', token] as const,
+  sharedTrack: (token: string) => ['shared', token, 'track'] as const,
+  sharedSplits: (token: string) => ['shared', token, 'splits'] as const,
 } as const;

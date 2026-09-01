@@ -41,7 +41,7 @@ function harnessWithTrack(points = aTrack(), splits: readonly Split[] = []) {
 }
 
 const activityScreen = (): React.ReactElement => (
-  <ActivityScreen id={activityId('a1')} onBack={noop} onFollowLive={noop} onShare={noop} />
+  <ActivityScreen id={activityId('a1')} onBack={noop} onFollowLive={noop} />
 );
 
 describe('la carte d’une course', () => {

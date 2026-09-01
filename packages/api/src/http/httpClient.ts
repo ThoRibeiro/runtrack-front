@@ -22,9 +22,11 @@ export interface RequestOptions {
   body?: unknown;
   /** §6: one key per batch, scoped to an activity. */
   idempotencyKey?: string;
-  /** A share-link token opens a private activity with no session at all. */
-  shareToken?: string;
-  /** Set for the endpoints that must never carry a bearer — the refresh itself. */
+  /**
+   * Set for the endpoints that must never carry a bearer: the refresh itself,
+   * and the share-link paths — a link is read by someone who may have no
+   * account, and a stale bearer would have the server answer as them.
+   */
   anonymous?: boolean;
 }
 
@@ -104,7 +106,6 @@ export class HttpClient {
     if (options.idempotencyKey !== undefined) {
       headers['Idempotency-Key'] = options.idempotencyKey;
     }
-    if (options.shareToken !== undefined) headers['X-Share-Token'] = options.shareToken;
 
     const token = this.options.session?.holder.current()?.accessToken;
     if (token !== undefined && options.anonymous !== true) {

@@ -265,14 +265,19 @@ describe('SseLiveStream', () => {
     });
   });
 
-  it('ouvre sans jeton une page publique, avec son jeton de partage', () => {
+  it('ouvre sans porteur quand le flux est anonyme — une page publique', async () => {
     const { transport, opened } = recordingTransport();
-    new SseLiveStream({ baseUrl: 'https://api.test', transport, shareToken: 'sh-9' }).open(
-      aRequest(),
-    );
+    const session = await aSessionPair();
+    new SseLiveStream({
+      baseUrl: 'https://api.test',
+      transport,
+      session,
+      anonymous: true,
+    }).open(aRequest());
 
+    // Le jeton du lien est dans le chemin, pas dans un en-tête : envoyer le
+    // porteur en plus ferait répondre le serveur en tant que ce compte.
     expect(opened[0]?.headers['Authorization']).toBeUndefined();
-    expect(opened[0]?.headers['X-Share-Token']).toBe('sh-9');
   });
 
   it('assemble les fragments et remonte des messages entiers', () => {

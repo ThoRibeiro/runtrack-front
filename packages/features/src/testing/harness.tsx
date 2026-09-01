@@ -19,9 +19,11 @@ import { HttpClient, HttpDeviceGateway, SessionHolder, RefreshCoordinator } from
 import { ThemeProvider } from '@runtrack/ui';
 import {
   FakeActivityGateway,
+  FakeEngagementGateway,
   FakeFeedGateway,
   FakeNotificationGateway,
   FakeNotificationStream,
+  FakeSharingGateway,
   FakeSocialGateway,
   FakeUserGateway,
 } from './fakes';
@@ -175,6 +177,8 @@ export interface Harness {
   network: TestNetworkMonitor;
   notifications: FakeNotificationGateway;
   notificationStream: FakeNotificationStream;
+  engagement: FakeEngagementGateway;
+  sharing: FakeSharingGateway;
 }
 
 /** A network a test switches on and off by hand. */
@@ -214,6 +218,8 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
 
   const live = new FakeLiveStream();
   const notifications = new FakeNotificationGateway();
+  const engagement = new FakeEngagementGateway();
+  const sharing = new FakeSharingGateway();
   const notificationStream = new FakeNotificationStream();
   const scheduler = new ManualScheduler();
   const tracker = new FakeLocationTracker();
@@ -229,13 +235,23 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     return <View accessibilityLabel={accessibilityLabel} testID={testID} />;
   };
 
+  const http = new HttpClient({
+    baseUrl: 'https://api.test',
+    clock,
+    fetch: () => Promise.reject(new Error('hors ligne')),
+  });
+
   const runtime: Runtime = {
+    baseUrl: 'https://api.test',
     auth,
     activities,
     users,
     feed,
     social,
+    engagement,
+    sharing,
     sessions,
+    http,
     refresh: new RefreshCoordinator(sessions, () => auth.refresh(), clock),
     clock,
     map: MapSurface,
@@ -247,13 +263,7 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     // Les appareils passent par un vrai client HTTP, branché sur un transport
     // qui n'existe pas : aucun test d'écran n'en liste, et l'inventer serait
     // une doublure de plus à tenir.
-    devices: new HttpDeviceGateway(
-      new HttpClient({
-        baseUrl: 'https://api.test',
-        clock,
-        fetch: () => Promise.reject(new Error('hors ligne')),
-      }),
-    ),
+    devices: new HttpDeviceGateway(http),
     push: undefined,
     scheduler,
     // §7's jitter, pinned: a test that reconnects has to know when.
@@ -277,6 +287,8 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     network,
     notifications,
     notificationStream,
+    engagement,
+    sharing,
   };
 }
 

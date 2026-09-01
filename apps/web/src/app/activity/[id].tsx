@@ -1,5 +1,6 @@
 import { ActivityScreen } from '@runtrack/features';
 import { activityId } from '@runtrack/core';
+import * as Clipboard from 'expo-clipboard';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { ReactNode } from 'react';
 
@@ -15,8 +16,8 @@ export default function ActivityRoute(): ReactNode {
       onFollowLive={(activity) => {
         router.push(`/activity/${activity}/live`);
       }}
-      onShare={() => {
-        // Le partage arrive au lot 11 : rien ici plutôt qu'un bouton qui ment.
+      onCopyLink={(url) => {
+        void Clipboard.setStringAsync(url);
       }}
     />
   );
