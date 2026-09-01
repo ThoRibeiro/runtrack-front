@@ -4,3 +4,7 @@ dist
 coverage
 .expo
 pnpm-lock.yaml
+
+# Généré par Expo au premier build, et ignoré par git : le formater serait
+# vérifier le style d'un fichier que personne n'écrit.
+expo-env.d.ts

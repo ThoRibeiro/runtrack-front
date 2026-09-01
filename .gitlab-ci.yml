@@ -1,0 +1,47 @@
+# GitLab Pages sert le contenu du dossier `public/` produit par le job `pages`,
+# et uniquement celui-là : le nom du job et le chemin de l'artefact sont imposés
+# par GitLab, ce ne sont pas des conventions locales.
+#
+# Le site vit dans `site/` et est copié à la publication. Le garder hors de
+# `public/` évite qu'un dossier de build traîne dans le dépôt.
+
+default:
+  image: node:22
+  before_script:
+    - corepack enable
+    - pnpm install --frozen-lockfile
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - .pnpm-store
+
+variables:
+  PNPM_HOME: /root/.local/share/pnpm
+
+stages:
+  - verify
+  - deploy
+
+verify:
+  stage: verify
+  script:
+    - pnpm lint
+    - pnpm typecheck
+    - pnpm test
+    - pnpm exec prettier --check .
+    - pnpm budget
+
+pages:
+  stage: deploy
+  # Le site est statique : ni installation ni build, la copie suffit.
+  before_script: []
+  cache: {}
+  script:
+    - cp -r site public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

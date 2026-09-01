@@ -56,7 +56,8 @@ export const Logo = memo(function Logo({
 }: LogoProps) {
   const theme = useTheme();
   const tile = tileColour ?? theme.colours.brand.solid;
-  const stroke = colour ?? (variant === 'tile' ? theme.colours.brand.onSolid : theme.colours.brand.fill);
+  const stroke =
+    colour ?? (variant === 'tile' ? theme.colours.brand.onSolid : theme.colours.brand.fill);
 
   // `react-native-svg` déclare `testID?: string` sans `undefined` : sous
   // `exactOptionalPropertyTypes`, la prop se pose ou ne se pose pas.
@@ -64,9 +65,7 @@ export const Logo = memo(function Logo({
 
   const content = (
     <>
-      {variant === 'tile' ? (
-        <Rect width={GRID} height={GRID} rx={TILE_CORNER} fill={tile} />
-      ) : null}
+      {variant === 'tile' ? <Rect width={GRID} height={GRID} rx={TILE_CORNER} fill={tile} /> : null}
       <Path
         d={TRACE}
         stroke={stroke}

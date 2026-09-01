@@ -8,18 +8,12 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "platforms": [
-      "ios",
-      "android"
-    ],
+    "platforms": ["ios", "android"],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "fr.runtrack.app",
       "infoPlist": {
-        "UIBackgroundModes": [
-          "location",
-          "fetch"
-        ],
+        "UIBackgroundModes": ["location", "fetch"],
         "NSLocationWhenInUseUsageDescription": "RunTrack enregistre votre trajet pendant que vous courez.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "RunTrack continue d’enregistrer votre course quand l’écran est verrouillé ou que le téléphone est dans une poche.",
         "NSMotionUsageDescription": "La détection de mouvement affine la distance quand le signal GPS faiblit."

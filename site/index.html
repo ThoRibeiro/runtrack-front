@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RunTrack — comment le front est fait</title>
+    <meta
+      name="description"
+      content="Un client web, iOS et Android construit en treize lots : l'hexagone, le design system, les mesures — et ce qui reste dû."
+    />
+    <meta name="theme-color" content="#2563EB" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip" href="#contenu">Aller au contenu</a>
+
+    <header class="topbar">
+      <a class="brand" href="#">
+        <svg class="mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+          <path
+            d="M13 44 L24 30 L32 36 L45 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="5.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <circle cx="45" cy="18" r="6.6" fill="currentColor" />
+        </svg>
+        <span>RunTrack</span>
+      </a>
+      <nav aria-label="Sections">
+        <a href="#architecture">Architecture</a>
+        <a href="#design">Design system</a>
+        <a href="#decisions">Décisions</a>
+        <a href="#mesures">Mesures</a>
+        <a href="#reste">Ce qui reste dû</a>
+      </nav>
+    </header>
+
+    <main id="contenu">
+      <section class="hero">
+        <p class="overline">Front — web, iOS, Android</p>
+        <h1>Un seul code, trois cibles,<br />treize lots livrés un par un.</h1>
+        <p class="lede">
+          Le client de RunTrack, une application de suivi de courses à pied. Expo et
+          <code>react-native-web</code> pour les trois plateformes, un monorepo pnpm, et une règle
+          qui tient tout le reste&nbsp;: <strong>le métier ne connaît aucune plateforme</strong>.
+          Cette page raconte comment il est fait — décisions comprises, y compris celles qui n'ont
+          pas abouti.
+        </p>
+
+        <dl class="figures">
+          <div>
+            <dt>lots livrés</dt>
+            <dd>13</dd>
+          </div>
+          <div>
+            <dt>tests</dt>
+            <dd>983</dd>
+          </div>
+          <div>
+            <dt>paquets</dt>
+            <dd>5</dd>
+          </div>
+          <div>
+            <dt>composants</dt>
+            <dd>37</dd>
+          </div>
+          <div>
+            <dt>thèmes</dt>
+            <dd>3</dd>
+          </div>
+          <div>
+            <dt>violations d'accessibilité</dt>
+            <dd>0</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section id="architecture">
+        <p class="overline">L'architecture</p>
+        <h2>Un hexagone qui ne peut pas mentir</h2>
+        <p>
+          <code>packages/core</code> contient le domaine, les calculs purs et les cas d'usage. Zéro
+          React, zéro Expo, zéro DOM, zéro dépendance. Ce n'est pas une convention&nbsp;: c'est
+          vérifié à chaque build par <strong>trois gardes indépendantes</strong>, et il faut les
+          contourner toutes les trois pour y glisser un import de plateforme.
+        </p>
+
+        <div class="guards">
+          <article>
+            <h3>Une règle de lint</h3>
+            <p>
+              Elle interdit nommément les imports de React, d'Expo et des modules Node depuis
+              <code>core</code>. Elle échoue vite, dans l'éditeur.
+            </p>
+          </article>
+          <article>
+            <h3>Un <code>tsconfig</code> sans <code>lib.dom</code></h3>
+            <p>
+              Ni types globaux. <code>window</code>, <code>fetch</code> et <code>setTimeout</code>
+              n'existent tout simplement pas pour le compilateur.
+            </p>
+          </article>
+          <article>
+            <h3>Un test</h3>
+            <p>
+              Il parcourt l'arbre des dépendances réelles du paquet publié. C'est la seule garde que
+              la configuration ne peut pas assouplir par accident.
+            </p>
+          </article>
+        </div>
+
+        <figure class="diagram">
+          <svg viewBox="0 0 720 300" role="img" aria-labelledby="diagram-titre diagram-desc">
+            <title id="diagram-titre">Les cinq paquets et le sens des dépendances</title>
+            <desc id="diagram-desc">
+              Les écrans et le design system dépendent des cas d'usage du cœur, qui déclare onze
+              ports. Les adaptateurs, propres à chaque plateforme, implémentent ces ports. Toutes
+              les flèches pointent vers le cœur.
+            </desc>
+
+            <rect class="box outer" x="16" y="24" width="200" height="76" rx="14" />
+            <text class="lbl" x="116" y="56">apps/mobile · apps/web</text>
+            <text class="sub" x="116" y="78">les deux coques</text>
+
+            <rect class="box outer" x="16" y="124" width="200" height="76" rx="14" />
+            <text class="lbl" x="116" y="156">packages/features · ui</text>
+            <text class="sub" x="116" y="178">écrans, design system</text>
+
+            <rect class="box outer" x="16" y="224" width="200" height="60" rx="14" />
+            <text class="lbl" x="116" y="250">packages/adapters · api</text>
+            <text class="sub" x="116" y="270">SQLite, GPS, SSE, HTTP</text>
+
+            <rect class="box core" x="380" y="60" width="300" height="180" rx="20" />
+            <text class="lbl core-lbl" x="530" y="112">packages/core</text>
+            <text class="sub core-sub" x="530" y="138">domaine · calculs purs · cas d'usage</text>
+            <text class="sub core-sub" x="530" y="164">onze ports déclarés ici</text>
+            <text class="sub core-sub strong" x="530" y="198">aucune dépendance</text>
+
+            <g class="arrow">
+              <path d="M224 62 H372" marker-end="url(#tip)" />
+              <path d="M224 162 H372" marker-end="url(#tip)" />
+              <path d="M224 254 H320 V212 H372" marker-end="url(#tip)" />
+            </g>
+
+            <defs>
+              <marker
+                id="tip"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="7"
+                markerHeight="7"
+                orient="auto"
+              >
+                <path d="M0 0 L10 5 L0 10 z" />
+              </marker>
+            </defs>
+          </svg>
+          <figcaption>
+            Les flèches ne pointent que dans un sens. Un adaptateur connaît le port qu'il
+            implémente&nbsp;; le cœur ne sait pas qu'il existe.
+          </figcaption>
+        </figure>
+
+        <p>
+          Le bénéfice se voit à l'endroit où l'on ne l'attend pas&nbsp;: la carte a
+          <strong>deux adaptateurs</strong> — <code>react-native-maps</code> sur mobile, MapLibre GL
+          sur le web — et pas un seul <code>Platform.OS</code> dans un écran. Le choix se fait à la
+          résolution du module, pas à l'exécution.
+        </p>
+      </section>
+
+      <section id="design">
+        <p class="overline">Le design system</p>
+        <h2>Trois thèmes déclarés token par token</h2>
+        <p>
+          Aucune valeur de couleur ne se lit ailleurs que dans le thème — une règle de lint refuse
+          un code hexadécimal écrit dans un écran. Les trois thèmes (clair, sombre, et un thème de
+          course lisible en plein soleil) déclarent les mêmes clés&nbsp;: un composant qui marche
+          dans l'un marche dans les trois, ou le compilateur le dit.
+        </p>
+
+        <div class="swatches">
+          <div class="swatch" style="--c: #2563eb">
+            <span class="chip"></span>
+            <b>#2563EB</b>
+            <span>l'accent — 5,17:1 sur blanc</span>
+          </div>
+          <div class="swatch" style="--c: #1d4ed8">
+            <span class="chip"></span>
+            <b>#1D4ED8</b>
+            <span>l'état pressé, le texte sur teinte</span>
+          </div>
+          <div class="swatch" style="--c: #15264d">
+            <span class="chip"></span>
+            <b>#15264D</b>
+            <span>le texte principal — 14,83:1</span>
+          </div>
+          <div class="swatch" style="--c: #53627d">
+            <span class="chip"></span>
+            <b>#53627D</b>
+            <span>le texte secondaire — 6,16:1</span>
+          </div>
+          <div class="swatch" style="--c: #f3f6fb">
+            <span class="chip bordered"></span>
+            <b>#F3F6FB</b>
+            <span>la surface alternée</span>
+          </div>
+        </div>
+
+        <p>
+          <strong>5,17:1, c'est la décision.</strong> Un accent qui ne passe que 3:1 doit être
+          doublé d'une seconde teinte pour le texte, et cette paire est une règle que personne ne
+          retient au moment où il en a besoin. Ici une seule couleur fait les remplissages
+          <em>et</em> les libellés. Le contraste n'est pas revendiqué&nbsp;: il est mesuré par
+          <strong>131 assertions</strong> qui parcourent chaque paire de chaque thème, et trois
+          couleurs du cahier des charges ont été corrigées parce que ce test les a trouvées sous le
+          seuil AA.
+        </p>
+
+        <p>
+          L'anneau de focus a demandé sa propre décision. Un contrôle peut être posé sur du blanc
+          <em>ou</em> sur la carte d'accent&nbsp;: aucune teinte unique ne contraste avec les deux.
+          Il est donc double — un trait sur un trait — et quel que soit le fond, l'un des deux se
+          voit.
+        </p>
+      </section>
+
+      <section id="decisions">
+        <p class="overline">Les décisions</p>
+        <h2>Six choix qui expliquent le plus de code</h2>
+        <p>
+          Chaque lot a laissé son fichier de décisions dans <code>docs/</code>. Voici celles qui
+          reviennent le plus souvent quand on lit le code.
+        </p>
+
+        <ol class="cards">
+          <li>
+            <h3><code>EventSource</code> est écarté</h3>
+            <p>
+              Pas pour la raison qu'on lit d'habitude&nbsp;: il ne sait pas porter d'en-tête, et le
+              flux est authentifié comme le reste. Le SSE est donc analysé à la main, avec deux
+              transports choisis sur une <em>capacité</em> et non sur une plateforme — le corps de
+              <code>fetch</code> en flux quand il existe, <code>XMLHttpRequest</code> sinon.
+            </p>
+          </li>
+          <li>
+            <h3>La carte est pilotée impérativement</h3>
+            <p>
+              Une position par seconde pendant trois heures ne provoque
+              <strong>aucun rendu</strong>. La logique reste dans l'hexagone&nbsp;; elle pousse les
+              points vers le rendu au lieu de passer par l'état de React. Le bandeau, lui, se
+              redessine au plus une fois par seconde, et c'est le hook qui le garantit.
+            </p>
+          </li>
+          <li>
+            <h3>La tâche d'arrière-plan écrit elle-même</h3>
+            <p>
+              Quand l'application a été tuée, personne n'écoute&nbsp;: la tâche écrit directement
+              dans SQLite. C'est ce qui tient la promesse « une course ne se perd pas ». Le tampon
+              est testé contre un vrai moteur SQLite, kill de l'application compris — pas contre une
+              doublure.
+            </p>
+          </li>
+          <li>
+            <h3>La clé d'idempotence est déduite</h3>
+            <p>
+              Elle vient du contenu du lot, pas d'un tirage au sort. Un renvoi après une coupure
+              réseau porte donc la même clé, et le serveur le reconnaît — sans quoi une reprise
+              dupliquerait la course.
+            </p>
+          </li>
+          <li>
+            <h3>Le jeton de partage voyage dans le chemin</h3>
+            <p>
+              <code>/shared/v1/{token}</code>, et non dans un en-tête. Le lot 4 avait supposé
+              l'inverse&nbsp;; le serveur n'a jamais lu cet en-tête. La correction est écrite dans
+              les décisions du lot 11 plutôt que passée sous silence.
+            </p>
+          </li>
+          <li>
+            <h3>Le hors-ligne est une liste blanche</h3>
+            <p>
+              Le fil déjà lu et les courses déjà ouvertes survivent à une coupure — et rien d'autre.
+              Surtout, une requête en pause n'est plus un spinner infini&nbsp;: l'état du réseau
+              remonte du port jusqu'aux écrans, qui disent « hors connexion ».
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section id="mesures">
+        <p class="overline">Ce qui est mesuré</p>
+        <h2>Les chiffres, y compris celui qui ne passe pas</h2>
+
+        <div class="table-scroll">
+          <table>
+            <caption>
+              Relevé du 1<sup>er</sup>
+              septembre 2026, sur l'export web de production.
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Mesure</th>
+                <th scope="col">Relevé</th>
+                <th scope="col">Cible</th>
+                <th scope="col">État</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">Tests</th>
+                <td>983</td>
+                <td>—</td>
+                <td><span class="pill ok">verts</span></td>
+              </tr>
+              <tr>
+                <th scope="row">Couverture du cœur</th>
+                <td>98,96 % lignes · 96,28 % branches</td>
+                <td>90 %</td>
+                <td><span class="pill ok">tenue</span></td>
+              </tr>
+              <tr>
+                <th scope="row">Accessibilité automatique</th>
+                <td>0 violation, WCAG 2.2 AA</td>
+                <td>0</td>
+                <td><span class="pill ok">tenue</span></td>
+              </tr>
+              <tr>
+                <th scope="row">Poids applicatif ajouté</th>
+                <td>159 Ko compressés</td>
+                <td>250 Ko</td>
+                <td><span class="pill ok">tenue</span></td>
+              </tr>
+              <tr>
+                <th scope="row">LCP en 4G simulée</th>
+                <td>4 610 ms</td>
+                <td>2 500 ms</td>
+                <td><span class="pill ko">non tenue</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout">
+          <h3>Le budget LCP n'est pas tenu, et le maquiller n'aurait servi à rien</h3>
+          <p>
+            4 610 ms mesurés contre 2 500 visés — mais <strong>192 ms sans bridage</strong>&nbsp;:
+            l'écart est du transfert, pas du calcul. 641 Ko compressés à 200 Ko/s font 3,2 s à eux
+            seuls, dont <strong>495 Ko de plancher de pile</strong> — Reanimated, gesture-handler,
+            <code>react-native-svg</code> et FlashList, imposés par le cahier des charges lui-même.
+            Une coque <em>vide</em> dépasserait déjà le budget.
+          </p>
+          <p>
+            C'est pourquoi le budget de bundle porte sur le <strong>poids ajouté</strong> par le
+            code applicatif&nbsp;: c'est le seul chiffre qui mesure une dérive. Les leviers qui
+            restent — HTTP/2, Brotli, un CDN — sont hors du code.
+          </p>
+        </div>
+
+        <p>
+          La suite de bout en bout tourne contre l'export de production, sans back-end. Au premier
+          passage elle a trouvé <strong>six vrais défauts</strong> — un
+          <code>autocomplete</code> invalide, l'absence de <code>lang="fr"</code>, des pages sans
+          titre, une erreur React sur une route inconnue. C'est tout l'intérêt de la faire tourner
+          sur ce qui est livré plutôt que sur ce qui est développé.
+        </p>
+      </section>
+
+      <section id="reste">
+        <p class="overline">L'honnêteté du bilan</p>
+        <h2>Ce qui reste dû avant une mise en ligne</h2>
+        <p>
+          Certaines exigences ne se simulent pas. Elles sont écrites ici plutôt que passées sous
+          silence&nbsp;:
+        </p>
+        <ul class="owed">
+          <li>
+            <strong>une passe manuelle VoiceOver / TalkBack</strong>, rideau d'écran activé, sur le
+            chemin critique — les outils automatiques couvrent environ un tiers des critères&nbsp;;
+          </li>
+          <li>
+            <strong>la fluidité au profileur, fil JS chargé</strong>, pendant qu'une course tourne
+            et qu'un flux arrive à la seconde&nbsp;;
+          </li>
+          <li>
+            <strong>l'enregistreur sur un appareil réel</strong>&nbsp;: service de premier plan tenu
+            trois heures, relance après un kill, batterie sur une heure de course&nbsp;;
+          </li>
+          <li>
+            <strong>les parcours Maestro</strong>, écrits mais jamais exécutés — ils demandent un
+            <em>dev build</em>, les modules natifs étant absents d'Expo&nbsp;Go&nbsp;;
+          </li>
+          <li>
+            <strong>un fournisseur de tuiles</strong>&nbsp;: la carte pointe encore sur le style de
+            démonstration de MapLibre&nbsp;;
+          </li>
+          <li>
+            côté back-end,
+            <strong>un endpoint qui résout un identifiant de compte en profil</strong>
+            — sans lui, les abonnés et les auteurs de commentaires ne peuvent pas être nommés.
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        RunTrack — projet personnel. Le détail de chaque lot vit dans <code>docs/</code>, un fichier
+        de décisions par lot.
+      </p>
+    </footer>
+  </body>
+</html>

@@ -165,19 +165,38 @@ HTTP/2, Brotli, un CDN ([`docs/decisions-lot-13.md`](docs/decisions-lot-13.md), 
 
 ## La direction visuelle
 
-Cinq couleurs — `#137C8B`, `#709CA7`, `#B8CBD0`, `#7A90A4`, `#344D59` — et un parti pris :
-du blanc, un seul accent, et la structure portée par un filet plutôt que par un fond.
+Un accent bleu roi — `#2563EB` — sur du blanc, et la structure portée par un filet plutôt
+que par un fond. Les bleu-gris qui l'accompagnent sont tirés de sa propre teinte, pour que
+les gris lisent comme sa famille et non comme une couleur posée à côté.
 
-Le changement le plus utile est mesurable : `#137C8B` donne **4,90:1 sur blanc**, là où
-l'orange qu'il remplace donnait 3,72:1. Une seule couleur suffit donc pour le texte **et**
-les remplissages, et la règle des « deux oranges » disparaît avec elle. Le reste — pastilles
-monochromes, ombres à zéro, rayons resserrés, `overline` en capitales espacées — est détaillé
-dans [`docs/decisions-design.md`](docs/decisions-design.md).
+Le changement le plus utile est mesurable : `#2563EB` donne **5,17:1 sur blanc**. Une seule
+couleur suffit donc pour le texte **et** les remplissages, là où un accent qui ne passe que
+3:1 impose une seconde teinte pour les libellés — et cette paire est une règle que personne
+ne retient au moment où il en a besoin. Deux choses ont bougé avec l'accent : l'anneau de
+focus, devenu **double** parce qu'un contrôle peut être posé sur du blanc ou sur la carte
+d'accent, et la pastille `count`, passée au cyan pour ne pas se confondre avec lui. Le
+reste — pastilles monochromes, ombres à zéro, rayons resserrés, `overline` en capitales
+espacées — est détaillé dans [`docs/decisions-design.md`](docs/decisions-design.md).
+
+La **marque** est un composant du design system, `Logo` : une trace qui monte et le point de
+position à sa tête, lisible à 20 px. Les icônes d'application et les favicons sortent du même
+tracé via `pnpm logo`, et un test compare les deux copies pour qu'elles ne divergent pas.
 
 Deux écrans sont venus avec : une **présentation** en trois panneaux, montrée une seule fois
 à une installation neuve et qui ne détourne jamais un lien de partage, et un onglet
 **Réglages** — thème (clair, sombre, selon le système) et visibilité par défaut d'une course,
 c'est-à-dire ce qui appartient au téléphone et non au compte.
+
+## Le site de présentation
+
+`site/` est une page statique qui raconte comment ce front est fait — l'hexagone et ses trois
+gardes, le design system, les six décisions qui expliquent le plus de code, les mesures (celle
+qui ne passe pas comprise) et ce qui reste dû. Elle n'a aucune dépendance : deux fichiers, la
+police en ligne, et les couleurs recopiées des tokens.
+
+Le job `pages` de `.gitlab-ci.yml` la copie dans `public/` — le nom du job et le chemin sont
+imposés par GitLab Pages —, sur la branche par défaut uniquement. En local, il suffit d'ouvrir
+`site/index.html`.
 
 ## Ce qui reste dû avant une mise en ligne
 
