@@ -69,7 +69,25 @@ const ROUTES: { pattern: RegExp; body: unknown }[] = [
   { pattern: /\/notification\/v1/, body: { items: [] } },
 ];
 
+/**
+ * Marque la présentation comme vue.
+ *
+ * Un navigateur de test est une installation neuve à chaque fois, donc il verrait
+ * l'écran de bienvenue — ce qui est le comportement voulu, et testé à part dans
+ * `journeys.spec.ts`. Les autres tests posent la préférence pour aller droit à
+ * ce qu'ils examinent.
+ */
+export async function skipWelcome(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    globalThis.localStorage.setItem(
+      'runtrack-preferences',
+      JSON.stringify({ theme: 'system', welcomeSeen: true, defaultVisibility: 'FOLLOWERS' }),
+    );
+  });
+}
+
 export async function stubApi(page: Page): Promise<void> {
+  await skipWelcome(page);
   await page.route('**/localhost:8080/**', async (route) => {
     const url = route.request().url();
     const matched = ROUTES.find((candidate) => candidate.pattern.test(url));

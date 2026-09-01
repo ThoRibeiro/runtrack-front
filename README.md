@@ -163,6 +163,22 @@ compressés à 200 Ko/s font 3,2 s à eux seuls, dont 495 Ko de plancher de pile
 **vide** dépasserait déjà le budget. Les leviers restants sont hors du code applicatif —
 HTTP/2, Brotli, un CDN ([`docs/decisions-lot-13.md`](docs/decisions-lot-13.md), §3).
 
+## La direction visuelle
+
+Cinq couleurs — `#137C8B`, `#709CA7`, `#B8CBD0`, `#7A90A4`, `#344D59` — et un parti pris :
+du blanc, un seul accent, et la structure portée par un filet plutôt que par un fond.
+
+Le changement le plus utile est mesurable : `#137C8B` donne **4,90:1 sur blanc**, là où
+l'orange qu'il remplace donnait 3,72:1. Une seule couleur suffit donc pour le texte **et**
+les remplissages, et la règle des « deux oranges » disparaît avec elle. Le reste — pastilles
+monochromes, ombres à zéro, rayons resserrés, `overline` en capitales espacées — est détaillé
+dans [`docs/decisions-design.md`](docs/decisions-design.md).
+
+Deux écrans sont venus avec : une **présentation** en trois panneaux, montrée une seule fois
+à une installation neuve et qui ne détourne jamais un lien de partage, et un onglet
+**Réglages** — thème (clair, sombre, selon le système) et visibilité par défaut d'une course,
+c'est-à-dire ce qui appartient au téléphone et non au compte.
+
 ## Ce qui reste dû avant une mise en ligne
 
 Le §13 demande des choses qui ne se simulent pas. Elles sont écrites ici plutôt que passées

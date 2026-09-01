@@ -1,4 +1,4 @@
-import { PreferencesScreen } from '@runtrack/features';
+import { NotificationPreferencesScreen } from '@runtrack/features';
 import type { ReactNode } from 'react';
 
 /**
@@ -6,5 +6,7 @@ import type { ReactNode } from 'react';
  * téléphone qui sait où il est, et l'hexagone n'a pas à le deviner (§12).
  */
 export default function PreferencesRoute(): ReactNode {
-  return <PreferencesScreen timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone} />;
+  return (
+    <NotificationPreferencesScreen timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone} />
+  );
 }

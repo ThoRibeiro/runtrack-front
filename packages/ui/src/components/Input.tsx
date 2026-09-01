@@ -61,7 +61,7 @@ export function Input({
         gap: space.xs,
         minHeight: controlHeight.md,
         paddingHorizontal: space.md,
-        borderRadius: theme.radius.sm,
+        borderRadius: theme.radius.xs,
         backgroundColor: theme.colours.surfaceAlt,
         // §5: a field outline carries meaning, so it meets 3:1 — and the error
         // state changes more than the colour, it changes the width too.

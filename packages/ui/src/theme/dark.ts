@@ -2,12 +2,15 @@ import { palette } from '../tokens';
 import { scales, type Theme } from './theme';
 
 /**
- * The general dark theme. Declared token by token, like the running theme and
- * for the same reason: an automatic inversion turns the violet climb pastille
- * into something that means nothing.
+ * The dark theme, declared token by token — never an automatic inversion.
  *
- * It is not the running theme. This one is read sitting down; §3's running
- * theme is read at arm's length, and it is darker and larger everywhere.
+ * Its greys are built from the accent's hue rather than from a neutral
+ * charcoal: a dark that shares the family reads as the same product with the
+ * lights off, and a neutral one reads as a different application.
+ *
+ * The accent lightens to `teal400`. `teal500` gives 3.79:1 on this ground —
+ * enough for a fill, not for a word — and an accent that cannot be read as text
+ * would put the two-colour rule back that the palette just removed.
  */
 export const darkTheme: Theme = {
   name: 'dark',
@@ -17,31 +20,30 @@ export const darkTheme: Theme = {
     surface: palette.ink800,
     surfaceAlt: palette.ink700,
 
-    text: palette.ink50,
-    textMuted: palette.ink200,
-    textInverse: palette.neutral900,
+    text: palette.white,
+    textMuted: palette.ink100,
+    textInverse: palette.slate800,
 
-    border: palette.ink600,
+    border: palette.ink700,
     borderStrong: palette.ink400,
-    focusRing: palette.brand300,
+    focusRing: palette.focusDark,
     scrim: palette.scrim,
     glass: palette.glassDark,
 
     brand: {
-      fill: palette.brand500,
-      onFill: palette.white,
-      solid: palette.brand600,
+      fill: palette.teal400,
+      onFill: palette.night900,
+      solid: palette.teal500,
       onSolid: palette.white,
-      // The orange has to lighten here: #C8391A on #1C1C1F is unreadable.
-      text: palette.brand300,
-      surface: palette.brand900,
+      text: palette.teal400,
+      surface: palette.teal900,
       track: palette.ink600,
     },
 
     accent: {
-      heart: { fill: palette.heart, on: palette.neutral900 },
-      pace: { fill: palette.pace, on: palette.neutral900, line: palette.paceLineDark },
-      climb: { fill: palette.climbLight, on: palette.neutral900 },
+      heart: { fill: palette.ink700, on: palette.ink100 },
+      pace: { fill: palette.ink700, on: palette.ink100, line: palette.teal400 },
+      climb: { fill: palette.ink700, on: palette.ink100 },
     },
 
     info: { surface: palette.infoSurfaceDark, text: palette.infoTextDark },

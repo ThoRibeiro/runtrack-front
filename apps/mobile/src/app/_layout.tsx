@@ -8,20 +8,22 @@ import {
 import {
   NotificationStreamProvider,
   OfflineProvider,
+  PreferencesProvider,
   RuntimeProvider,
   SessionProvider,
   createQueryClient,
 } from '@runtrack/features';
 import { RecordingProvider } from '@runtrack/features/recording';
 import { PushLinks } from '../config/pushLinks';
-import { ThemeProvider, ToastProvider } from '@runtrack/ui';
+import { ToastProvider } from '@runtrack/ui';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { persister } from '../config/persistence';
+import { persister, preferencesStorage } from '../config/persistence';
+import { ThemedApp } from '../config/ThemedApp';
 import { runtime } from '../config/runtime';
 
 /**
@@ -63,25 +65,32 @@ export default function RootLayout() {
             TanStack Query.
           */}
           <OfflineProvider client={queryClient} persister={persister}>
-            <SessionProvider>
-              {/*
+            <PreferencesProvider storage={preferencesStorage}>
+              <SessionProvider>
+                {/*
                 §6: mounted here, above the router, because it looks for a run a
                 crash left behind — which has to happen once at launch, whatever
                 screen the deep link opens.
               */}
-              <RecordingProvider>
-                <NotificationStreamProvider>
-                  <PushLinks>
-                    <ThemeProvider>
-                      <ToastProvider>
-                        <StatusBar style="auto" />
-                        <Stack screenOptions={{ headerShown: false }} />
-                      </ToastProvider>
-                    </ThemeProvider>
-                  </PushLinks>
-                </NotificationStreamProvider>
-              </RecordingProvider>
-            </SessionProvider>
+                <RecordingProvider>
+                  <NotificationStreamProvider>
+                    <PushLinks>
+                      {/*
+                  Le thème vient des préférences, « selon le système » compris.
+                  Résolu dans `ThemedApp` pour que le fournisseur soit monté
+                  quand le thème se lit.
+                */}
+                      <ThemedApp>
+                        <ToastProvider>
+                          <StatusBar style="auto" />
+                          <Stack screenOptions={{ headerShown: false }} />
+                        </ToastProvider>
+                      </ThemedApp>
+                    </PushLinks>
+                  </NotificationStreamProvider>
+                </RecordingProvider>
+              </SessionProvider>
+            </PreferencesProvider>
           </OfflineProvider>
         </RuntimeProvider>
       </SafeAreaProvider>

@@ -43,8 +43,12 @@ export function Card({
       style={[
         {
           backgroundColor: background,
-          borderRadius: theme.radius.xl,
-          padding: padded ? space.md : 0,
+          borderRadius: theme.radius.lg,
+          borderWidth: theme.stroke.hairline,
+          // A hairline instead of a shadow: the direction is a flat surface
+          // told apart by its edge, not one floating above the page.
+          borderColor: tone === 'brand' ? 'transparent' : theme.colours.border,
+          padding: padded ? space.lg : 0,
         },
         theme.elevation.card,
         style,

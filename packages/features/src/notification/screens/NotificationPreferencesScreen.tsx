@@ -16,9 +16,9 @@ import {
 import { translate } from '../../i18n';
 import {
   useDevices,
-  usePreferences,
+  useNotificationPreferences,
   useRemoveDevice,
-  useUpdatePreferences,
+  useUpdateNotificationPreferences,
 } from '../hooks/useNotifications';
 import { usePushRegistration } from '../hooks/usePush';
 
@@ -34,7 +34,7 @@ import { usePushRegistration } from '../hooks/usePush';
  * platform-specific modal with its own accessibility story, and "22 h" to
  * "7 h" needs neither minutes nor precision.
  */
-export interface PreferencesScreenProps {
+export interface NotificationPreferencesScreenProps {
   /** The runner's own zone, read by the shell — `Intl` is not in the hexagon. */
   timeZone: string;
 }
@@ -55,10 +55,12 @@ function kindLabel(type: string): string {
   return known === undefined ? type : translate(`inbox.kind.${known}`);
 }
 
-export function PreferencesScreen({ timeZone }: PreferencesScreenProps): ReactNode {
+export function NotificationPreferencesScreen({
+  timeZone,
+}: NotificationPreferencesScreenProps): ReactNode {
   const theme = useTheme();
-  const preferences = usePreferences();
-  const update = useUpdatePreferences();
+  const preferences = useNotificationPreferences();
+  const update = useUpdateNotificationPreferences();
   const devices = useDevices();
   const removeDevice = useRemoveDevice();
   const push = usePushRegistration();

@@ -1,92 +1,103 @@
 /**
  * The primitive palette: colours named by what they *are*, never by what they
  * are for. Nothing outside `../theme` may read this file — a screen that picks
- * `palette.brand500` has bypassed the theme and will be wrong in the dark and
- * in the running theme.
+ * `palette.teal500` has bypassed the theme and will be wrong in the dark and in
+ * the running theme.
  *
- * Every value that carries text was chosen by measuring, not by eye. The three
- * that differ from the brief are marked, and `../theme/contrast.test.ts` is
- * what keeps them honest.
+ * ---
+ *
+ * **The five colours are the brief's successor, chosen by the owner:**
+ * `#137C8B`, `#709CA7`, `#B8CBD0`, `#7A90A4`, `#344D59`. They replace the
+ * reference's single orange, and they are a better set for one measurable
+ * reason: `#137C8B` gives **4.90:1 on white**, so the accent is legible *as
+ * text*. The orange it replaces gave 3.72:1, which is what forced the two
+ * oranges of the old §3 — one for fills, one for text, and a rule nobody could
+ * remember. One accent now does both jobs.
+ *
+ * Two shades are derived, because two jobs had no colour in the set:
+ *
+ *  - **`slate600` `#5A7182`** for secondary text. `#7A90A4` is 3.31:1 on white —
+ *    fine for a border or an icon, below AA for words. Darkened until it
+ *    measured 5.10:1, and no further;
+ *  - **`teal400` `#25AABE`** for the accent on a dark ground. `#137C8B` falls to
+ *    3.79:1 there, which is a fill, not a label. Lightened to 6.70:1.
+ *
+ * Everything else is the five, or a neutral. `../theme/contrast.test.ts` walks
+ * every pair of every theme and is what keeps this honest.
  */
 export const palette = {
-  // Orange — the single accent of the reference.
-  brand500: '#EE4A22', // fills, ring, map trace, active tab, pastilles. 3.72:1 on white — non-text only.
-  brand600: '#C8391A', // a surface that carries a white label: 5.18:1 against #FFFFFF.
-  brand700: '#BE3618', // ORANGE TEXT. The brief says #C8391A, which gives 4.39:1 on brand-50 — below AA on the very card the reference puts orange text on. Measured, not guessed.
-  brand50: '#FDE8E1', // tinted background of the highlight card.
-  brand900: '#3A1A12', // its dark-theme counterpart.
-  brand950: '#2A100A', // and its running-theme counterpart: the accent orange is TEXT there, so the tint has to go darker still (4.79:1).
-  brand300: '#FF7A57', // orange text on a dark background.
+  // The accent, and the only chromatic colour the interface uses on purpose.
+  teal500: '#137C8B', // 4.90:1 on white — fills AND text. The whole point.
+  teal600: '#0F6673', // pressed states and the label on a light tinted ground.
+  teal400: '#25AABE', // the accent on a dark ground: 6.70:1.
+  teal50: '#E7F1F3', // the tint under a highlighted card, barely there.
+  teal900: '#0A2C32', // its dark-theme counterpart.
 
-  // Neutrals.
+  // The blue-greys, from the same family. They carry structure, not meaning.
+  slate800: '#344D59', // primary text: 8.93:1 on white.
+  slate600: '#5A7182', // secondary text: 5.10:1. Derived — see above.
+  slate500: '#7A90A4', // field borders, meaningful icons: 3.31:1, non-text.
+  slate400: '#709CA7', // a stronger separator, 3.00:1.
+  slate200: '#B8CBD0', // surfaces, decorative rules.
+  slate100: '#DCE5E8', // the faintest rule, on white.
+  slate50: '#F4F7F8', // grouped rows, fields, the alternate surface.
+
+  // Neutrals. Minimalism means most of the screen is one of these two.
   white: '#FFFFFF',
   black: '#000000',
-  neutral0: '#FFFFFF',
-  neutral25: '#FAF7F6', // web canvas, where the page is wider
-  neutral50: '#F5F5F5', // form rows, fields, grouped containers
-  neutral100: '#ECECEC', // decorative separator — never carries meaning, hence no ratio to meet
-  neutral500: '#8A8A8E', // the brief's text-muted. Kept for FIELD BORDERS (3.44:1), not for text.
-  neutral600: '#6A6A6D', // secondary TEXT: 5.39:1 on white, 4.57:1 on the tinted card.
-  neutral900: '#141414',
+  canvasWeb: '#FBFCFC', // the page is wider on the web; a hair off white keeps cards visible.
 
-  // Dark neutrals — the general dark theme.
-  ink900: '#121214',
-  ink800: '#1C1C1F',
-  ink700: '#26262B',
-  ink600: '#33333A',
-  ink400: '#7A7A85',
-  ink200: '#A8A8B2',
-  ink50: '#F2F2F3',
+  // The dark theme, built from `slate800` rather than from a neutral grey: a
+  // dark that shares the accent's hue reads as the same product with the lights
+  // off, which a neutral charcoal does not.
+  ink900: '#0E1416',
+  ink800: '#172026',
+  ink700: '#1F2B32',
+  ink600: '#2C3B44',
+  ink400: '#6E838F',
+  ink200: '#9FB4BB',
+  ink100: '#B8CBD0', // secondary text in the dark: 11.05:1.
 
-  // Darker still — the running theme reads at arm's length, in full sun.
-  night900: '#0E0E10',
-  night800: '#1A1A1D',
-  night600: '#2E2E34',
-  night400: '#8A8A94',
-  night200: '#B4B4BC',
+  // Darker still: the running theme is read at arm's length, in full sun.
+  night900: '#0A0F12',
+  night800: '#141C21',
+  night600: '#22303A',
+  night400: '#7C929E',
+  night200: '#B8CBD0',
 
-  // Metric accents. The disc is decoration; the icon on it carries the meaning,
-  // so what must clear 3:1 is the icon against the disc, not the disc against
-  // the card. `climb` is the one that needs a white icon rather than a dark one.
-  heart: '#FDBE1E',
-  pace: '#8FD4C4',
-  paceLine: '#279C86', // the sparkline stroke: 3.39:1 on white, a meaningful non-text element
-  paceLineDark: '#4ECBB0',
-  climb: '#8250E8',
-  climbLight: '#A583F0', // on a dark background, where the violet has to lighten to stay legible
+  // Feedback. Absent from a five-colour palette and unavoidable: §5 forbids an
+  // error carried by a red border alone, so the words need a colour too. Both
+  // are desaturated to sit beside the blue-greys rather than shout over them.
+  danger: '#B0271F', // 5.82:1 on white.
+  dangerSurface: '#FBEAE8',
+  dangerDark: '#FF9086',
+  dangerSurfaceDark: '#341613',
+  success: '#1B6E4B', // 5.24:1 on white.
+  successDark: '#5FCB97',
 
-  // Information pill.
-  infoSurface: '#E8EDFB',
-  infoText: '#3E5CC4', // the brief's #4C6FE7 gives 3.79:1 on its own background. Measured.
-  infoSurfaceDark: '#1E2A4A',
-  infoTextDark: '#9DB4F5',
+  // Information.
+  infoSurface: '#EAF1F3',
+  infoText: '#2F5C69',
+  infoSurfaceDark: '#152A31',
+  infoTextDark: '#8FC4D0',
 
-  // Error and success. Absent from the brief, unavoidable for ErrorState, Toast
-  // and form errors — §5 forbids carrying an error by a red border alone.
-  danger: '#C0271C',
-  dangerSurface: '#FDE7E4',
-  dangerDark: '#FF8A7A',
-  dangerSurfaceDark: '#3A1714',
-  success: '#1B7A4B',
-  successDark: '#6FD79E',
-
-  // Focus ring (web keyboard navigation). Deliberately not orange: it must be
-  // told apart from a brand fill at a glance.
+  // Focus ring (web keyboard navigation). Deliberately not the accent: it has
+  // to be told apart from a teal fill at a glance.
   focus: '#1B4FD8',
+  focusDark: '#7FA6FF',
 
-  // Translucency. The round buttons floating over a photo or a map, and the
-  // scrim behind a modal. They sit here rather than in a theme because a
-  // literal `rgba()` written in a component is exactly what §3 forbids.
-  scrim: 'rgba(20, 20, 20, 0.45)',
-  glassLight: 'rgba(255, 255, 255, 0.82)',
-  glassDark: 'rgba(20, 20, 20, 0.55)',
+  // Skeletons. Two steps apart and no more: a shimmer that contrasts is a
+  // shimmer that draws the eye to what is not there yet.
+  skeletonLight: '#EDF2F3',
+  skeletonLightHighlight: '#F7FAFA',
+  skeletonDark: '#1F2B32',
+  skeletonDarkHighlight: '#2C3B44',
 
-  // Skeletons. Low contrast on purpose: a skeleton that pulses hard reads as an
-  // error rather than as a wait.
-  skeletonLight: '#EFEFEF',
-  skeletonLightHighlight: '#F7F7F7',
-  skeletonDark: '#26262B',
-  skeletonDarkHighlight: '#33333A',
+  // Translucency. A literal `rgba()` written in a component is exactly what the
+  // design rules forbid, so the three that exist live here.
+  scrim: 'rgba(15, 24, 28, 0.48)',
+  glassLight: 'rgba(255, 255, 255, 0.78)',
+  glassDark: 'rgba(20, 28, 33, 0.72)',
 } as const;
 
-export type PaletteColour = (typeof palette)[keyof typeof palette];
+export type PaletteColour = keyof typeof palette;

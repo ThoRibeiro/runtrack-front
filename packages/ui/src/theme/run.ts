@@ -2,13 +2,16 @@ import { palette } from '../tokens';
 import { scales, type Theme } from './theme';
 
 /**
- * The running theme, and the recording screen is the only screen that wears it.
+ * The running theme, and the recording screen is the only screen wearing it.
  *
- * §3 is explicit about why it exists: the light palette is made to be looked at
- * sitting down, and this screen is read at arm's length, in full sun, while
- * running, and it stays lit for three hours. It keeps the same `brand.fill`,
- * which gives 5.18:1 on this background — the identity survives and the
- * legibility improves.
+ * The reason has not changed: the light palette is made to be looked at sitting
+ * down, and this screen is read at arm's length, in full sun, while running,
+ * and it stays lit for three hours.
+ *
+ * It goes darker than the general dark theme — `night900` against `ink900` —
+ * because contrast is what survives sunlight, and it takes the accent one step
+ * lighter still: `teal400` on this ground is 7.6:1, which is what a number read
+ * at arm's length with a moving arm needs.
  */
 export const runTheme: Theme = {
   name: 'run',
@@ -20,7 +23,7 @@ export const runTheme: Theme = {
 
     text: palette.white,
     textMuted: palette.night200,
-    textInverse: palette.neutral900,
+    textInverse: palette.slate800,
 
     border: palette.night600,
     borderStrong: palette.night400,
@@ -29,21 +32,19 @@ export const runTheme: Theme = {
     glass: palette.glassDark,
 
     brand: {
-      fill: palette.brand500,
-      onFill: palette.white,
-      solid: palette.brand600,
+      fill: palette.teal400,
+      onFill: palette.night900,
+      solid: palette.teal500,
       onSolid: palette.white,
-      // 5.18:1 on the canvas: the accent orange is readable as text here, which
-      // it never is on white. That is the whole point of a declared theme.
-      text: palette.brand500,
-      surface: palette.brand950,
+      text: palette.teal400,
+      surface: palette.teal900,
       track: palette.night600,
     },
 
     accent: {
-      heart: { fill: palette.heart, on: palette.neutral900 },
-      pace: { fill: palette.pace, on: palette.neutral900, line: palette.paceLineDark },
-      climb: { fill: palette.climbLight, on: palette.neutral900 },
+      heart: { fill: palette.night600, on: palette.night200 },
+      pace: { fill: palette.night600, on: palette.night200, line: palette.teal400 },
+      climb: { fill: palette.night600, on: palette.night200 },
     },
 
     info: { surface: palette.infoSurfaceDark, text: palette.infoTextDark },
@@ -53,8 +54,8 @@ export const runTheme: Theme = {
       solid: palette.danger,
       onSolid: palette.white,
     },
-    success: { surface: palette.night800, text: palette.successDark },
-    skeleton: { base: palette.night600, highlight: palette.night800 },
+    success: { surface: palette.night600, text: palette.successDark },
+    skeleton: { base: palette.skeletonDark, highlight: palette.skeletonDarkHighlight },
   },
   ...scales,
 };

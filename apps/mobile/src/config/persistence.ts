@@ -9,3 +9,6 @@ import { createPersister } from '@runtrack/features';
  * cache perdu coûte un rechargement.
  */
 export const persister = createPersister(AsyncStorage);
+
+/** Les préférences client passent par le même stockage — une seule abstraction. */
+export const preferencesStorage = AsyncStorage;

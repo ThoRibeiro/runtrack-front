@@ -5,14 +5,14 @@ export {
   useInbox,
   useMarkAllRead,
   useMarkRead,
-  usePreferences,
+  useNotificationPreferences,
   useRemoveDevice,
   useUnreadCount,
-  useUpdatePreferences,
+  useUpdateNotificationPreferences,
 } from './hooks/useNotifications';
 export { usePushRegistration } from './hooks/usePush';
 export type { PushState } from './hooks/usePush';
 export { InboxScreen } from './screens/InboxScreen';
 export type { InboxScreenProps } from './screens/InboxScreen';
-export { PreferencesScreen } from './screens/PreferencesScreen';
-export type { PreferencesScreenProps } from './screens/PreferencesScreen';
+export { NotificationPreferencesScreen } from './screens/NotificationPreferencesScreen';
+export type { NotificationPreferencesScreenProps } from './screens/NotificationPreferencesScreen';

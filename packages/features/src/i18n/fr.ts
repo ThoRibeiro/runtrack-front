@@ -130,6 +130,42 @@ export const fr = {
   'activity.notFound': 'Course introuvable',
   'activity.splitFocused': 'Kilomètre {index} affiché sur la carte',
 
+  'welcome.overline': 'RunTrack',
+  'welcome.title': 'Courez.\nLe reste suit.',
+  'welcome.record.title': 'Écran verrouillé, trace intacte',
+  'welcome.record.body':
+    'L’enregistrement continue téléphone en poche, en tunnel, écran éteint. Rien ne se perd : chaque point est écrit avant d’être envoyé.',
+  'welcome.live.title': 'Vos amis vous suivent en direct',
+  'welcome.live.body':
+    'Pendant que vous courez, ceux qui vous suivent voient votre trace avancer, seconde par seconde.',
+  'welcome.share.title': 'Un lien suffit',
+  'welcome.share.body':
+    'Partagez une course à quelqu’un qui n’a pas l’application. Le lien s’ouvre sans compte, et vous le révoquez quand vous voulez.',
+  'welcome.step': 'Étape {current} sur {total}',
+  'welcome.next': 'Suivant',
+  'welcome.start': 'Commencer',
+  'welcome.skip': 'Passer',
+
+  'settings.title': 'Paramètres',
+  'settings.appearance': 'Apparence',
+  'settings.theme': 'Thème',
+  'settings.theme.system': 'Selon le système',
+  'settings.theme.light': 'Clair',
+  'settings.theme.dark': 'Sombre',
+  'settings.themeHint': 'L’écran d’enregistrement reste sombre : il se lit en plein soleil.',
+  'settings.privacy': 'Confidentialité',
+  'settings.defaultVisibility': 'Visibilité par défaut d’une course',
+  'settings.visibilityHint': 'Modifiable course par course, avant comme après.',
+  'settings.account': 'Compte',
+  'settings.notifications': 'Notifications',
+  'settings.signOut': 'Se déconnecter',
+  'settings.signOutConfirm': 'Se déconnecter ?',
+  'settings.signOutDetail':
+    'Une course en cours reste enregistrée sur ce téléphone et repartira à la prochaine connexion.',
+  'settings.about': 'À propos',
+  'settings.version': 'Version {version}',
+  'settings.replayWelcome': 'Revoir la présentation',
+
   'notFound.title': 'Page introuvable',
   'notFound.detail': 'Le lien que vous avez suivi ne mène nulle part.',
   'notFound.home': 'Revenir à l’accueil',

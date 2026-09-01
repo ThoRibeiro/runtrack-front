@@ -53,7 +53,7 @@ export function TextArea({
       style={{
         minHeight: theme.typography.body.lineHeight * minimumLines + space.xl,
         padding: space.md,
-        borderRadius: theme.radius.sm,
+        borderRadius: theme.radius.xs,
         backgroundColor: theme.colours.surfaceAlt,
         borderWidth: field.invalid ? theme.stroke.thick : theme.stroke.hairline,
         borderColor: field.invalid ? theme.colours.danger.text : theme.colours.borderStrong,

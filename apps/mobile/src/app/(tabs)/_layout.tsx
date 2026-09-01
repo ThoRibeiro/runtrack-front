@@ -1,5 +1,5 @@
 import { TabBar, type TabItem } from '@runtrack/ui';
-import { translate, useSessionStatus, useUnreadCount } from '@runtrack/features';
+import { translate, useSessionStatus } from '@runtrack/features';
 import { Redirect, Tabs, router, usePathname } from 'expo-router';
 import type { ReactNode } from 'react';
 
@@ -20,8 +20,8 @@ const TABS = [
   { key: '/', icon: 'home', label: 'Accueil' },
   { key: '/feed', icon: 'users', label: 'Fil' },
   { key: '/record', icon: 'play', label: 'Courir' },
-  { key: '/notifications', icon: 'bell', label: 'Notifications' },
   { key: '/profile', icon: 'user', label: 'Profil' },
+  { key: '/settings', icon: 'sliders', label: 'Réglages' },
 ] as const satisfies readonly TabItem[];
 
 type TabRoute = (typeof TABS)[number]['key'];
@@ -34,9 +34,6 @@ function activeTab(pathname: string): TabRoute {
 export default function TabsLayout(): ReactNode {
   const status = useSessionStatus();
   const pathname = usePathname();
-  // §12 : la pastille de non-lues. Elle n'est demandée qu'une fois connecté,
-  // et le flux SSE la rafraîchit quand quelque chose arrive.
-  const unread = useUnreadCount(status === 'authenticated');
 
   // "Not signed in" and "we have not looked yet" are different: redirecting
   // during the first is how a cold start flashes the sign-in screen.
@@ -48,11 +45,7 @@ export default function TabsLayout(): ReactNode {
       screenOptions={{ headerShown: false }}
       tabBar={() => (
         <TabBar
-          items={TABS.map((tab) =>
-            tab.key === '/notifications' && (unread.data ?? 0) > 0
-              ? { ...tab, badgeCount: unread.data }
-              : tab,
-          )}
+          items={TABS}
           activeKey={activeTab(pathname)}
           onSelect={(key) => {
             router.navigate(activeTab(key));
@@ -64,8 +57,8 @@ export default function TabsLayout(): ReactNode {
       <Tabs.Screen name="index" options={{ title: translate('home.ready') }} />
       <Tabs.Screen name="feed" options={{ title: translate('feed.title') }} />
       <Tabs.Screen name="record" options={{ title: translate('record.prepareTitle') }} />
-      <Tabs.Screen name="notifications" options={{ title: translate('inbox.title') }} />
       <Tabs.Screen name="profile" options={{ title: translate('profile.activities') }} />
+      <Tabs.Screen name="settings" options={{ title: translate('settings.title') }} />
     </Tabs>
   );
 }

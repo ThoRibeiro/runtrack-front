@@ -22,4 +22,7 @@ function storage(): KeyValueStore {
   return new MemoryKeyValueStore();
 }
 
-export const persister = createPersister(storage());
+/** Les préférences client passent par le même stockage — une seule abstraction. */
+export const preferencesStorage = storage();
+
+export const persister = createPersister(preferencesStorage);

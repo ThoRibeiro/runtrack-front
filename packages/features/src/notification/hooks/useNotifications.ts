@@ -85,7 +85,7 @@ export function useMarkAllRead(): UseMutationResult<number, unknown, void> {
   });
 }
 
-export function usePreferences(): UseQueryResult<NotificationPreferences> {
+export function useNotificationPreferences(): UseQueryResult<NotificationPreferences> {
   const runtime = useRuntime();
   return useQuery({
     queryKey: queryKeys.notificationPreferences,
@@ -93,7 +93,7 @@ export function usePreferences(): UseQueryResult<NotificationPreferences> {
   });
 }
 
-export function useUpdatePreferences(): UseMutationResult<
+export function useUpdateNotificationPreferences(): UseMutationResult<
   NotificationPreferences,
   unknown,
   NotificationPreferences

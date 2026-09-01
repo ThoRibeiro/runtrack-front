@@ -4,7 +4,7 @@ import { deviceToken, notificationId, quietHours } from '@runtrack/core';
 import { aNotification } from '../testing/fakes';
 import { aRuntime, renderWithRuntime, aSession, type Harness } from '../testing/harness';
 import { InboxScreen } from './screens/InboxScreen';
-import { PreferencesScreen } from './screens/PreferencesScreen';
+import { NotificationPreferencesScreen } from './screens/NotificationPreferencesScreen';
 import { NotificationStreamProvider } from './NotificationStreamProvider';
 
 const noop = (): void => undefined;
@@ -183,7 +183,7 @@ describe('le flux de la boîte', () => {
 describe('les préférences', () => {
   it('envoie la liste entière des natures coupées, jamais un delta', async () => {
     const harness = signedIn();
-    await renderWithRuntime(<PreferencesScreen timeZone={PARIS} />, harness);
+    await renderWithRuntime(<NotificationPreferencesScreen timeZone={PARIS} />, harness);
     await screen.findByTestId('preferences-screen');
 
     await userEvent.press(screen.getByTestId('preferences-kind-ACTIVITY_LIKED'));
@@ -201,7 +201,7 @@ describe('les préférences', () => {
       availableTypes: ['NEW_FOLLOWER'],
     };
 
-    await renderWithRuntime(<PreferencesScreen timeZone={PARIS} />, harness);
+    await renderWithRuntime(<NotificationPreferencesScreen timeZone={PARIS} />, harness);
 
     expect(await screen.findByTestId('preferences-kind-NEW_FOLLOWER')).toBeOnTheScreen();
     expect(screen.queryByTestId('preferences-kind-ACTIVITY_LIKED')).toBeNull();
@@ -214,7 +214,7 @@ describe('les préférences', () => {
       quietHours: quietHours(22 * 60, 7 * 60, PARIS),
       availableTypes: ['NEW_FOLLOWER'],
     };
-    await renderWithRuntime(<PreferencesScreen timeZone={PARIS} />, harness);
+    await renderWithRuntime(<NotificationPreferencesScreen timeZone={PARIS} />, harness);
     await screen.findByTestId('preferences-screen');
 
     await userEvent.press(screen.getByTestId('preferences-quiet-on'));
@@ -226,7 +226,7 @@ describe('les préférences', () => {
 
   it('dit le fuseau qui sert de référence', async () => {
     const harness = signedIn();
-    await renderWithRuntime(<PreferencesScreen timeZone={PARIS} />, harness);
+    await renderWithRuntime(<NotificationPreferencesScreen timeZone={PARIS} />, harness);
 
     // §12 : « pas avant 7 h » n'a de sens que là où se trouve la personne.
     expect(await screen.findByText(/Europe\/Paris/)).toBeOnTheScreen();
@@ -264,7 +264,7 @@ describe('le push', () => {
     const push = new FakePushRegistry();
     harness.runtime.push = push;
 
-    await renderWithRuntime(<PreferencesScreen timeZone={PARIS} />, harness);
+    await renderWithRuntime(<NotificationPreferencesScreen timeZone={PARIS} />, harness);
     await screen.findByTestId('preferences-screen');
 
     // §12 : la boîte système est à un coup. Elle se demande après avoir montré
@@ -277,7 +277,7 @@ describe('le push', () => {
     const harness = signedIn();
     const push = new FakePushRegistry();
     harness.runtime.push = push;
-    await renderWithRuntime(<PreferencesScreen timeZone={PARIS} />, harness);
+    await renderWithRuntime(<NotificationPreferencesScreen timeZone={PARIS} />, harness);
 
     await userEvent.press(await screen.findByTestId('preferences-enable-push'));
 
@@ -293,7 +293,7 @@ describe('le push', () => {
     push.granted = true;
     harness.runtime.push = push;
 
-    await renderWithRuntime(<PreferencesScreen timeZone={PARIS} />, harness);
+    await renderWithRuntime(<NotificationPreferencesScreen timeZone={PARIS} />, harness);
 
     // §12 : le jeton change tout seul, et le serveur traite un doublon comme
     // une non-opération. Rien n'est demandé à personne.
@@ -306,7 +306,7 @@ describe('le push', () => {
   it('ne propose rien sur une plateforme sans push', async () => {
     const harness = signedIn();
 
-    await renderWithRuntime(<PreferencesScreen timeZone={PARIS} />, harness);
+    await renderWithRuntime(<NotificationPreferencesScreen timeZone={PARIS} />, harness);
     await screen.findByTestId('preferences-screen');
 
     expect(screen.queryByTestId('preferences-push')).toBeNull();

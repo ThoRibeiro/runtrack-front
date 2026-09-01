@@ -1,7 +1,13 @@
 /**
- * §3: "ombre diffuse et très faible — la séparation se fait par le rayon et le
- * fond, jamais par une ombre marquée". These values are deliberately at the
- * edge of visible; anything stronger is a bug, not a taste.
+ * Almost nothing, and now genuinely nothing on a card.
+ *
+ * The direction is a flat interface where surfaces are told apart by a hairline
+ * and by the ground beneath them — the way an instrument panel does it. A card
+ * that floats is a card asking for attention, and on a screen where every card
+ * floats, none of them gets any.
+ *
+ * The sheet keeps a trace of shadow, because it genuinely is above the page and
+ * slides over it: that one is motion, not decoration.
  */
 export const elevation = {
   none: {
@@ -12,18 +18,18 @@ export const elevation = {
     elevation: 0,
   },
   card: {
-    shadowColor: '#000000',
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 1,
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 0,
   },
   sheet: {
-    shadowColor: '#000000',
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: -4 },
-    elevation: 4,
+    shadowColor: '#0A0F12',
+    shadowOpacity: 0.1,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: -6 },
+    elevation: 6,
   },
 } as const;
 

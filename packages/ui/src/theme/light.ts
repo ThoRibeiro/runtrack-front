@@ -3,13 +3,21 @@ import { palette } from '../tokens';
 import { scales, type Theme } from './theme';
 
 /**
- * §3: the canvas is white on mobile and #FAF7F6 on web, where the page is
- * wider and a pure white full-bleed background is harsh. Both values are
- * checked by the contrast test, whichever platform the suite runs on.
+ * The light theme, and the direction the whole interface follows.
+ *
+ * White, one accent, and structure carried by hairlines rather than by fills.
+ * That is the difference from what came before: the reference put a coloured
+ * disc behind every metric and a tinted card behind every highlight, and the
+ * result was busy. Here the page is white, the type is `slate800`, and
+ * `teal500` appears where something is *actionable* or *current* — nowhere
+ * else.
+ *
+ * The canvas is a hair off white on the web, where the page is wider and a pure
+ * white full bleed is harsh; both values are checked by the contrast test.
  */
 export const LIGHT_CANVAS = {
-  native: palette.neutral0,
-  web: palette.neutral25,
+  native: palette.white,
+  web: palette.canvasWeb,
 } as const;
 
 export const lightTheme: Theme = {
@@ -17,33 +25,43 @@ export const lightTheme: Theme = {
   isDark: false,
   colours: {
     canvas: Platform.OS === 'web' ? LIGHT_CANVAS.web : LIGHT_CANVAS.native,
-    surface: palette.neutral0,
-    surfaceAlt: palette.neutral50,
+    surface: palette.white,
+    surfaceAlt: palette.slate50,
 
-    text: palette.neutral900,
-    textMuted: palette.neutral600,
+    text: palette.slate800,
+    textMuted: palette.slate600,
     textInverse: palette.white,
 
-    border: palette.neutral100,
-    borderStrong: palette.neutral500,
+    border: palette.slate100,
+    borderStrong: palette.slate500,
     focusRing: palette.focus,
     scrim: palette.scrim,
     glass: palette.glassLight,
 
     brand: {
-      fill: palette.brand500,
+      // One accent for both jobs — 4.90:1 on white is what makes that possible.
+      fill: palette.teal500,
       onFill: palette.white,
-      solid: palette.brand600,
+      solid: palette.teal500,
       onSolid: palette.white,
-      text: palette.brand700,
-      surface: palette.brand50,
-      track: palette.neutral100,
+      text: palette.teal600,
+      surface: palette.teal50,
+      track: palette.slate100,
     },
 
+    /**
+     * Monochrome on purpose.
+     *
+     * A yellow heart, a mint pace and a violet climb read as three unrelated
+     * products on one screen. §15 already forbids information carried by colour
+     * alone — every metric has an icon and a label — so the colour was never
+     * doing the work, only the noise. The disc is now the alternate surface and
+     * the icon carries the accent.
+     */
     accent: {
-      heart: { fill: palette.heart, on: palette.neutral900 },
-      pace: { fill: palette.pace, on: palette.neutral900, line: palette.paceLine },
-      climb: { fill: palette.climb, on: palette.white },
+      heart: { fill: palette.slate50, on: palette.slate600 },
+      pace: { fill: palette.slate50, on: palette.slate600, line: palette.teal500 },
+      climb: { fill: palette.slate50, on: palette.slate600 },
     },
 
     info: { surface: palette.infoSurface, text: palette.infoText },
@@ -53,7 +71,7 @@ export const lightTheme: Theme = {
       solid: palette.danger,
       onSolid: palette.white,
     },
-    success: { surface: palette.neutral50, text: palette.success },
+    success: { surface: palette.slate50, text: palette.success },
     skeleton: { base: palette.skeletonLight, highlight: palette.skeletonLightHighlight },
   },
   ...scales,

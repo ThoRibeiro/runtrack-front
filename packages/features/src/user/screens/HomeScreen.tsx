@@ -19,6 +19,7 @@ import {
 } from '@runtrack/ui';
 import { formatKilometres, formatPace, formatWhole, spokenPace } from '../../format';
 import { translate } from '../../i18n';
+import { useUnreadCount } from '../../notification';
 import { itemsOf, useFeed } from '../../feed/hooks/useFeed';
 import { FeedCard } from '../../feed/components/FeedCard';
 import { currentTimeZone, useMe, useMyStats } from '../hooks/useProfile';
@@ -55,6 +56,7 @@ export function HomeScreen({
   const theme = useTheme();
   const zone = useMemo(() => currentTimeZone(), []);
   const me = useMe();
+  const unread = useUnreadCount();
   const stats = useMyStats('WEEK', zone);
   const feed = useFeed();
 
@@ -87,12 +89,17 @@ export function HomeScreen({
           )}
           <Text tone="muted">{translate('home.ready')}</Text>
         </View>
+        {/*
+          La cloche porte la pastille de non-lues. C'est là que la maquette de
+          référence la met, et c'est ce qui garde la barre d'onglets à quatre
+          entrées : une barre à six est une barre qu'on ne lit plus.
+        */}
         <Pressable
           onPress={onOpenNotifications}
           accessibilityLabel={translate('home.notifications')}
           testID="home-notifications"
         >
-          <Badge count={0} label={translate('home.notifications')} />
+          <Badge count={unread.data ?? 0} label={translate('home.notifications')} />
         </Pressable>
       </View>
 

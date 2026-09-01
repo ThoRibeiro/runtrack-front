@@ -38,7 +38,15 @@ export function AuthLayout({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        contentContainerStyle={{ padding: space.lg, gap: space.lg, flexGrow: 1 }}
+        // Centré verticalement : un formulaire de six lignes collé en haut
+        // d'un écran vide donne une page inachevée. C'est le seul endroit où
+        // le contenu se centre — ailleurs, une liste commence en haut.
+        contentContainerStyle={{
+          padding: space.xl,
+          gap: space.lg,
+          flexGrow: 1,
+          justifyContent: 'center',
+        }}
         keyboardShouldPersistTaps="handled"
         testID={testID}
       >

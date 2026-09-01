@@ -53,3 +53,35 @@ test('une route inconnue ne casse pas l’application', async ({ page }) => {
 
   expect(errors).toEqual([]);
 });
+
+test('une installation neuve voit la présentation, et une seule fois', async ({ page }) => {
+  // Pas de `stubApi` ici : c'est justement l'absence de préférence enregistrée
+  // qui doit déclencher l'écran.
+  await page.route('**/localhost:8080/**', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/');
+
+  await expect(page.getByText(/Écran verrouillé, trace intacte/)).toBeVisible({
+    timeout: 15_000,
+  });
+
+  await page.getByRole('button', { name: 'Passer' }).click();
+
+  // Elle ne revient pas : la préférence est écrite avant de partir.
+  await page.goto('/');
+  await expect(page.getByText(/Écran verrouillé, trace intacte/)).toBeHidden();
+});
+
+test('un lien de partage n’est jamais détourné par la présentation', async ({ page }) => {
+  // Quelqu'un qui reçoit un lien n'a pas l'application : lui montrer un
+  // diaporama à la place de ce qu'on lui a envoyé casse le partage.
+  await page.route('**/localhost:8080/**', async (route) => {
+    await route.fulfill({ status: 404, contentType: 'application/json', body: '{}' });
+  });
+
+  await page.goto('/shared/un-jeton');
+
+  await expect(page.getByText(/Écran verrouillé, trace intacte/)).toBeHidden();
+});

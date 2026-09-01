@@ -27,6 +27,8 @@ import {
   FakeSocialGateway,
   FakeUserGateway,
 } from './fakes';
+import { MemoryKeyValueStore } from '../query/persistence';
+import { PreferencesProvider } from '../preferences/PreferencesProvider';
 import { RecordingProvider } from '../recording/RecordingProvider';
 import { RuntimeProvider } from '../runtime/RuntimeProvider';
 import type { Runtime } from '../runtime/runtime';
@@ -327,7 +329,9 @@ export function renderWithRuntime(node: ReactElement, harness: Harness): Promise
       <QueryClientProvider client={client}>
         <RuntimeProvider runtime={harness.runtime}>
           <SessionProvider>
-            <ThemeProvider name="light">{children}</ThemeProvider>
+            <PreferencesProvider storage={new MemoryKeyValueStore()}>
+              <ThemeProvider name="light">{children}</ThemeProvider>
+            </PreferencesProvider>
           </SessionProvider>
         </RuntimeProvider>
       </QueryClientProvider>

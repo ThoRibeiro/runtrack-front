@@ -14,14 +14,31 @@ export const fontFamily = {
   bold: 'PlusJakartaSans_700Bold',
 } as const;
 
+/**
+ * The scale, with more contrast between its ends than the reference had.
+ *
+ * Two deliberate moves:
+ *
+ *  - **the big numbers get tighter and larger.** A distance is the one thing on
+ *    the screen worth looking at from across a table, and negative tracking at
+ *    that size is what stops it reading as a heading;
+ *  - **`hero` and `overline` are new.** `hero` is for a screen that has one
+ *    thing to say — the welcome page. `overline` is small, spaced and upper
+ *    case: it labels a value without competing with it, and it is the single
+ *    most recognisable mark of this kind of interface. It is never used for a
+ *    sentence — spaced capitals are slower to read, which is fine for one word
+ *    and hostile for a paragraph.
+ */
 export const typography = {
-  display: { size: 40, lineHeight: 44, family: fontFamily.bold, letterSpacing: -0.5 },
-  metric: { size: 28, lineHeight: 32, family: fontFamily.bold, letterSpacing: -0.3 },
-  title: { size: 22, lineHeight: 28, family: fontFamily.semibold, letterSpacing: -0.2 },
-  section: { size: 17, lineHeight: 24, family: fontFamily.semibold, letterSpacing: 0 },
-  body: { size: 15, lineHeight: 22, family: fontFamily.regular, letterSpacing: 0 },
-  bodyStrong: { size: 15, lineHeight: 22, family: fontFamily.semibold, letterSpacing: 0 },
+  hero: { size: 52, lineHeight: 56, family: fontFamily.bold, letterSpacing: -1.4 },
+  display: { size: 44, lineHeight: 46, family: fontFamily.bold, letterSpacing: -1.1 },
+  metric: { size: 30, lineHeight: 34, family: fontFamily.semibold, letterSpacing: -0.7 },
+  title: { size: 22, lineHeight: 28, family: fontFamily.semibold, letterSpacing: -0.4 },
+  section: { size: 16, lineHeight: 22, family: fontFamily.semibold, letterSpacing: -0.1 },
+  body: { size: 15, lineHeight: 23, family: fontFamily.regular, letterSpacing: 0 },
+  bodyStrong: { size: 15, lineHeight: 23, family: fontFamily.semibold, letterSpacing: 0 },
   caption: { size: 13, lineHeight: 18, family: fontFamily.regular, letterSpacing: 0 },
+  overline: { size: 11, lineHeight: 16, family: fontFamily.semibold, letterSpacing: 1.2 },
 } as const;
 
 export type TypographyToken = keyof typeof typography;
