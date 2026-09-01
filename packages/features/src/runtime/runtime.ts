@@ -3,12 +3,20 @@ import type {
   AuthGateway,
   Clock,
   FeedGateway,
+  LiveStream,
+  Random,
+  Scheduler,
   SecureStore,
   SocialGateway,
   TrackDecoder,
   UserGateway,
 } from '@runtrack/core';
-import { ChunkedTrackDecoder, type MapSurfaceComponent } from '@runtrack/adapters';
+import {
+  ChunkedTrackDecoder,
+  SystemRandom,
+  SystemScheduler,
+  type MapSurfaceComponent,
+} from '@runtrack/adapters';
 import {
   HttpActivityGateway,
   HttpAuthGateway,
@@ -18,6 +26,8 @@ import {
   HttpUserGateway,
   RefreshCoordinator,
   SessionHolder,
+  SseLiveStream,
+  sseTransportForRuntime,
 } from '@runtrack/api';
 
 /**
@@ -43,6 +53,11 @@ export interface Runtime {
    */
   map: MapSurfaceComponent;
   trackDecoder: TrackDecoder;
+  /** §7: the SSE stream, behind its port — `EventSource` is not an option. */
+  live: LiveStream;
+  /** The watchdog and the backoff of §7 need both of these to be testable. */
+  scheduler: Scheduler;
+  random: Random;
 }
 
 export interface RuntimeOptions {
@@ -82,6 +97,14 @@ export function createRuntime({
   const http = new HttpClient({ baseUrl, clock, session: { holder: sessions, refresh } });
   auth = new HttpAuthGateway(http, clock);
 
+  // The stream carries the same bearer and renews through the same coordinator
+  // as every request: §11's single flight covers the live connection too.
+  const live = new SseLiveStream({
+    baseUrl,
+    transport: sseTransportForRuntime(),
+    session: { holder: sessions, refresh },
+  });
+
   return {
     auth,
     activities: new HttpActivityGateway(http),
@@ -93,5 +116,8 @@ export function createRuntime({
     clock,
     map,
     trackDecoder: trackDecoder ?? new ChunkedTrackDecoder(),
+    live,
+    scheduler: new SystemScheduler(),
+    random: new SystemRandom(),
   };
 }

@@ -4,12 +4,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, type ReactElement, type ReactNode } from 'react';
 import {
   FixedClock,
+  FixedRandom,
+  ManualScheduler,
   userId,
   type AuthGateway,
   type MapRenderer,
   type SecureStore,
   type Session,
 } from '@runtrack/core';
+import { FakeLiveStream } from '@runtrack/core/testing';
 import { ChunkedTrackDecoder, type MapSurfaceComponent } from '@runtrack/adapters';
 import { SessionHolder, RefreshCoordinator } from '@runtrack/api';
 import { ThemeProvider } from '@runtrack/ui';
@@ -156,6 +159,8 @@ export interface Harness {
   social: FakeSocialGateway;
   store: InMemorySecureStore;
   map: RecordingMapRenderer;
+  live: FakeLiveStream;
+  scheduler: ManualScheduler;
 }
 
 export function aRuntime(options: { session?: Session } = {}): Harness {
@@ -172,6 +177,8 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
   const users = new FakeUserGateway();
   const social = new FakeSocialGateway();
 
+  const live = new FakeLiveStream();
+  const scheduler = new ManualScheduler();
   const map = new RecordingMapRenderer();
   const MapSurface: MapSurfaceComponent = ({ onReady, accessibilityLabel, testID }) => {
     // Handed over once, on mount, the way a real surface does when its canvas
@@ -194,9 +201,13 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     map: MapSurface,
     // The real one: a decode is a decode, and slicing it is what §8 asks for.
     trackDecoder: new ChunkedTrackDecoder(),
+    live,
+    scheduler,
+    // §7's jitter, pinned: a test that reconnects has to know when.
+    random: new FixedRandom(0.5),
   };
 
-  return { runtime, auth, feed, activities, users, social, store, map };
+  return { runtime, auth, feed, activities, users, social, store, map, live, scheduler };
 }
 
 /**

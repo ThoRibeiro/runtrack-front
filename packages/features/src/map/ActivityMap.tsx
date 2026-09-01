@@ -129,7 +129,11 @@ export function ActivityMap({
         testID={testID === undefined ? undefined : `${testID}-surface`}
       />
 
-      {points === undefined && (
+      {/*
+        A live run has no track to decode — the points arrive on the stream —
+        so the decoding spinner belongs to the historical case only.
+      */}
+      {points === undefined && !live && (
         <View style={{ position: 'absolute', bottom: space.md, left: space.md }}>
           <Spinner label={translate('map.decoding')} testID="map-decoding" />
         </View>

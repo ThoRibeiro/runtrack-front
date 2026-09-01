@@ -26,3 +26,6 @@ export type {
   MapSurfaceProps,
   Yielder,
 } from './map';
+
+// Le temps et l'aléa de la plateforme, derrière leurs ports.
+export { SystemRandom, SystemScheduler } from './system/systemScheduler';

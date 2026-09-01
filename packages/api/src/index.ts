@@ -43,3 +43,22 @@ export {
 export { toFeedItem } from './mappers/feed';
 
 export type { components, operations, paths } from './generated/schema';
+
+// Direct — le SSE, ses deux transports, et la traduction des événements.
+export { SseFrameParser } from './live/sseFrames';
+export { SseLiveStream } from './live/sseLiveStream';
+export type { SseLiveStreamOptions } from './live/sseLiveStream';
+export { parseLiveEvent } from './live/liveParser';
+export {
+  fetchSseTransport,
+  sseTransportForRuntime,
+  supportsStreamingFetch,
+  xhrSseTransport,
+} from './live/sseTransport';
+export type {
+  FetchLike,
+  SseTransport,
+  SseTransportRequest,
+  SseTransportSubscription,
+  XhrLike,
+} from './live/sseTransport';

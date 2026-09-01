@@ -1,3 +1,4 @@
+import { isTerminal } from '../../activity/domain/activity';
 import type { ActivityStats, ActivityStatus } from '../../activity/domain/activity';
 import type { LivePosition } from '../../activity/domain/track';
 import type { ActivityId } from '../../shared/identity/ids';
@@ -42,6 +43,11 @@ export interface LiveSnapshot {
   positions: readonly LivePosition[];
   connected: boolean;
   reconnectAttempts: number;
+  /**
+   * The activity is over and the session has stopped trying. Not the same as
+   * `!connected`, which means "trying again in a moment".
+   */
+  ended: boolean;
 }
 
 export type LiveParser = (message: LiveMessage) => LiveEvent | undefined;
@@ -62,6 +68,7 @@ export class LiveSession {
 
   private listener: ((snapshot: LiveSnapshot) => void) | undefined;
   private dirty = false;
+  private ended = false;
 
   constructor(
     private readonly activityId: ActivityId,
@@ -90,13 +97,7 @@ export class LiveSession {
    */
   snapshot(): LiveSnapshot {
     this.dirty = false;
-    return {
-      status: this.status,
-      stats: this.stats,
-      positions: [...this.positions],
-      connected: this.connected,
-      reconnectAttempts: this.attempts,
-    };
+    return this.snapshotWithoutClearing();
   }
 
   get hasChanged(): boolean {
@@ -197,6 +198,15 @@ export class LiveSession {
     this.connected = false;
     this.dirty = true;
 
+    // A finished activity publishes nothing more, and the server answers by
+    // sending the final state and hanging up. Reconnecting to that forever is
+    // a loop nobody watches: the run is over, and the screen says so.
+    if (this.status !== undefined && isTerminal(this.status)) {
+      this.ended = true;
+      this.listener?.(this.snapshotWithoutClearing());
+      return;
+    }
+
     const delay = backoffDelay(this.attempts, this.deps.random);
     this.attempts += 1;
     this.cancelRetry = this.deps.scheduler.after(delay, () => {
@@ -211,6 +221,7 @@ export class LiveSession {
       positions: [...this.positions],
       connected: this.connected,
       reconnectAttempts: this.attempts,
+      ended: this.ended,
     };
   }
 }

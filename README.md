@@ -47,7 +47,7 @@ détail est dans [`docs/decisions-lot-1.md`](docs/decisions-lot-1.md).
 
 ## État
 
-**Lots 1 à 7 livrés.**
+**Lots 1 à 8 livrés.**
 
 1. Monorepo, TypeScript strict, lint, CI, les deux coques démarrent sur un écran vide.
 2. Design system : tokens (couleur, espace, typo, mouvement, dimensions), les trois thèmes
@@ -84,14 +84,23 @@ et les chemins d'API du §0 ne sont pas ceux du back-end livré
    une position par seconde ne re-rend pas l'arbre
    ([`docs/decisions-lot-7.md`](docs/decisions-lot-7.md), §4).
 
+8. **Le direct** : SSE avec ses deux transports — corps de `fetch` en flux dans un
+   navigateur, `XMLHttpRequest` en React Native —, reprise par `Last-Event-ID`, instantané
+   dessiné d'un coup, doublons ignorés, reconnexion à recul exponentiel avec jitter.
+
+   `EventSource` n'est pas utilisé : **il ne sait pas porter d'en-tête**, et le flux est
+   authentifié comme le reste ([`docs/decisions-lot-8.md`](docs/decisions-lot-8.md), §1).
+   Un `position` par seconde pendant trois heures ne provoque **aucun rendu** : la carte est
+   nourrie impérativement, et le bandeau rend au plus une fois par seconde.
+
 Le budget de bundle du §14 est **plafonné sur le poids ajouté** par le code applicatif —
 le plancher de la pile imposée valant 495 Ko à lui seul — et porte sur le **bundle
 initial** : MapLibre est chargé à la demande, dans un morceau séparé qui n'arrive qu'à
-l'ouverture d'une course. `pnpm budget` le vérifie, et la CI casse au-delà : **136 Ko
+l'ouverture d'une course. `pnpm budget` le vérifie, et la CI casse au-delà : **141 Ko
 applicatifs sur 250** à ce stade, plus 273 Ko différés.
 
 Avant une mise en production, il manque un **fournisseur de tuiles** :
 `EXPO_PUBLIC_MAP_STYLE_URL` vaut par défaut le style de démonstration de MapLibre.
 
-Reste les lots 8 à 13. Le prochain est **le direct** : SSE, reprise `Last-Event-ID`,
-instantané, déduplication, et un rendu par seconde au maximum.
+Reste les lots 9 à 13. Le prochain est **l'enregistreur** : permissions, service de premier
+plan, tampon SQLite, envoi par lots idempotent, reprise après crash.

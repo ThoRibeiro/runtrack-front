@@ -29,4 +29,22 @@ describe('Text', () => {
       true,
     );
   });
+
+  it('n’est une région vivante que si on le demande — §5 n’en autorise qu’une', async () => {
+    await renderInTheme(<Text testID="t">4,2 km</Text>);
+
+    expect(screen.getByTestId('t')).not.toHaveProp('accessibilityLiveRegion', 'polite');
+  });
+
+  it('annonce poliment un changement quand il est déclaré région vivante', async () => {
+    await renderInTheme(
+      <Text liveRegion="polite" testID="t">
+        4,2 kilomètres, 22 minutes
+      </Text>,
+    );
+
+    // §5 : « polite », jamais « assertive » par défaut — une annonce qui coupe
+    // la parole au lecteur d'écran est pire que pas d'annonce du tout.
+    expect(screen.getByTestId('t')).toHaveProp('accessibilityLiveRegion', 'polite');
+  });
 });

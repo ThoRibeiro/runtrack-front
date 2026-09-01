@@ -26,6 +26,16 @@ export interface TextProps {
   accessibilityLabel?: string | undefined;
   /** Hides the string from the screen reader when a parent already reads it. */
   decorative?: boolean | undefined;
+  /**
+   * Announces the string when it changes, without moving the focus.
+   *
+   * It lives here rather than in a screen because §5 puts a hard rule on it:
+   * the only live region in the application is the aggregated statistics of a
+   * live run, polite, at most once every thirty seconds. A screen that reaches
+   * for the raw platform prop is a screen that can quietly break that — the
+   * stream of positions announced one by one makes the screen unusable.
+   */
+  liveRegion?: 'polite' | 'assertive' | undefined;
   style?: StyleProp<TextStyle> | undefined;
   testID?: string | undefined;
 }
@@ -38,6 +48,7 @@ export function Text({
   numberOfLines,
   accessibilityLabel,
   decorative = false,
+  liveRegion,
   style,
   testID,
 }: TextProps): ReactNode {
@@ -60,6 +71,7 @@ export function Text({
       // No `allowFontScaling={false}` here, ever. A lint rule forbids it too.
       numberOfLines={numberOfLines}
       accessibilityLabel={accessibilityLabel}
+      accessibilityLiveRegion={liveRegion}
       accessibilityElementsHidden={decorative}
       importantForAccessibility={decorative ? 'no-hide-descendants' : 'auto'}
       testID={testID}

@@ -130,6 +130,14 @@ export const fr = {
   'activity.notFound': 'Course introuvable',
   'activity.splitFocused': 'Kilomètre {index} affiché sur la carte',
 
+  'live.connected': 'En direct',
+  'live.reconnecting': 'Reconnexion…',
+  'live.over': 'Course terminée',
+  'live.waiting': 'En attente du premier point',
+  'live.openSummary': 'Voir le résumé',
+  'live.spokenSummary': '{distance}, {duration}, {pace}',
+  'live.spokenNoPace': 'allure inconnue',
+
   'map.label': 'Carte du parcours',
   'map.labelLive': 'Carte du parcours, course en cours',
   'map.start': 'Départ',

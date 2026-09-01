@@ -209,4 +209,46 @@ describe('LiveSession', () => {
     expect(scheduler.scheduledCount).toBe(0);
     expect(session.snapshot().connected).toBe(false);
   });
+
+  it('cesse de reconnecter quand la course est finie : il n’y a plus rien à suivre', () => {
+    // Le serveur d'une course terminée rend l'état final puis raccroche. Sans
+    // cette garde, chaque raccrochage relance une connexion qui recevra la même
+    // chose, indéfiniment.
+    const terminal = (message: LiveMessage): LiveEvent | undefined =>
+      message.event === 'status'
+        ? { kind: 'status', status: { kind: 'finished', since: 2 } }
+        : parse(message);
+    // Ses propres doublures : le chien de garde de la session du `beforeEach`
+    // rouvrirait le flux partagé et ferait mentir le compte.
+    const ownStream = new FakeLiveStream();
+    const ownScheduler = new ManualScheduler();
+    const finished = new LiveSession(ACTIVITY, terminal, {
+      stream: ownStream,
+      scheduler: ownScheduler,
+      clock: new FixedClock(0),
+      random: new FixedRandom(0.5),
+    });
+    finished.open();
+
+    ownStream.deliver({ event: 'status', data: {} });
+    ownStream.fail(new Error('le serveur a raccroché'));
+
+    ownScheduler.advanceBy(60_000);
+    expect(ownStream.openCount).toBe(1);
+
+    const snapshot = finished.snapshot();
+    expect(snapshot.ended).toBe(true);
+    expect(snapshot.connected).toBe(false);
+  });
+
+  it('reconnecte tant que la course tourne encore', () => {
+    const openedBefore = stream.openCount;
+
+    stream.deliver({ event: 'status', data: {} });
+    stream.fail(new Error('réseau coupé'));
+    scheduler.advanceBy(FIRST_BACKOFF);
+
+    expect(stream.openCount).toBe(openedBefore + 1);
+    expect(session.snapshot().ended).toBe(false);
+  });
 });

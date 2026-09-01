@@ -8,3 +8,5 @@ export * from './feed';
 export * from './activity';
 export * from './user';
 export * from './social';
+export * from './map';
+export * from './live';
