@@ -8,6 +8,13 @@ import type { IngestionOutcome, RejectedPoint } from '../recording/domain/ingest
 import type { LocationPermission, LocationTracker } from '../recording/ports/locationTracker';
 import type { InterruptedRecording, PointBuffer } from '../recording/ports/pointBuffer';
 import type { LocationFix } from '../activity/domain/track';
+import type { BoundingBox, GeoPoint } from '../measure/geo';
+import type { MapMarker, MapRenderer } from '../map/ports/mapRenderer';
+import {
+  TrackDecodingCancelled,
+  type TrackDecoder,
+  type TrackDecoding,
+} from '../map/ports/trackDecoder';
 import { activityId, userId, type ActivityId } from '../shared/identity/ids';
 import type { Page } from '../shared/paging/page';
 import type { Visibility } from '../activity/domain/activity';
@@ -243,5 +250,101 @@ export class FakeLiveStream implements LiveStream {
 
   fail(error: unknown): void {
     this.current?.onError(error);
+  }
+}
+
+export function aSplit(overrides: Partial<Split> = {}): Split {
+  return {
+    kilometreIndex: 1,
+    distanceMetres: 1000,
+    timeSeconds: 300,
+    paceSecondsPerKm: 300,
+    elevationGain: 4,
+    averageHeartRate: undefined,
+    complete: true,
+    ...overrides,
+  };
+}
+
+/** A map that records what it was told, so a test can assert the instructions. */
+export class FakeMapRenderer implements MapRenderer {
+  traces: readonly (readonly GeoPoint[])[] = [];
+  appended: readonly (readonly GeoPoint[])[] = [];
+  markerSets: readonly (readonly MapMarker[])[] = [];
+  fits: { box: BoundingBox; animated: boolean | undefined }[] = [];
+  followed: GeoPoint[] = [];
+  private panListeners = new Set<() => void>();
+
+  setTrace(points: readonly GeoPoint[]): void {
+    this.traces = [...this.traces, points];
+  }
+
+  appendToTrace(points: readonly GeoPoint[]): void {
+    this.appended = [...this.appended, points];
+  }
+
+  setMarkers(markers: readonly MapMarker[]): void {
+    this.markerSets = [...this.markerSets, markers];
+  }
+
+  fitTo(box: BoundingBox, options?: { animated?: boolean }): void {
+    this.fits.push({ box, animated: options?.animated });
+  }
+
+  followPosition(position: GeoPoint): void {
+    this.followed.push(position);
+  }
+
+  onUserMovedView(listener: () => void): () => void {
+    this.panListeners.add(listener);
+    return () => this.panListeners.delete(listener);
+  }
+
+  /** The user drags the map. */
+  pan(): void {
+    for (const listener of this.panListeners) listener();
+  }
+
+  get listenerCount(): number {
+    return this.panListeners.size;
+  }
+
+  get lastMarkers(): readonly MapMarker[] {
+    return this.markerSets[this.markerSets.length - 1] ?? [];
+  }
+}
+
+/**
+ * A decoder that resolves when the test says so — the point of the port is that
+ * decoding does *not* happen inline, and a fake that resolves immediately would
+ * hide every ordering bug the real one can produce.
+ */
+export class FakeTrackDecoder implements TrackDecoder {
+  requested: string[] = [];
+  cancelled = 0;
+  private resolvers: ((points: readonly GeoPoint[]) => void)[] = [];
+
+  decode(polyline: string): TrackDecoding {
+    this.requested.push(polyline);
+    let settle: (points: readonly GeoPoint[]) => void = () => undefined;
+    let reject: (error: unknown) => void = () => undefined;
+    const points = new Promise<readonly GeoPoint[]>((resolvePoints, rejectPoints) => {
+      settle = resolvePoints;
+      reject = rejectPoints;
+    });
+    this.resolvers.push(settle);
+
+    return {
+      points,
+      cancel: () => {
+        this.cancelled += 1;
+        reject(new TrackDecodingCancelled());
+      },
+    };
+  }
+
+  /** Hands the decoded points to the caller of the first pending decode. */
+  resolve(points: readonly GeoPoint[]): void {
+    this.resolvers.shift()?.(points);
   }
 }

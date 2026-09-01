@@ -178,3 +178,14 @@ export type {
 
 // Carte.
 export type { MapMarker, MapRenderer } from './map/ports/mapRenderer';
+export { TrackDecodingCancelled, isTrackDecodingCancelled } from './map/ports/trackDecoder';
+export type { TrackDecoder, TrackDecoding } from './map/ports/trackDecoder';
+export {
+  boundingBoxAround,
+  kilometreMarks,
+  pointAtDistance,
+  splitEndDistances,
+} from './map/domain/trackGeometry';
+export type { PointOnTrack } from './map/domain/trackGeometry';
+export { ActivityMapPresenter } from './map/usecases/activityMap';
+export type { ActivityMapLabels } from './map/usecases/activityMap';

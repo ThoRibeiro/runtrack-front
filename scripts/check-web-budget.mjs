@@ -27,12 +27,20 @@ if (bundles.length === 0) {
   process.exit(1);
 }
 
-const compressed = bundles.reduce(
-  (total, name) => total + gzipSync(readFileSync(join(distribution, name))).length,
-  0,
-);
+// Le §14 plafonne le bundle **initial**, et c'est le mot qui compte : Metro sort
+// un morceau séparé par `import()` différé, et un morceau qu'on ne télécharge
+// qu'en ouvrant une course ne pèse ni sur le premier rendu ni sur le LCP.
+// L'entrée est ce que Metro nomme `entry-*.js` ; le reste est listé, hors budget.
+const isEntry = (name) => name.startsWith('entry-');
+const entries = bundles.filter(isEntry);
+const deferred = bundles.filter((name) => !isEntry(name));
+// Un export sans fichier `entry-*` : on ne devine pas, on compte tout.
+const initial = entries.length === 0 ? bundles : entries;
 
-const kilobytes = compressed / 1024;
+const sizeOf = (names) =>
+  names.reduce((total, name) => total + gzipSync(readFileSync(join(distribution, name))).length, 0);
+
+const kilobytes = sizeOf(initial) / 1024;
 const ceiling = budget.floorKilobytes + budget.applicativeKilobytes;
 const applicative = kilobytes - budget.floorKilobytes;
 
@@ -52,3 +60,11 @@ if (kilobytes > ceiling) {
 }
 
 console.log(`reste             : ${round(ceiling - kilobytes)} Ko`);
+
+if (deferred.length > 0) {
+  console.log("\nmorceaux différés (hors budget, chargés à l'usage) :");
+  for (const name of deferred) {
+    const weight = gzipSync(readFileSync(join(distribution, name))).length / 1024;
+    console.log(`  ${name} : ${round(weight)} Ko`);
+  }
+}

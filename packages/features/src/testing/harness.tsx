@@ -1,13 +1,16 @@
 import { render, type RenderResult } from '@testing-library/react-native';
+import { View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import type { ReactElement, ReactNode } from 'react';
+import { useEffect, type ReactElement, type ReactNode } from 'react';
 import {
   FixedClock,
   userId,
   type AuthGateway,
+  type MapRenderer,
   type SecureStore,
   type Session,
 } from '@runtrack/core';
+import { ChunkedTrackDecoder, type MapSurfaceComponent } from '@runtrack/adapters';
 import { SessionHolder, RefreshCoordinator } from '@runtrack/api';
 import { ThemeProvider } from '@runtrack/ui';
 import { FakeActivityGateway, FakeFeedGateway, FakeSocialGateway, FakeUserGateway } from './fakes';
@@ -99,14 +102,49 @@ export class FakeAuthGateway implements AuthGateway {
   }
 }
 
-export interface Harness {
-  runtime: Runtime;
-  auth: FakeAuthGateway;
-  feed: FakeFeedGateway;
-  activities: FakeActivityGateway;
-  users: FakeUserGateway;
-  social: FakeSocialGateway;
-  store: InMemorySecureStore;
+/**
+ * A map that draws nothing and records everything.
+ *
+ * §8's two real surfaces are a WebGL canvas and a native view; neither renders
+ * in jest, and neither needs to. What a screen test has to answer is what the
+ * map was *told* — and that is exactly what this keeps.
+ */
+export class RecordingMapRenderer implements MapRenderer {
+  traces: readonly (readonly { latitude: number; longitude: number }[])[] = [];
+  markerLabels: readonly string[] = [];
+  fits = 0;
+  followed = 0;
+  private panListeners = new Set<() => void>();
+
+  setTrace(points: readonly { latitude: number; longitude: number }[]): void {
+    this.traces = [...this.traces, points];
+  }
+
+  appendToTrace(points: readonly { latitude: number; longitude: number }[]): void {
+    this.traces = [...this.traces, points];
+  }
+
+  setMarkers(markers: readonly { accessibilityLabel: string }[]): void {
+    this.markerLabels = markers.map((marker) => marker.accessibilityLabel);
+  }
+
+  fitTo(): void {
+    this.fits += 1;
+  }
+
+  followPosition(): void {
+    this.followed += 1;
+  }
+
+  onUserMovedView(listener: () => void): () => void {
+    this.panListeners.add(listener);
+    return () => this.panListeners.delete(listener);
+  }
+
+  /** The user drags the map, from a test. */
+  pan(): void {
+    for (const listener of this.panListeners) listener();
+  }
 }
 
 export interface Harness {
@@ -117,6 +155,7 @@ export interface Harness {
   users: FakeUserGateway;
   social: FakeSocialGateway;
   store: InMemorySecureStore;
+  map: RecordingMapRenderer;
 }
 
 export function aRuntime(options: { session?: Session } = {}): Harness {
@@ -133,6 +172,16 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
   const users = new FakeUserGateway();
   const social = new FakeSocialGateway();
 
+  const map = new RecordingMapRenderer();
+  const MapSurface: MapSurfaceComponent = ({ onReady, accessibilityLabel, testID }) => {
+    // Handed over once, on mount, the way a real surface does when its canvas
+    // becomes usable — never on every render, which would be a render loop.
+    useEffect(() => {
+      onReady(map);
+    }, [onReady]);
+    return <View accessibilityLabel={accessibilityLabel} testID={testID} />;
+  };
+
   const runtime: Runtime = {
     auth,
     activities,
@@ -142,9 +191,12 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     sessions,
     refresh: new RefreshCoordinator(sessions, () => auth.refresh(), clock),
     clock,
+    map: MapSurface,
+    // The real one: a decode is a decode, and slicing it is what §8 asks for.
+    trackDecoder: new ChunkedTrackDecoder(),
   };
 
-  return { runtime, auth, feed, activities, users, social, store };
+  return { runtime, auth, feed, activities, users, social, store, map };
 }
 
 /**

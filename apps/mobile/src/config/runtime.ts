@@ -1,4 +1,5 @@
 import { secureStoreForPlatform } from '@runtrack/adapters';
+import { NativeMapSurface } from '@runtrack/adapters/map/native';
 import { createRuntime, type Runtime } from '@runtrack/features';
 
 /**
@@ -8,6 +9,10 @@ import { createRuntime, type Runtime } from '@runtrack/features';
  * simulator, a device on the same Wi-Fi and production. `process.env` is typed
  * as `any` here — the shells carry no Node types — so the value is checked
  * rather than trusted.
+ *
+ * The map surface is injected here and not resolved inside `@runtrack/adapters`
+ * (§8): a `Platform.OS` test would leave both implementations in both bundles,
+ * and MapLibre has no business being shipped to a phone.
  */
 const configured: unknown = process.env['EXPO_PUBLIC_API_URL'];
 const baseUrl =
@@ -17,4 +22,5 @@ export const runtime: Runtime = createRuntime({
   baseUrl,
   secureStore: secureStoreForPlatform(),
   clock: { now: () => Date.now() },
+  map: NativeMapSurface,
 });

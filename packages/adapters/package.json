@@ -5,7 +5,9 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./map/native": "./src/map/native/index.ts",
+    "./map/web": "./src/map/web/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -17,18 +19,31 @@
     "expo-secure-store": "~57.0.2"
   },
   "peerDependencies": {
-    "react-native": "*"
+    "react": "*",
+    "react-native": "*",
+    "react-native-maps": "*",
+    "maplibre-gl": "*"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "fake-indexeddb": "^6.2.5",
     "jest": "^30.5.0",
     "jest-expo": "~57.0.5",
+    "maplibre-gl": "^6.6.0",
     "react": "19.2.3",
     "react-native": "0.86.3",
+    "react-native-maps": "1.27.2",
     "typescript": "6.0.3"
   },
   "volta": {
     "extends": "../../package.json"
+  },
+  "peerDependenciesMeta": {
+    "react-native-maps": {
+      "optional": true
+    },
+    "maplibre-gl": {
+      "optional": true
+    }
   }
 }

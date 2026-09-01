@@ -5,8 +5,10 @@ import type {
   FeedGateway,
   SecureStore,
   SocialGateway,
+  TrackDecoder,
   UserGateway,
 } from '@runtrack/core';
+import { ChunkedTrackDecoder, type MapSurfaceComponent } from '@runtrack/adapters';
 import {
   HttpActivityGateway,
   HttpAuthGateway,
@@ -34,15 +36,31 @@ export interface Runtime {
   sessions: SessionHolder;
   refresh: RefreshCoordinator;
   clock: Clock;
+  /**
+   * §8: the two map implementations have nothing in common, so each shell
+   * injects its own here. It is a component and not a port because something
+   * has to *mount* a map — and the hexagon has never heard of a component.
+   */
+  map: MapSurfaceComponent;
+  trackDecoder: TrackDecoder;
 }
 
 export interface RuntimeOptions {
   baseUrl: string;
   secureStore: SecureStore;
   clock: Clock;
+  map: MapSurfaceComponent;
+  /** Defaults to the sliced decoder; a test hands in its own. */
+  trackDecoder?: TrackDecoder | undefined;
 }
 
-export function createRuntime({ baseUrl, secureStore, clock }: RuntimeOptions): Runtime {
+export function createRuntime({
+  baseUrl,
+  secureStore,
+  clock,
+  map,
+  trackDecoder,
+}: RuntimeOptions): Runtime {
   const sessions = new SessionHolder(secureStore);
 
   // The knot: the coordinator renews through the auth gateway, and the auth
@@ -73,5 +91,7 @@ export function createRuntime({ baseUrl, secureStore, clock }: RuntimeOptions): 
     sessions,
     refresh,
     clock,
+    map,
+    trackDecoder: trackDecoder ?? new ChunkedTrackDecoder(),
   };
 }

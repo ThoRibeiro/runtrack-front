@@ -127,10 +127,19 @@ export const fr = {
   'activity.splits': 'Kilomètres',
   'activity.splitLabel': 'Kilomètre {index}',
   'activity.splitPartial': 'partiel',
-  'activity.mapPending': 'La carte arrive au prochain lot',
-  'activity.mapPendingDetail':
-    'La trace est déjà chargée ; son rendu attend l’adaptateur de carte.',
   'activity.notFound': 'Course introuvable',
+  'activity.splitFocused': 'Kilomètre {index} affiché sur la carte',
+
+  'map.label': 'Carte du parcours',
+  'map.labelLive': 'Carte du parcours, course en cours',
+  'map.start': 'Départ',
+  'map.finish': 'Arrivée',
+  'map.runner': 'Position actuelle du coureur',
+  'map.recentre': 'Recentrer',
+  'map.decoding': 'Chargement du tracé',
+  'map.unavailable': 'Tracé indisponible',
+  'map.unavailableDetail':
+    'Les points de cette course ont été purgés : au-delà de 90 jours, seul le résumé est conservé.',
 
   'profile.followers': 'Abonnés',
   'profile.following': 'Abonnements',

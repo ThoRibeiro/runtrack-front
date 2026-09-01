@@ -97,7 +97,8 @@ describe('ActivityScreen', () => {
       splitCalls += 1;
       return Promise.resolve([
         {
-          kilometreIndex: 0,
+          // Le serveur numérote à partir de 1 — voir `SplitCalculator`.
+          kilometreIndex: 1,
           distanceMetres: 1000,
           timeSeconds: 300,
           paceSecondsPerKm: 300,

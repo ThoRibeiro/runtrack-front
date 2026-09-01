@@ -171,8 +171,11 @@ export class FakeActivityGateway implements ActivityGateway {
     return Promise.resolve(this.activity);
   }
 
+  trackData: Track = { polyline: '', pointCount: 0, pointsPurgedAt: undefined };
+  onTrack: (() => Promise<Track>) | undefined;
+
   track(): Promise<Track> {
-    return Promise.resolve({ polyline: '', pointCount: 0, pointsPurgedAt: undefined });
+    return this.onTrack === undefined ? Promise.resolve(this.trackData) : this.onTrack();
   }
 
   splits(): Promise<readonly Split[]> {

@@ -47,7 +47,7 @@ détail est dans [`docs/decisions-lot-1.md`](docs/decisions-lot-1.md).
 
 ## État
 
-**Lots 1 à 6 livrés.**
+**Lots 1 à 7 livrés.**
 
 1. Monorepo, TypeScript strict, lint, CI, les deux coques démarrent sur un écran vide.
 2. Design system : tokens (couleur, espace, typo, mouvement, dimensions), les trois thèmes
@@ -75,9 +75,23 @@ et les chemins d'API du §0 ne sont pas ceux du back-end livré
 6. **Consultation** : accueil, fil, course, profil, recherche, demandes d'abonnement.
    Listes virtualisées, pagination par curseur, barre d'onglets. 90 tests.
 
-Le budget de bundle du §14 est **plafonné sur le poids ajouté** par le code applicatif —
-le plancher de la pile imposée valant 495 Ko à lui seul. `pnpm budget` le vérifie, et la CI
-casse au-delà : 130 Ko applicatifs sur 250 à ce stade.
+7. **La carte** : le port `MapRenderer` et ses **deux adaptateurs** — `react-native-maps`
+   sur mobile, MapLibre GL sur le web —, la trace décodée par tranches sans jamais tenir le
+   fil plus d'une image, le cadrage automatique, les **repères kilométriques cliquables**,
+   et le suivi qui rend la vue à l'utilisateur dès qu'il y touche.
 
-Reste les lots 7 à 13. Le prochain est **la carte** : port `MapRenderer`, ses deux
-adaptateurs, polyline décodée hors du fil principal, splits.
+   La logique de la carte vit dans l'hexagone et pilote le rendu **de façon impérative** :
+   une position par seconde ne re-rend pas l'arbre
+   ([`docs/decisions-lot-7.md`](docs/decisions-lot-7.md), §4).
+
+Le budget de bundle du §14 est **plafonné sur le poids ajouté** par le code applicatif —
+le plancher de la pile imposée valant 495 Ko à lui seul — et porte sur le **bundle
+initial** : MapLibre est chargé à la demande, dans un morceau séparé qui n'arrive qu'à
+l'ouverture d'une course. `pnpm budget` le vérifie, et la CI casse au-delà : **136 Ko
+applicatifs sur 250** à ce stade, plus 273 Ko différés.
+
+Avant une mise en production, il manque un **fournisseur de tuiles** :
+`EXPO_PUBLIC_MAP_STYLE_URL` vaut par défaut le style de démonstration de MapLibre.
+
+Reste les lots 8 à 13. Le prochain est **le direct** : SSE, reprise `Last-Event-ID`,
+instantané, déduplication, et un rendu par seconde au maximum.
