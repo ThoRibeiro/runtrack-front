@@ -17,6 +17,16 @@
         {
           "sitemap": false
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "backgroundColor": "#0E1416"
+          },
+          "resizeMode": "contain"
+        }
       ]
     ],
     "experiments": {

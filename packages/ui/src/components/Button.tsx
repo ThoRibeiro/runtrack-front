@@ -7,14 +7,15 @@ import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
 
 /**
- * Always a full pill (§3). The variants exist so that a screen never has to
- * reach inside: if a screen needs a button this cannot make, the answer is a
- * new variant here, not an override from outside.
+ * Always a full pill: in this design the shape is what marks the things you
+ * press, and a field is squarer for exactly that reason. The variants exist so
+ * that a screen never has to reach inside — if a screen needs a button this
+ * cannot make, the answer is a new variant here, not an override from outside.
  *
- * The filled variant sits on `brand.solid` and not on `brand.fill`. That is the
- * third consequence of the contrast trap of §3: a white label on `#EE4A22` is
- * 3.72:1, below AA, while on `#C8391A` it is 5.18:1. The vivid orange keeps
- * every job where nothing is written on it.
+ * `brand.solid` and `brand.fill` are the same colour now, and that is the point
+ * of the palette: `#137C8B` carries a white label at 4.90:1, so the accent does
+ * not have to change shade depending on whether something is written on it. The
+ * two names stay because the dark theme still separates them.
  */
 export type ButtonVariant = 'solid' | 'outline' | 'ghost' | 'danger';
 

@@ -8,6 +8,7 @@ import {
   MINIMUM_RATIO,
   relativeLuminance,
 } from './contrast';
+import { palette } from '../tokens';
 import type { Theme } from './theme';
 
 /**
@@ -51,8 +52,8 @@ describe('le calcul lui-même', () => {
   });
 
   it('est symétrique', () => {
-    expect(contrastRatio('#EE4A22', '#FFFFFF')).toBeCloseTo(
-      contrastRatio('#FFFFFF', '#EE4A22'),
+    expect(contrastRatio('#137C8B', '#FFFFFF')).toBeCloseTo(
+      contrastRatio('#FFFFFF', '#137C8B'),
       10,
     );
   });
@@ -65,12 +66,18 @@ describe('le calcul lui-même', () => {
     expect(() => relativeLuminance('rgba(20, 20, 20, 0.45)')).toThrow(TypeError);
   });
 
-  it('retrouve le piège du §3 : brand-500 en texte sur blanc ne passe pas AA', () => {
-    expect(contrastRatio('#EE4A22', '#FFFFFF')).toBeLessThan(MINIMUM_RATIO.text);
+  it('mesure ce qui a justifié la palette : l’accent passe AA comme texte', () => {
+    // C'est la propriété qui a permis de supprimer la règle des deux teintes —
+    // une seule couleur pour le remplissage et pour les mots.
+    expect(contrastRatio(palette.teal500, '#FFFFFF')).toBeGreaterThanOrEqual(MINIMUM_RATIO.text);
   });
 
-  it('et brand-600 en texte sur blanc passe', () => {
-    expect(contrastRatio('#C8391A', '#FFFFFF')).toBeGreaterThanOrEqual(MINIMUM_RATIO.text);
+  it('et sur fond sombre, c’est la teinte claire qui passe, pas l’accent', () => {
+    // L'accent y tombe à 3,79:1 : un remplissage, pas un mot. D'où `teal400`.
+    expect(contrastRatio(palette.teal500, palette.ink900)).toBeLessThan(MINIMUM_RATIO.text);
+    expect(contrastRatio(palette.teal400, palette.ink900)).toBeGreaterThanOrEqual(
+      MINIMUM_RATIO.text,
+    );
   });
 });
 

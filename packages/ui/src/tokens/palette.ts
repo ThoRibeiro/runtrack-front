@@ -66,13 +66,17 @@ export const palette = {
   night200: '#B8CBD0',
 
   // Feedback. Absent from a five-colour palette and unavoidable: §5 forbids an
-  // error carried by a red border alone, so the words need a colour too. Both
-  // are desaturated to sit beside the blue-greys rather than shout over them.
-  danger: '#B0271F', // 5.82:1 on white.
-  dangerSurface: '#FBEAE8',
-  dangerDark: '#FF9086',
-  dangerSurfaceDark: '#341613',
-  success: '#1B6E4B', // 5.24:1 on white.
+  // error carried by a red border alone, so the words need a colour too.
+  //
+  // The red is pulled to the cold side of red on purpose — **no orange anywhere
+  // in this interface**, and a brick red reads as one at a glance. It sits
+  // beside the blue-greys instead of shouting over them, and it is the only
+  // chromatic colour here besides the accent.
+  danger: '#A6203A', // 7.30:1 on white.
+  dangerSurface: '#FAE8EC',
+  dangerDark: '#FF8A9E', // 8.16:1 on the dark canvas.
+  dangerSurfaceDark: '#33141C',
+  success: '#1B6E4B', // 5.24:1 on white — a green, and far from orange.
   successDark: '#5FCB97',
 
   // Information.

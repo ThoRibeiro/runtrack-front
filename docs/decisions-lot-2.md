@@ -4,6 +4,13 @@ _Écrit le 2026-08-31. Ce que le cahier des charges laisse ouvert, tranché ici.
 valeurs de contraste citées sont **mesurées**, pas estimées : `packages/ui/src/theme/contrast.test.ts`
 les revérifie à chaque build._
 
+> **La palette de ce document n'est plus celle du produit.** L'orange et les pastilles
+> colorées ont été remplacés après le lot 13 par cinq bleus-verts — voir
+> [`decisions-design.md`](decisions-design.md). Ce qui suit reste le compte rendu de ce qui
+> a été décidé au lot 2, y compris les trois écarts de contraste que le test avait trouvés :
+> ils expliquent pourquoi le garde-fou existe, et c'est lui qui a validé la nouvelle palette
+> avant qu'un seul écran ne soit touché.
+
 ---
 
 ## 1. Trois écarts sur la palette, et c'est le test qui les a trouvés
