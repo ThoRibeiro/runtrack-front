@@ -67,13 +67,15 @@ export function ToastProvider({ children }: { children: ReactNode }): ReactNode 
     <ToastContext.Provider value={value}>
       {children}
       <View
-        pointerEvents="box-none"
+        // `pointerEvents` en style, pas en prop : la prop est dépréciée et le
+        // web s'en plaint à chaque montage.
         style={{
           position: 'absolute',
           left: space.md,
           right: space.md,
           bottom: space['3xl'],
           gap: space.xs,
+          pointerEvents: 'box-none',
         }}
       >
         {toasts.map((toast) => (

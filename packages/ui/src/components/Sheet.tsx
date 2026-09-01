@@ -118,8 +118,7 @@ export function Sheet({
           <GestureDetector gesture={pan}>
             <View style={{ paddingVertical: space.xs, alignItems: 'center' }}>
               <View
-                accessibilityElementsHidden
-                importantForAccessibility="no-hide-descendants"
+                aria-hidden
                 style={{
                   width: space['3xl'],
                   height: theme.stroke.thick * 2,

@@ -51,8 +51,7 @@ export function Avatar({
       accessible={!decorative}
       accessibilityRole="image"
       accessibilityLabel={decorative ? undefined : name}
-      accessibilityElementsHidden={decorative}
-      importantForAccessibility={decorative ? 'no-hide-descendants' : 'auto'}
+      aria-hidden={decorative}
       testID={testID}
       style={{
         width: diameter,
@@ -73,8 +72,7 @@ export function Avatar({
           source={{ uri }}
           // The name is already announced by the wrapper; repeating it here
           // makes the screen reader say it twice.
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
+          aria-hidden
           style={{ width: diameter, height: diameter }}
         />
       )}

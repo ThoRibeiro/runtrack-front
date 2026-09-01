@@ -56,8 +56,9 @@ describe('MetricCard', () => {
     );
 
     expect(screen.getByTestId('spark', { includeHiddenElements: true })).toHaveProp(
-      'accessibilityElementsHidden',
+      'aria-hidden',
       true,
     );
+    expect(screen.queryByTestId('spark')).toBeNull();
   });
 });

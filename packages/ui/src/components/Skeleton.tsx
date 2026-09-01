@@ -43,8 +43,7 @@ export function Skeleton({ width, height, rounded = 'sm', testID }: SkeletonProp
   return (
     <View
       // The wait is announced once, by the screen, not by every grey block.
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
+      aria-hidden
       testID={testID}
       style={{ width, height }}
     >

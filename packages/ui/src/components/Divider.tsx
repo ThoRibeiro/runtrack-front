@@ -10,8 +10,7 @@ export function Divider({ inset = 0 }: { inset?: number }): ReactNode {
   const theme = useTheme();
   return (
     <View
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
+      aria-hidden
       style={{
         height: theme.stroke.hairline,
         marginLeft: inset,

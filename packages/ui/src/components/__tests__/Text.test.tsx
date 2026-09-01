@@ -25,9 +25,10 @@ describe('Text', () => {
     );
 
     expect(screen.getByTestId('t', { includeHiddenElements: true })).toHaveProp(
-      'accessibilityElementsHidden',
+      'aria-hidden',
       true,
     );
+    expect(screen.queryByTestId('t')).toBeNull();
   });
 
   it('n’est une région vivante que si on le demande — §5 n’en autorise qu’une', async () => {

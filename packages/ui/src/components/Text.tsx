@@ -72,8 +72,7 @@ export function Text({
       numberOfLines={numberOfLines}
       accessibilityLabel={accessibilityLabel}
       accessibilityLiveRegion={liveRegion}
-      accessibilityElementsHidden={decorative}
-      importantForAccessibility={decorative ? 'no-hide-descendants' : 'auto'}
+      aria-hidden={decorative}
       testID={testID}
       style={[
         {

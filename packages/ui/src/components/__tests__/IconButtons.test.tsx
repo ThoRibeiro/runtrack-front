@@ -30,9 +30,10 @@ describe('boutons à icône seule', () => {
     await renderInTheme(<Icon name="heart" colour="#000000" testID="icone" />);
 
     expect(screen.getByTestId('icone', { includeHiddenElements: true })).toHaveProp(
-      'accessibilityElementsHidden',
+      'aria-hidden',
       true,
     );
+    expect(screen.queryByTestId('icone')).toBeNull();
   });
 });
 

@@ -127,8 +127,7 @@ export function Icon({
       height={size}
       viewBox="0 0 24 24"
       fill="none"
-      accessibilityElementsHidden={decorative}
-      importantForAccessibility={decorative ? 'no-hide-descendants' : 'yes'}
+      aria-hidden={decorative}
       {...(decorative ? {} : { accessibilityRole: 'image' as const, accessibilityLabel })}
       {...(testID === undefined ? {} : { testID })}
     >

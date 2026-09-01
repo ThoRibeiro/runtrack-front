@@ -173,6 +173,17 @@ export default tseslint.config(
             '§5 : le texte dynamique doit survivre à 200 %. allowFontScaling={false} est interdit.',
         },
         {
+          // Ces deux props sont propres à React Native : `react-native-web` ne
+          // les traduit pas, les laisse fuir dans le DOM — React s'en plaint —
+          // et l'élément reste dans l'arbre accessible du navigateur, ce que
+          // aucun test automatique n'attrape. `aria-hidden` fait le travail sur
+          // les trois cibles depuis React Native 0.71.
+          selector:
+            'JSXAttribute[name.name=/^(accessibilityElementsHidden|importantForAccessibility)$/]',
+          message:
+            "§5 : masque avec aria-hidden. accessibilityElementsHidden et importantForAccessibility ne sont pas traduites sur le web, et l'élément y reste lisible par un lecteur d'écran.",
+        },
+        {
           selector: "CallExpression[callee.name='fetch']",
           message:
             "§15 : aucun fetch depuis un composant. Le réseau vit dans packages/api, et TanStack Query l'appelle.",

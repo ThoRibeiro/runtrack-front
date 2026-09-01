@@ -42,11 +42,7 @@ export function Sparkline({ values, width, height, colour, testID }: SeriesProps
     .join(' ');
 
   return (
-    <View
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      testID={testID}
-    >
+    <View aria-hidden testID={testID}>
       <Svg width={width} height={height}>
         <Path
           d={d}
@@ -70,11 +66,7 @@ export function BarSeries({ values, width, height, colour, testID }: SeriesProps
   const barWidth = Math.max(stroke.thick, slot * 0.6);
 
   return (
-    <View
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      testID={testID}
-    >
+    <View aria-hidden testID={testID}>
       <Svg width={width} height={height}>
         {values.map((value, index) => {
           const barHeight = Math.max(stroke.thick, ((value - low) / span) * height);
