@@ -5,9 +5,11 @@ import { duration, easing, elevation, radius, space, spring, stroke, typography 
  * the only reason the same `Button` can be dropped into the light theme, the
  * dark theme and the running theme without a single conditional.
  *
- * The two oranges of §3 are two separate roles here, so that "orange text on a
- * light background" is not a mistake a screen can make: `brand.fill` is for
- * fills, `brand.text` is for text, and nothing named `brand500` is reachable.
+ * Fills and text are two separate roles here even though one accent now serves
+ * both: `brand.fill` is for fills, `brand.text` is for text, and nothing named
+ * `blue500` is reachable from a screen. Keeping the roles apart is what lets
+ * the dark theme substitute a lighter accent for text without touching a
+ * single component.
  */
 export interface ThemeColours {
   /** The page behind everything. */
@@ -27,8 +29,16 @@ export interface ThemeColours {
   border: string;
   /** A field outline, a meaningful divider. Meets 3:1. */
   borderStrong: string;
-  /** Keyboard focus, on web. Never orange: it must not read as a brand fill. */
+  /**
+   * Keyboard focus — the outer of two strokes.
+   *
+   * Two, because the accent is blue and a focused control sits on white on one
+   * screen and on the accent card on the next: a single hue measured 1.10:1 on
+   * the latter. Never a brand colour, or focus reads as a fill.
+   */
   focusRing: string;
+  /** The inner stroke. Whichever the ground, one of the two contrasts. */
+  focusRingInner: string;
   /** Behind a modal. */
   scrim: string;
   /** A round translucent button over an image or a map. */
@@ -43,7 +53,7 @@ export interface ThemeColours {
     solid: string;
     /** That label. Meets 4.5:1 against `solid`. */
     onSolid: string;
-    /** Orange TEXT on the theme's backgrounds. Meets 4.5:1 on all three. */
+    /** The accent as TEXT, on the theme's backgrounds. Meets 4.5:1 on all three. */
     text: string;
     /** The tinted background of the highlight card. */
     surface: string;

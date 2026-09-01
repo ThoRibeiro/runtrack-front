@@ -40,8 +40,22 @@ describe.each(THEMES)('thème %s', (_name, theme) => {
     expect(pairs.length).toBeGreaterThan(20);
   });
 
-  it.each(pairs)('$label', ({ foreground, background, requirement }) => {
-    const ratio = contrastRatio(foreground, background);
+  it('mesure l’anneau de focus sur l’aplat d’accent, pas seulement sur la page', () => {
+    // La régression que le changement d'accent a produite : un anneau d'une
+    // seule teinte y tombait à 1,10:1. Sans cette paire, rien ne l'aurait vu.
+    const onAccent = pairs.filter(
+      (pair) => pair.background === theme.colours.brand.solid && pair.label.startsWith('anneau'),
+    );
+    expect(onAccent).not.toHaveLength(0);
+  });
+
+  it.each(pairs)('$label', ({ foreground, background, requirement, alternative }) => {
+    // Une paire à deux traits passe si l'un des deux ressort : les deux sont
+    // dessinés en même temps, donc c'est le meilleur des deux que l'œil voit.
+    const ratio = Math.max(
+      contrastRatio(foreground, background),
+      alternative === undefined ? 0 : contrastRatio(alternative, background),
+    );
     expect(ratio).toBeGreaterThanOrEqual(MINIMUM_RATIO[requirement]);
   });
 });
@@ -52,8 +66,8 @@ describe('le calcul lui-même', () => {
   });
 
   it('est symétrique', () => {
-    expect(contrastRatio('#137C8B', '#FFFFFF')).toBeCloseTo(
-      contrastRatio('#FFFFFF', '#137C8B'),
+    expect(contrastRatio('#2563EB', '#FFFFFF')).toBeCloseTo(
+      contrastRatio('#FFFFFF', '#2563EB'),
       10,
     );
   });
@@ -69,13 +83,13 @@ describe('le calcul lui-même', () => {
   it('mesure ce qui a justifié la palette : l’accent passe AA comme texte', () => {
     // C'est la propriété qui a permis de supprimer la règle des deux teintes —
     // une seule couleur pour le remplissage et pour les mots.
-    expect(contrastRatio(palette.teal500, '#FFFFFF')).toBeGreaterThanOrEqual(MINIMUM_RATIO.text);
+    expect(contrastRatio(palette.blue500, '#FFFFFF')).toBeGreaterThanOrEqual(MINIMUM_RATIO.text);
   });
 
   it('et sur fond sombre, c’est la teinte claire qui passe, pas l’accent', () => {
-    // L'accent y tombe à 3,79:1 : un remplissage, pas un mot. D'où `teal400`.
-    expect(contrastRatio(palette.teal500, palette.ink900)).toBeLessThan(MINIMUM_RATIO.text);
-    expect(contrastRatio(palette.teal400, palette.ink900)).toBeGreaterThanOrEqual(
+    // L'accent y tombe sous AA : un remplissage, pas un mot. D'où `blue400`.
+    expect(contrastRatio(palette.blue500, palette.ink900)).toBeLessThan(MINIMUM_RATIO.text);
+    expect(contrastRatio(palette.blue400, palette.ink900)).toBeGreaterThanOrEqual(
       MINIMUM_RATIO.text,
     );
   });

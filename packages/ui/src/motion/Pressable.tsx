@@ -111,7 +111,17 @@ export function Pressable({
           style,
           // §5: the focus indicator is never removed, it is replaced. On web an
           // invisible focus is a keyboard trap you cannot see your way out of.
-          focused && { borderColor: theme.colours.focusRing, borderWidth: theme.stroke.thick },
+          //
+          // Two strokes, not one: the inner border and the outer outline. A
+          // single colour cannot contrast with both the page and the accent
+          // card, and the control can be on either.
+          focused && {
+            borderColor: theme.colours.focusRingInner,
+            borderWidth: theme.stroke.thick,
+            outlineColor: theme.colours.focusRing,
+            outlineStyle: 'solid',
+            outlineWidth: theme.stroke.thick,
+          },
         ]}
       >
         {children}

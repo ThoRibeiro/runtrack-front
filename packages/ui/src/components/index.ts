@@ -31,6 +31,8 @@ export { Input } from './Input';
 export type { InputProps } from './Input';
 export { List } from './List';
 export type { ListProps } from './List';
+export { Logo, logoTileRadius } from './Logo';
+export type { LogoProps } from './Logo';
 export { MetricCard } from './MetricCard';
 export type { MetricAccent, MetricCardProps } from './MetricCard';
 export { Modal } from './Modal';

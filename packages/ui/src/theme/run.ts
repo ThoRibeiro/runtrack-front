@@ -10,7 +10,7 @@ import { scales, type Theme } from './theme';
  *
  * It goes darker than the general dark theme — `night900` against `ink900` —
  * because contrast is what survives sunlight, and it takes the accent one step
- * lighter still: `teal400` on this ground is 7.6:1, which is what a number read
+ * lighter still: `blue400` on this ground is 8.4:1, which is what a number read
  * at arm's length with a moving arm needs.
  */
 export const runTheme: Theme = {
@@ -27,19 +27,20 @@ export const runTheme: Theme = {
 
     border: palette.night600,
     borderStrong: palette.night400,
-    focusRing: palette.white,
+    focusRing: palette.focusRing,
+    focusRingInner: palette.focusRingInner,
     scrim: palette.scrim,
     glass: palette.glassDark,
 
     brand: {
-      fill: palette.teal400,
+      fill: palette.blue400,
       onFill: palette.night900,
-      solid: palette.teal500,
+      solid: palette.blue500,
       onSolid: palette.white,
-      text: palette.teal400,
-      surface: palette.teal900,
+      text: palette.blue400,
+      surface: palette.blue900,
       track: palette.night600,
-      gradientEnd: palette.teal500,
+      gradientEnd: palette.blue500,
       onFillTrack: palette.onAccentTrack,
     },
 
@@ -47,7 +48,7 @@ export const runTheme: Theme = {
     // bras en plein soleil, et quatre couleurs de pastille y sont du bruit.
     accent: {
       heart: { fill: palette.night600, on: palette.night200 },
-      pace: { fill: palette.night600, on: palette.night200, line: palette.teal400 },
+      pace: { fill: palette.night600, on: palette.night200, line: palette.blue400 },
       climb: { fill: palette.night600, on: palette.night200 },
       count: { fill: palette.night600, on: palette.night200 },
     },

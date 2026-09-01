@@ -2,20 +2,27 @@
   "expo": {
     "name": "RunTrack",
     "slug": "runtrack",
+    "scheme": "runtrack",
     "version": "0.1.0",
     "orientation": "portrait",
-    "scheme": "runtrack",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "fr.runtrack.app",
       "infoPlist": {
-        "UIBackgroundModes": ["location", "fetch"],
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ],
         "NSLocationWhenInUseUsageDescription": "RunTrack enregistre votre trajet pendant que vous courez.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "RunTrack continue d\u2019enregistrer votre course quand l\u2019\u00e9cran est verrouill\u00e9 ou que le t\u00e9l\u00e9phone est dans une poche.",
-        "NSMotionUsageDescription": "La d\u00e9tection de mouvement affine la distance quand le signal GPS faiblit."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "RunTrack continue d’enregistrer votre course quand l’écran est verrouillé ou que le téléphone est dans une poche.",
+        "NSMotionUsageDescription": "La détection de mouvement affine la distance quand le signal GPS faiblit."
       }
     },
     "android": {
@@ -27,14 +34,18 @@
         "ACCESS_BACKGROUND_LOCATION",
         "FOREGROUND_SERVICE",
         "FOREGROUND_SERVICE_LOCATION"
-      ]
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#2563EB"
+      }
     },
     "plugins": [
       "expo-router",
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "RunTrack continue d\u2019enregistrer votre course quand l\u2019\u00e9cran est verrouill\u00e9.",
+          "locationAlwaysAndWhenInUsePermission": "RunTrack continue d’enregistrer votre course quand l’écran est verrouillé.",
           "locationWhenInUsePermission": "RunTrack enregistre votre trajet pendant que vous courez.",
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true
@@ -43,16 +54,19 @@
       [
         "expo-notifications",
         {
-          "color": "#137C8B",
+          "color": "#2563EB",
           "defaultChannel": "default"
         }
       ],
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFFFFF",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 160,
+          "backgroundColor": "#2563EB",
           "dark": {
-            "backgroundColor": "#0E1416"
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#0C1220"
           },
           "resizeMode": "contain"
         }
@@ -61,6 +75,9 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "web": {
+      "favicon": "./public/favicon.png"
     }
   }
 }

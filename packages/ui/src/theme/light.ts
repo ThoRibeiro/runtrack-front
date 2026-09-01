@@ -6,10 +6,10 @@ import { scales, type Theme } from './theme';
  * The light theme, and the direction the whole interface follows.
  *
  * White, one accent, and structure carried by hairlines rather than by fills.
- * That is the difference from what came before: the reference put a coloured
+ * That is the difference from what came before: the earlier pass put a coloured
  * disc behind every metric and a tinted card behind every highlight, and the
  * result was busy. Here the page is white, the type is `slate800`, and
- * `teal500` appears where something is *actionable* or *current* — nowhere
+ * `blue500` appears where something is *actionable* or *current* — nowhere
  * else.
  *
  * The canvas is a hair off white on the web, where the page is wider and a pure
@@ -34,20 +34,21 @@ export const lightTheme: Theme = {
 
     border: palette.slate100,
     borderStrong: palette.slate500,
-    focusRing: palette.focus,
+    focusRing: palette.focusRing,
+    focusRingInner: palette.focusRingInner,
     scrim: palette.scrim,
     glass: palette.glassLight,
 
     brand: {
-      // One accent for both jobs — 4.90:1 on white is what makes that possible.
-      fill: palette.teal500,
+      // One accent for both jobs — 5.17:1 on white is what makes that possible.
+      fill: palette.blue500,
       onFill: palette.white,
-      solid: palette.teal500,
+      solid: palette.blue500,
       onSolid: palette.white,
-      text: palette.teal600,
-      surface: palette.teal50,
+      text: palette.blue600,
+      surface: palette.blue50,
       track: palette.slate100,
-      gradientEnd: palette.teal400,
+      gradientEnd: palette.blue400,
       onFillTrack: palette.onAccentTrack,
     },
 
@@ -60,7 +61,7 @@ export const lightTheme: Theme = {
      */
     accent: {
       heart: { fill: palette.heartSurface, on: palette.heartIcon },
-      pace: { fill: palette.teal50, on: palette.teal600, line: palette.teal500 },
+      pace: { fill: palette.blue50, on: palette.blue600, line: palette.blue500 },
       climb: { fill: palette.climbSurface, on: palette.climbIcon },
       count: { fill: palette.countSurface, on: palette.countIcon },
     },

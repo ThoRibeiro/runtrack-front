@@ -77,6 +77,16 @@ export interface ContrastPair {
   foreground: string;
   background: string;
   requirement: ContrastRequirement;
+  /**
+   * A second foreground that may carry the pair instead.
+   *
+   * Exactly one thing needs this, and it is the focus ring: it is drawn as two
+   * strokes because a focused control sits on white on one screen and on the
+   * accent card on the next, and no single colour contrasts with both. The pair
+   * passes when *either* stroke meets the ratio — which is what the eye does,
+   * since both are on screen at once.
+   */
+  alternative?: string;
 }
 
 /** Whether a typography token qualifies as WCAG "large text". */
@@ -108,7 +118,7 @@ export function contrastPairs(theme: Theme, backgrounds: readonly string[]): Con
   return [
     ...onEachBackground('texte principal', c.text, 'text'),
     ...onEachBackground('texte secondaire (unités, libellés)', c.textMuted, 'text'),
-    ...onEachBackground('texte orange', c.brand.text, 'text'),
+    ...onEachBackground('texte de marque', c.brand.text, 'text'),
     ...onEachBackground('texte de danger', c.danger.text, 'text'),
     ...onEachBackground('texte de succès', c.success.text, 'text'),
     ...onEachBackground(
@@ -117,7 +127,15 @@ export function contrastPairs(theme: Theme, backgrounds: readonly string[]): Con
       'nonText',
     ),
     ...onEachBackground('bordure de champ', c.borderStrong, 'nonText'),
-    ...onEachBackground('anneau de focus', c.focusRing, 'nonText'),
+    // L'anneau se pose aussi sur l'aplat d'accent — le fond sur lequel une
+    // teinte unique devenait invisible. Il est donc mesuré là aussi.
+    ...[...backgrounds, c.brand.solid, c.brand.fill].map((background) => ({
+      label: `anneau de focus sur ${background}`,
+      foreground: c.focusRing,
+      alternative: c.focusRingInner,
+      background,
+      requirement: 'nonText' as const,
+    })),
     ...onEachBackground('courbe d’allure', c.accent.pace.line, 'nonText'),
 
     {
@@ -184,6 +202,12 @@ export function contrastPairs(theme: Theme, backgrounds: readonly string[]): Con
       label: 'icône de la pastille dénivelé',
       foreground: c.accent.climb.on,
       background: c.accent.climb.fill,
+      requirement: 'nonText',
+    },
+    {
+      label: 'icône de la pastille de comptage',
+      foreground: c.accent.count.on,
+      background: c.accent.count.fill,
       requirement: 'nonText',
     },
   ];

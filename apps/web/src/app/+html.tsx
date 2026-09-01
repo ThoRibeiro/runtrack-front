@@ -1,3 +1,4 @@
+import { lightTheme } from '@runtrack/ui';
 import { ScrollViewStyleReset } from 'expo-router/html';
 import type { ReactNode } from 'react';
 
@@ -30,6 +31,22 @@ export default function Root({ children }: { children: ReactNode }): ReactNode {
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="description" content="RunTrack — suivi de courses à pied" />
         <title>RunTrack</title>
+        {/*
+          Deux formats parce qu'ils ne servent pas au même moment : le SVG pour
+          un navigateur qui l'accepte — net à toutes les tailles —, le PNG en
+          repli, et l'icône Apple pour un raccourci ajouté à l'écran d'accueil.
+          Les trois sortent du même tracé que le composant `Logo`, via
+          `pnpm logo`.
+        */}
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        {/*
+          La barre du navigateur prend la couleur de marque du thème clair, lue
+          au même endroit que le reste de l'interface : recopier le code
+          hexadécimal ici, c'est le laisser diverger au premier changement.
+        */}
+        <meta name="theme-color" content={lightTheme.colours.brand.solid} />
         <ScrollViewStyleReset />
       </head>
       <body>{children}</body>

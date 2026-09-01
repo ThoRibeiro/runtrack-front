@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
-import { GradientBackground, Text, space, useTheme } from '@runtrack/ui';
+import { GradientBackground, Logo, Text, space, useTheme } from '@runtrack/ui';
 import { describeError } from '../../i18n';
 import { AuthError } from './AuthError';
 
@@ -58,6 +58,14 @@ export function AuthLayout({
           keyboardShouldPersistTaps="handled"
           testID={testID}
         >
+          {/*
+            La marque se pose sur le dégradé, au-dessus de la carte : c'est la
+            première chose qu'on voit d'un produit qu'on ne connaît pas encore.
+            Elle porte son nom ici parce qu'aucun mot ne l'accompagne.
+          */}
+          <View style={{ alignItems: 'center', marginBottom: space.lg }}>
+            <Logo size={52} colour={theme.colours.brand.onSolid} label="RunTrack" />
+          </View>
           <View
             style={{
               backgroundColor: theme.colours.surface,

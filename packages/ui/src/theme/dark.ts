@@ -8,7 +8,7 @@ import { scales, type Theme } from './theme';
  * charcoal: a dark that shares the family reads as the same product with the
  * lights off, and a neutral one reads as a different application.
  *
- * The accent lightens to `teal400`. `teal500` gives 3.79:1 on this ground —
+ * The accent lightens to `blue400`. `blue500` gives 3.68:1 on this ground —
  * enough for a fill, not for a word — and an accent that cannot be read as text
  * would put the two-colour rule back that the palette just removed.
  */
@@ -26,19 +26,20 @@ export const darkTheme: Theme = {
 
     border: palette.ink700,
     borderStrong: palette.ink400,
-    focusRing: palette.focusDark,
+    focusRing: palette.focusRing,
+    focusRingInner: palette.focusRingInner,
     scrim: palette.scrim,
     glass: palette.glassDark,
 
     brand: {
-      fill: palette.teal400,
+      fill: palette.blue400,
       onFill: palette.night900,
-      solid: palette.teal500,
+      solid: palette.blue500,
       onSolid: palette.white,
-      text: palette.teal400,
-      surface: palette.teal900,
+      text: palette.blue400,
+      surface: palette.blue900,
       track: palette.ink600,
-      gradientEnd: palette.teal500,
+      gradientEnd: palette.blue500,
       onFillTrack: palette.onAccentTrack,
     },
 
@@ -51,7 +52,7 @@ export const darkTheme: Theme = {
      */
     accent: {
       heart: { fill: palette.heartSurfaceDark, on: palette.heartIconDark },
-      pace: { fill: palette.teal900, on: palette.teal400, line: palette.teal400 },
+      pace: { fill: palette.blue900, on: palette.blue400, line: palette.blue400 },
       climb: { fill: palette.climbSurfaceDark, on: palette.climbIconDark },
       count: { fill: palette.countSurfaceDark, on: palette.countIconDark },
     },
