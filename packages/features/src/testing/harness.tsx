@@ -268,7 +268,8 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     scheduler,
     // §7's jitter, pinned: a test that reconnects has to know when.
     random: new FixedRandom(0.5),
-    recording: { buffer, tracker, network },
+    network,
+    recording: { buffer, tracker },
   };
 
   return {

@@ -18,7 +18,9 @@
     "@runtrack/api": "workspace:*",
     "@runtrack/core": "workspace:*",
     "@runtrack/ui": "workspace:*",
+    "@tanstack/query-persist-client-core": "^5.102.8",
     "@tanstack/react-query": "^5.102.8",
+    "@tanstack/react-query-persist-client": "^5.102.8",
     "zustand": "^5.0.15"
   },
   "peerDependencies": {

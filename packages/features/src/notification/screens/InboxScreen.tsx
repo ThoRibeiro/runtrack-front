@@ -76,6 +76,7 @@ export function InboxScreen({ onOpen, onOpenPreferences }: InboxScreenProps): Re
   const [now] = useState(() => runtime.clock.now());
 
   const described = inbox.isError ? describeError(inbox.error) : undefined;
+  const paused = inbox.fetchStatus === 'paused';
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colours.canvas }} testID="inbox-screen">
@@ -90,6 +91,15 @@ export function InboxScreen({ onOpen, onOpenPreferences }: InboxScreenProps): Re
           described === undefined
             ? undefined
             : { title: translate('inbox.error'), message: described.detail }
+        }
+        offline={
+          paused
+            ? {
+                title: translate('offline.title'),
+                description: translate('offline.generic'),
+                retryLabel: translate('common.retry'),
+              }
+            : undefined
         }
         onRetry={() => {
           void inbox.refetch();

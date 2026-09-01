@@ -47,7 +47,7 @@ détail est dans [`docs/decisions-lot-1.md`](docs/decisions-lot-1.md).
 
 ## État
 
-**Lots 1 à 11 livrés.**
+**Lots 1 à 12 livrés.**
 
 1. Monorepo, TypeScript strict, lint, CI, les deux coques démarrent sur un écran vide.
 2. Design system : tokens (couleur, espace, typo, mouvement, dimensions), les trois thèmes
@@ -120,6 +120,11 @@ et les chemins d'API du §0 ne sont pas ceux du back-end livré
     en-tête : le lot 4 avait supposé l'inverse, et le serveur n'a jamais lu cet en-tête
     ([`docs/decisions-lot-11.md`](docs/decisions-lot-11.md), §1).
 
+12. **Hors-ligne** : le fil déjà lu et les courses déjà ouvertes survivent à une coupure —
+    et **rien d'autre**, par liste blanche. Surtout, une requête en pause n'est plus un
+    spinner : `onlineManager` est branché sur le port réseau, et les écrans disent « hors
+    connexion » ([`docs/decisions-lot-12.md`](docs/decisions-lot-12.md), §2).
+
 Le budget de bundle du §14 est **plafonné sur le poids ajouté** par le code applicatif —
 le plancher de la pile imposée valant 495 Ko à lui seul — et porte sur le **bundle
 initial** : MapLibre est chargé à la demande, dans un morceau séparé qui n'arrive qu'à
@@ -134,5 +139,6 @@ par le système après un kill, batterie sur une heure de course : rien de tout 
 simule, et c'est la première chose à faire sur un _dev build_
 ([`docs/decisions-lot-9.md`](docs/decisions-lot-9.md), §9).
 
-Reste les lots 12 et 13. Le prochain est **le hors-ligne** : ce que le §9 énumère, et rien
-de plus.
+Reste le lot 13 : performance mesurée contre les budgets du §14, fluidité au profileur,
+conformité WCAG 2.2 AA (outils automatiques **et** passe manuelle), README complet et builds
+de production.

@@ -36,6 +36,9 @@ export function FeedScreen({ onOpenActivity }: FeedScreenProps): ReactNode {
   );
 
   const described = feed.error === null ? undefined : describeError(feed.error);
+  // §9: a paused query is not a slow one. Saying so is the difference between
+  // an honest screen and a spinner that never stops.
+  const paused = feed.fetchStatus === 'paused';
 
   return (
     <View
@@ -54,6 +57,15 @@ export function FeedScreen({ onOpenActivity }: FeedScreenProps): ReactNode {
           described === undefined
             ? undefined
             : { title: translate('feed.loadFailed'), message: described.detail }
+        }
+        offline={
+          paused
+            ? {
+                title: translate('offline.title'),
+                description: translate('offline.feed'),
+                retryLabel: translate('common.retry'),
+              }
+            : undefined
         }
         onRetry={() => {
           void feed.refetch();

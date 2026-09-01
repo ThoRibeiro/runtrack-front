@@ -33,6 +33,8 @@ export { MetricCard } from './MetricCard';
 export type { MetricAccent, MetricCardProps } from './MetricCard';
 export { Modal } from './Modal';
 export type { ModalProps } from './Modal';
+export { OfflineState } from './OfflineState';
+export type { OfflineStateProps } from './OfflineState';
 export { ProgressRing } from './ProgressRing';
 export type { ProgressRingProps } from './ProgressRing';
 export { RadioGroup } from './Radio';

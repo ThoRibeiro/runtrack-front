@@ -1,4 +1,4 @@
-import { secureStoreForPlatform } from '@runtrack/adapters';
+import { BrowserNetworkMonitor, secureStoreForPlatform } from '@runtrack/adapters';
 import { WebMapSurface } from '@runtrack/adapters/map/web';
 import { createRuntime, type Runtime } from '@runtrack/features';
 
@@ -23,4 +23,7 @@ export const runtime: Runtime = createRuntime({
   secureStore: secureStoreForPlatform(),
   clock: { now: () => Date.now() },
   map: WebMapSurface,
+  // §9 : `navigator.onLine` est faible, mais il a raison sur le cas qui compte
+  // — l'onglet qui vient de perdre le Wi-Fi.
+  network: new BrowserNetworkMonitor(),
 });

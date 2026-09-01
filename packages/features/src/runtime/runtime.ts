@@ -87,6 +87,14 @@ export interface Runtime {
   scheduler: Scheduler;
   random: Random;
   /**
+   * §9: connectivity, everywhere and not only while recording.
+   *
+   * It moved out of the recording capability in lot 12: the offline story is
+   * not the recorder's alone — every screen owes the runner an honest state
+   * rather than a spinner that never stops.
+   */
+  network: NetworkMonitor;
+  /**
    * §2: **the web cannot record.** A browser does not do background
    * geolocation and its tab falls asleep — a fact to accept, not a limitation
    * to work around. So this is `undefined` on the web shell, and the screens
@@ -99,7 +107,6 @@ export interface Runtime {
 export interface RecordingCapability {
   buffer: PointBuffer;
   tracker: LocationTracker;
-  network: NetworkMonitor;
 }
 
 export interface RuntimeOptions {
@@ -111,6 +118,7 @@ export interface RuntimeOptions {
   trackDecoder?: TrackDecoder | undefined;
   /** Mobile only (§2). */
   recording?: RecordingCapability | undefined;
+  network: NetworkMonitor;
   /**
    * Mobile only (§12): a browser has no push token.
    *
@@ -130,6 +138,7 @@ export function createRuntime({
   trackDecoder,
   recording,
   push,
+  network,
 }: RuntimeOptions): Runtime {
   const sessions = new SessionHolder(secureStore);
 
@@ -191,6 +200,7 @@ export function createRuntime({
     push: push?.(devices),
     scheduler: new SystemScheduler(),
     random: new SystemRandom(),
+    network,
     recording,
   };
 }

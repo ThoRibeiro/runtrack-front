@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
 import { space } from '../tokens';
 import { EmptyState } from './EmptyState';
+import { OfflineState } from './OfflineState';
 import { ErrorState } from './ErrorState';
 import { Spinner } from './Spinner';
 
@@ -24,6 +25,14 @@ export interface ListProps<T> {
   loadingLabel?: string | undefined;
   /** Already read from the `problem+json` `code` by the caller. */
   error?: { title: string; message: string } | undefined;
+  /**
+   * §9: shown instead of the spinner when the query is *paused* for want of a
+   * network. A paused query and a slow one look identical from inside the list;
+   * only the caller knows which, and a spinner over the first is a lie.
+   */
+  offline?:
+    | { title: string; description?: string | undefined; retryLabel?: string | undefined }
+    | undefined;
   onRetry?: (() => void) | undefined;
   onEndReached?: (() => void) | undefined;
   header?: ReactElement | undefined;
@@ -39,6 +48,7 @@ export function List<T>({
   loading = false,
   loadingLabel = 'Chargement',
   error,
+  offline,
   onRetry,
   onEndReached,
   header,
@@ -46,6 +56,19 @@ export function List<T>({
 }: ListProps<T>): ReactNode {
   if (error !== undefined) {
     return <ErrorState title={error.title} message={error.message} onRetry={onRetry} />;
+  }
+
+  // Offline wins over loading: something we cannot fetch is not loading.
+  if (offline !== undefined && data === undefined) {
+    return (
+      <OfflineState
+        title={offline.title}
+        description={offline.description}
+        retryLabel={offline.retryLabel}
+        onRetry={onRetry}
+        testID="list-offline"
+      />
+    );
   }
 
   if (data === undefined && loading) {

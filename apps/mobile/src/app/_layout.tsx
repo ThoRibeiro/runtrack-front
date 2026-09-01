@@ -5,9 +5,9 @@ import {
   PlusJakartaSans_700Bold,
   useFonts,
 } from '@expo-google-fonts/plus-jakarta-sans';
-import { QueryClientProvider } from '@tanstack/react-query';
 import {
   NotificationStreamProvider,
+  OfflineProvider,
   RuntimeProvider,
   SessionProvider,
   createQueryClient,
@@ -21,6 +21,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { persister } from '../config/persistence';
 import { runtime } from '../config/runtime';
 
 /**
@@ -55,8 +56,13 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <RuntimeProvider runtime={runtime}>
+        <RuntimeProvider runtime={runtime}>
+          {/*
+            §9 : le cache persistant et l'état de connexion. Le runtime d'abord —
+            c'est lui qui porte le moniteur réseau que ce fournisseur branche sur
+            TanStack Query.
+          */}
+          <OfflineProvider client={queryClient} persister={persister}>
             <SessionProvider>
               {/*
                 §6: mounted here, above the router, because it looks for a run a
@@ -76,8 +82,8 @@ export default function RootLayout() {
                 </NotificationStreamProvider>
               </RecordingProvider>
             </SessionProvider>
-          </RuntimeProvider>
-        </QueryClientProvider>
+          </OfflineProvider>
+        </RuntimeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

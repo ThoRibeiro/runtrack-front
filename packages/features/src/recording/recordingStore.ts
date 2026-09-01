@@ -111,7 +111,7 @@ export function createRecordingStore(runtime: Runtime): RecordingStore {
       });
       // §6: "ou au retour du réseau". Leaving a tunnel with two minutes of
       // points buffered should not wait for the next tick.
-      stopWatchingNetwork = capability.network.onRestored(() => {
+      stopWatchingNetwork = runtime.network.onRestored(() => {
         void flush();
       });
     };

@@ -44,10 +44,10 @@ export const runtime: Runtime = createRuntime({
   secureStore: secureStoreForPlatform(),
   clock: { now: () => Date.now() },
   map: NativeMapSurface,
+  network: new ExpoNetworkMonitor(),
   recording: {
     buffer,
     tracker: new ExpoLocationTracker(),
-    network: new ExpoNetworkMonitor(),
   },
   // Le registre reçoit la passerelle d'appareils que le runtime construit :
   // une seule pile HTTP, et rien à muter après coup.

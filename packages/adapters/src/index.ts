@@ -29,6 +29,7 @@ export type {
 
 // Le temps et l'aléa de la plateforme, derrière leurs ports.
 export { SystemRandom, SystemScheduler } from './system/systemScheduler';
+export { AlwaysOnlineMonitor, BrowserNetworkMonitor } from './system/browserNetworkMonitor';
 
 // L'enregistrement n'est pas ici. §2 : seul le mobile enregistre, et tout ce que
 // cet index exporte finit dans le bundle web — un tampon SQLite compris.

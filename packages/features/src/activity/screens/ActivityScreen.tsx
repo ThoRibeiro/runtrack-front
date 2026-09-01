@@ -8,6 +8,7 @@ import {
   FloatingIconButton,
   GroupedRows,
   IconAction,
+  OfflineState,
   Skeleton,
   Spinner,
   StatTile,
@@ -78,6 +79,23 @@ export function ActivityScreen({
       AccessibilityInfo.announceForAccessibility(translate('activity.splitFocused', { index }));
     }
   }, []);
+
+  // §9 : une course déjà ouverte est en cache et s'affiche ; une autre ne peut
+  // pas l'être, et le dire vaut mieux qu'un squelette qui ne se remplira pas.
+  if (activity.isPending && activity.fetchStatus === 'paused') {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.colours.canvas }} testID="activity-offline">
+        <OfflineState
+          title={translate('offline.title')}
+          description={translate('offline.activity')}
+          retryLabel={translate('common.retry')}
+          onRetry={() => {
+            void activity.refetch();
+          }}
+        />
+      </View>
+    );
+  }
 
   if (activity.isPending) {
     return (
