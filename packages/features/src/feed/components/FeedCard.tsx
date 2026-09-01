@@ -50,7 +50,7 @@ export function FeedCard({ item, onPress }: FeedCardProps): ReactNode {
       enforceTouchTarget={false}
       testID={`feed-card-${item.activityId}`}
     >
-      <Card>
+      <Card tone="plain">
         <View style={{ gap: space.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
             <Avatar name={item.author.displayName} uri={item.author.avatarUrl} size="sm" />

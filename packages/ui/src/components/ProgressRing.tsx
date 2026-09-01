@@ -16,6 +16,12 @@ import { Text } from './Text';
 export interface ProgressRingProps {
   /** 0 to 1. Values outside are clamped rather than drawn wrong. */
   progress: number;
+  /**
+   * Drawn to sit on the accent fill rather than on a page: the track becomes a
+   * translucent white and the arc solid white. Without it the ring disappears
+   * into the colour it is drawn on.
+   */
+  onAccent?: boolean | undefined;
   label: string;
   size?: number | undefined;
   /** Replaces the percentage in the middle — a distance, for instance. */
@@ -25,6 +31,7 @@ export interface ProgressRingProps {
 
 export function ProgressRing({
   progress,
+  onAccent = false,
   label,
   size = ringSize,
   centre,
@@ -51,7 +58,7 @@ export function ProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={theme.colours.brand.track}
+          stroke={onAccent ? theme.colours.brand.onFillTrack : theme.colours.brand.track}
           strokeWidth={stroke.ring}
           fill="none"
         />
@@ -59,7 +66,7 @@ export function ProgressRing({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={theme.colours.brand.fill}
+          stroke={onAccent ? theme.colours.brand.onSolid : theme.colours.brand.fill}
           strokeWidth={stroke.ring}
           strokeLinecap="round"
           strokeDasharray={`${String(circumference)} ${String(circumference)}`}
@@ -70,7 +77,7 @@ export function ProgressRing({
         />
       </Svg>
       {centre ?? (
-        <Text variant="metric" decorative>
+        <Text variant="metric" tone={onAccent ? 'onBrand' : 'default'} decorative>
           {`${String(percentage)} %`}
         </Text>
       )}

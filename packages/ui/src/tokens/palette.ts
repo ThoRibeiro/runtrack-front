@@ -65,6 +65,25 @@ export const palette = {
   night400: '#7C929E',
   night200: '#B8CBD0',
 
+  // Metric pastilles.
+  //
+  // The references put a coloured disc behind each icon, and it is what makes a
+  // list of metrics scannable — the eye finds the heart before it reads the
+  // word. The set is deliberately cold: no orange anywhere, and each pair is a
+  // pale ground with a dark icon on it, measured at 5.3:1 or better.
+  heartSurface: '#FCE8EE',
+  heartIcon: '#B0304F',
+  heartSurfaceDark: '#33161D',
+  heartIconDark: '#FF97AE',
+  climbSurface: '#EDEAFB',
+  climbIcon: '#5B4BB8',
+  climbSurfaceDark: '#1F1B3A',
+  climbIconDark: '#A99CF0',
+  countSurface: '#E8EEF8',
+  countIcon: '#2F5AA8',
+  countSurfaceDark: '#152238',
+  countIconDark: '#8FB2E8',
+
   // Feedback. Absent from a five-colour palette and unavoidable: §5 forbids an
   // error carried by a red border alone, so the words need a colour too.
   //
@@ -101,6 +120,8 @@ export const palette = {
   // design rules forbid, so the three that exist live here.
   scrim: 'rgba(15, 24, 28, 0.48)',
   glassLight: 'rgba(255, 255, 255, 0.78)',
+  /** A ring track drawn on the accent fill. */
+  onAccentTrack: 'rgba(255, 255, 255, 0.28)',
   glassDark: 'rgba(20, 28, 33, 0.72)',
 } as const;
 

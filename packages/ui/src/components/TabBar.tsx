@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { View } from 'react-native';
 import { Pressable } from '../motion';
 import { useTheme } from '../theme';
-import { controlHeight, iconSize, radius, space } from '../tokens';
+import { controlHeight, iconSize, space } from '../tokens';
 import { Badge } from './Badge';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
@@ -41,9 +41,10 @@ export function TabBar({ items, activeKey, onSelect, testID }: TabBarProps): Rea
         alignItems: 'center',
         justifyContent: 'space-around',
         gap: space.xs,
-        paddingVertical: space.xs,
+        paddingTop: space.sm,
+        paddingBottom: space.md,
         paddingHorizontal: space.sm,
-        backgroundColor: theme.colours.surface,
+        backgroundColor: theme.colours.canvas,
         borderTopWidth: theme.stroke.hairline,
         borderTopColor: theme.colours.border,
       }}
@@ -61,25 +62,30 @@ export function TabBar({ items, activeKey, onSelect, testID }: TabBarProps): Rea
             accessibilityState={{ selected: active }}
             enforceTouchTarget={false}
             style={{
-              flexDirection: 'row',
+              // A column, and no filled shape: the active tab is marked by the
+              // colour of its icon and its label, not by a coloured lozenge
+              // under it. A bar with a solid pill in it is the loudest thing on
+              // a screen that is otherwise white.
               alignItems: 'center',
               gap: space.xxs,
               minHeight: controlHeight.md,
               paddingHorizontal: space.sm,
-              borderRadius: radius.full,
-              backgroundColor: active ? theme.colours.brand.fill : 'transparent',
+              paddingVertical: space.xxs,
             }}
           >
             <Icon
               name={item.icon}
-              size={iconSize.lg}
-              colour={active ? theme.colours.brand.onFill : theme.colours.textMuted}
+              size={iconSize.md}
+              colour={active ? theme.colours.brand.fill : theme.colours.textMuted}
             />
-            {active && (
-              <Text variant="caption" tone="onBrand" decorative>
-                {item.label}
-              </Text>
-            )}
+            {/*
+              The label is always there, never only on the active tab: §15
+              forbids information carried by colour alone, and a tab bar whose
+              labels appear and disappear also shifts its own layout.
+            */}
+            <Text variant="overline" tone={active ? 'brand' : 'muted'} decorative numberOfLines={1}>
+              {item.label}
+            </Text>
             {item.badgeCount !== undefined && item.badgeCount > 0 && (
               <Badge count={item.badgeCount} label={`non lus, ${item.label}`} />
             )}

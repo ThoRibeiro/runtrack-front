@@ -30,15 +30,25 @@ export const fontFamily = {
  *    and hostile for a paragraph.
  */
 export const typography = {
-  hero: { size: 52, lineHeight: 56, family: fontFamily.bold, letterSpacing: -1.4 },
-  display: { size: 44, lineHeight: 46, family: fontFamily.bold, letterSpacing: -1.1 },
-  metric: { size: 30, lineHeight: 34, family: fontFamily.semibold, letterSpacing: -0.7 },
-  title: { size: 22, lineHeight: 28, family: fontFamily.semibold, letterSpacing: -0.4 },
-  section: { size: 16, lineHeight: 22, family: fontFamily.semibold, letterSpacing: -0.1 },
-  body: { size: 15, lineHeight: 23, family: fontFamily.regular, letterSpacing: 0 },
-  bodyStrong: { size: 15, lineHeight: 23, family: fontFamily.semibold, letterSpacing: 0 },
+  /** One screen has one thing to say: the welcome page. */
+  hero: { size: 34, lineHeight: 40, family: fontFamily.bold, letterSpacing: -0.6 },
+  /** The number on the recording screen, read at arm's length. */
+  display: { size: 40, lineHeight: 44, family: fontFamily.bold, letterSpacing: -0.8 },
+  /** The big numbers of a metric card. */
+  metric: { size: 26, lineHeight: 30, family: fontFamily.bold, letterSpacing: -0.4 },
+  title: { size: 24, lineHeight: 30, family: fontFamily.bold, letterSpacing: -0.4 },
+  section: { size: 17, lineHeight: 24, family: fontFamily.semibold, letterSpacing: -0.1 },
+  body: { size: 15, lineHeight: 22, family: fontFamily.regular, letterSpacing: 0 },
+  bodyStrong: { size: 15, lineHeight: 22, family: fontFamily.semibold, letterSpacing: 0 },
   caption: { size: 13, lineHeight: 18, family: fontFamily.regular, letterSpacing: 0 },
-  overline: { size: 11, lineHeight: 16, family: fontFamily.semibold, letterSpacing: 1.2 },
+  /**
+   * A quiet label above a value.
+   *
+   * No longer upper-cased: the references label their values in ordinary
+   * sentence case, and spaced capitals everywhere is the mark of the austere
+   * direction this design moved away from.
+   */
+  overline: { size: 13, lineHeight: 18, family: fontFamily.medium, letterSpacing: 0 },
 } as const;
 
 export type TypographyToken = keyof typeof typography;

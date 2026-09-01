@@ -38,7 +38,8 @@ describe('HomeScreen', () => {
     expect(
       await screen.findByRole('progressbar', { name: 'Objectif de la semaine, 100 %' }),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Objectif atteint')).toBeOnTheScreen();
+    // La carte s'annonce d'un bloc : c'est son libellé qui porte l'information.
+    expect(screen.getByLabelText(/Objectif atteint/)).toBeOnTheScreen();
   });
 
   it('lit chaque métrique d’un bloc, unité prononcée', async () => {

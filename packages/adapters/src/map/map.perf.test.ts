@@ -9,23 +9,24 @@ import { ChunkedTrackDecoder } from './decoding/chunkedTrackDecoder';
  * this measures whether that holds — on exactly the ten-thousand-point track
  * the brief names.
  *
- * Two assertions, and what each is worth:
+ * Two assertions, and the difference between them matters:
  *
- *  - **the thread is released at least once.** This is the architectural
- *    guarantee, and it is binary: a decoder that stopped slicing would produce
- *    a single slice, and this catches it;
- *  - **the whole decode costs well under a hundred milliseconds of CPU.** A
- *    generous ceiling on purpose — it is a regression detector, not a
- *    stopwatch, and a machine under load must not fail a build over scheduling
- *    noise.
+ *  - **the thread is released at least once.** Deterministic, and the actual
+ *    architectural guarantee: a decoder that stopped slicing produces a single
+ *    slice, and this catches it whatever the machine is doing;
+ *  - **the decode stays within half a second of CPU.** The measured figure is
+ *    about four milliseconds, so this is a factor of a hundred of headroom. It
+ *    is deliberately that loose: it exists to catch an algorithmic regression —
+ *    an accidental O(n²) — and nothing else.
  *
- * What is deliberately *not* asserted is the longest single slice. The measured
- * decode takes about four milliseconds in total across two slices, so a slice
- * maximum is two samples wide: one garbage collection landing in the wrong
- * place moves it past any threshold, and the number says nothing about the
- * decoder. That flake happened, which is why this is written the way it is.
+ * The looseness was earned. This test asserted 16 ms, then 100 ms, and flaked
+ * at both when the suite ran beside a production build on the same machine. A
+ * wall-clock threshold on a shared CPU measures the machine, not the code; the
+ * honest thing is to assert what is deterministic and give the timing enough
+ * room that only a real regression trips it. The number itself is printed, so a
+ * drift is visible even when nothing fails.
  */
-const DECODE_BUDGET_MILLIS = 100;
+const DECODE_BUDGET_MILLIS = 500;
 const POINTS = 10_000;
 
 function aLongTrack(): GeoPoint[] {
@@ -58,9 +59,16 @@ describe('décoder une trace de dix mille points', () => {
     const points = await decoder.decode(polyline).points;
     slices.push(performance.now() - sliceStartedAt);
 
+    const total = slices.reduce((sum, slice) => sum + slice, 0);
+    // eslint-disable-next-line no-console
+    console.log(
+      `décodage de ${String(POINTS)} points : ${total.toFixed(1)} ms en ${String(slices.length)} tranches`,
+    );
+
     expect(points).toHaveLength(POINTS);
-    // Le fil a bien été rendu : c'est la garantie que le port existe pour.
+    // Le fil a bien été rendu : c'est la garantie que le port existe pour, et
+    // c'est la seule assertion qui ne dépende pas de la charge de la machine.
     expect(slices.length).toBeGreaterThan(1);
-    expect(slices.reduce((total, slice) => total + slice, 0)).toBeLessThan(DECODE_BUDGET_MILLIS);
+    expect(total).toBeLessThan(DECODE_BUDGET_MILLIS);
   });
 });

@@ -80,11 +80,6 @@ export function Text({
           fontSize: size,
           lineHeight,
           fontFamily: family,
-          // `overline` is a label, and a label in this design is upper case.
-          // Done here rather than by the caller so that no screen ships a
-          // `toUpperCase()` that a screen reader then spells out letter by
-          // letter — the transform is visual, the string stays as written.
-          textTransform: variant === 'overline' ? 'uppercase' : 'none',
           letterSpacing,
           color: colours[tone],
         },

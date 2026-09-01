@@ -47,21 +47,22 @@ export const lightTheme: Theme = {
       text: palette.teal600,
       surface: palette.teal50,
       track: palette.slate100,
+      gradientEnd: palette.teal400,
+      onFillTrack: palette.onAccentTrack,
     },
 
     /**
-     * Monochrome on purpose.
+     * One pale disc per metric, with a dark icon on it.
      *
-     * A yellow heart, a mint pace and a violet climb read as three unrelated
-     * products on one screen. §15 already forbids information carried by colour
-     * alone — every metric has an icon and a label — so the colour was never
-     * doing the work, only the noise. The disc is now the alternate surface and
-     * the icon carries the accent.
+     * The colour is a landmark, never the message: §15 forbids information
+     * carried by colour alone, and every metric card also states its name in
+     * words. Each pair is measured — see `contrast.test.ts`.
      */
     accent: {
-      heart: { fill: palette.slate50, on: palette.slate600 },
-      pace: { fill: palette.slate50, on: palette.slate600, line: palette.teal500 },
-      climb: { fill: palette.slate50, on: palette.slate600 },
+      heart: { fill: palette.heartSurface, on: palette.heartIcon },
+      pace: { fill: palette.teal50, on: palette.teal600, line: palette.teal500 },
+      climb: { fill: palette.climbSurface, on: palette.climbIcon },
+      count: { fill: palette.countSurface, on: palette.countIcon },
     },
 
     info: { surface: palette.infoSurface, text: palette.infoText },

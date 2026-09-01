@@ -39,12 +39,17 @@ export const runTheme: Theme = {
       text: palette.teal400,
       surface: palette.teal900,
       track: palette.night600,
+      gradientEnd: palette.teal500,
+      onFillTrack: palette.onAccentTrack,
     },
 
+    // Sourd, et c'est le seul thème où ça l'est : on lit des chiffres à bout de
+    // bras en plein soleil, et quatre couleurs de pastille y sont du bruit.
     accent: {
       heart: { fill: palette.night600, on: palette.night200 },
       pace: { fill: palette.night600, on: palette.night200, line: palette.teal400 },
       climb: { fill: palette.night600, on: palette.night200 },
+      count: { fill: palette.night600, on: palette.night200 },
     },
 
     info: { surface: palette.infoSurfaceDark, text: palette.infoTextDark },

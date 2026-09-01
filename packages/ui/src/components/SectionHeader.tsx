@@ -31,7 +31,12 @@ export function SectionHeader({
       {/* `accessible` autant que le rôle : sans lui, VoiceOver ne s'arrête
           pas dessus et la section n'a pas de titre annoncé. */}
       <View accessible accessibilityRole="header" accessibilityLabel={title}>
-        <Text variant="section" decorative>
+        {/*
+          `overline` and not `section`: on a page whose numbers are the size of
+          a headline, a section title set in bold body competes with them. Small
+          spaced capitals name a group without claiming to be read first.
+        */}
+        <Text variant="overline" tone="muted" decorative>
           {title}
         </Text>
       </View>
@@ -43,7 +48,7 @@ export function SectionHeader({
           enforceTouchTarget={false}
           style={{ minHeight: space['2xl'], justifyContent: 'center' }}
         >
-          <Text variant="caption" tone="brand" decorative>
+          <Text variant="overline" tone="brand" decorative>
             {actionLabel}
           </Text>
         </Pressable>

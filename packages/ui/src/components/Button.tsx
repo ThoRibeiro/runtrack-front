@@ -7,8 +7,8 @@ import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
 
 /**
- * Always a full pill: in this design the shape is what marks the things you
- * press, and a field is squarer for exactly that reason. The variants exist so
+ * A rounded rectangle, as the references draw it — a pill is reserved for
+ * chips and for the round icon buttons. The variants exist so
  * that a screen never has to reach inside — if a screen needs a button this
  * cannot make, the answer is a new variant here, not an override from outside.
  *
@@ -122,7 +122,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radius.full,
+    // Un rectangle arrondi et non une pilule : c'est la forme des maquettes,
+    // et elle se lit comme plus solide. La pilule reste pour les chips.
+    borderRadius: radius.md,
     paddingVertical: space.sm,
   },
   fullWidth: { alignSelf: 'stretch' },

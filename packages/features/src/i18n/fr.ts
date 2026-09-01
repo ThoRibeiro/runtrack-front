@@ -96,6 +96,7 @@ export const fr = {
   'home.elevation': 'Dénivelé',
   'home.outings': 'Sorties',
   'home.outingsUnit': 'sorties',
+  'home.outingUnit': 'sortie',
   'home.recentActivities': 'Dernières courses',
   'home.noActivities': 'Aucune course pour l’instant',
   'home.noActivitiesDetail': 'Votre première sortie apparaîtra ici.',

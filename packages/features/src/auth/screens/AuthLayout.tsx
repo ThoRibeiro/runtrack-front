@@ -1,16 +1,24 @@
 import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
-import { Text, space, useTheme } from '@runtrack/ui';
+import { GradientBackground, Text, space, useTheme } from '@runtrack/ui';
 import { describeError } from '../../i18n';
 import { AuthError } from './AuthError';
 
 /**
  * The frame every authentication screen sits in.
  *
+ * A white card on a tinted gradient, which is the shape the reference gives
+ * these five screens. It makes signing in read as a place rather than as a
+ * step, and it is the only part of the application that uses the accent as a
+ * full-bleed ground — everywhere else the accent is an action.
+ *
  * It exists so the five screens cannot drift: the same heading order, the same
  * spacing, the same place for the error. §5 asks for a screen whose title is
  * announced on arrival — `accessibilityRole="header"` on the title is what does
  * that, and having it here means no screen can forget it.
+ *
+ * Nothing readable sits on the gradient: every word is on the card, where the
+ * measured ratios hold.
  */
 export interface AuthLayoutProps {
   title: string;
@@ -33,39 +41,50 @@ export function AuthLayout({
   const theme = useTheme();
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: theme.colours.canvas }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        // Centré verticalement : un formulaire de six lignes collé en haut
-        // d'un écran vide donne une page inachevée. C'est le seul endroit où
-        // le contenu se centre — ailleurs, une liste commence en haut.
-        contentContainerStyle={{
-          padding: space.xl,
-          gap: space.lg,
-          flexGrow: 1,
-          justifyContent: 'center',
-        }}
-        keyboardShouldPersistTaps="handled"
-        testID={testID}
+    <GradientBackground>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={{ gap: space.xs }}>
-          <View accessible accessibilityRole="header" accessibilityLabel={title}>
-            <Text variant="title" decorative>
-              {title}
-            </Text>
+        <ScrollView
+          // Centré : la carte flotte sur le dégradé plutôt que de commencer en
+          // haut. C'est le seul endroit où le contenu se centre — ailleurs, une
+          // liste commence en haut.
+          contentContainerStyle={{
+            padding: space.lg,
+            flexGrow: 1,
+            justifyContent: 'center',
+          }}
+          keyboardShouldPersistTaps="handled"
+          testID={testID}
+        >
+          <View
+            style={{
+              backgroundColor: theme.colours.surface,
+              borderRadius: theme.radius.sheet,
+              padding: space.xl,
+              gap: space.lg,
+              ...theme.elevation.card,
+            }}
+          >
+            <View style={{ gap: space.xs }}>
+              <View accessible accessibilityRole="header" accessibilityLabel={title}>
+                <Text variant="title" decorative>
+                  {title}
+                </Text>
+              </View>
+              {subtitle !== undefined && <Text tone="muted">{subtitle}</Text>}
+            </View>
+
+            {error !== undefined && error !== null && <AuthError error={error} />}
+
+            <View style={{ gap: space.md }}>{children}</View>
+
+            {footer !== undefined && <View style={{ gap: space.sm }}>{footer}</View>}
           </View>
-          {subtitle !== undefined && <Text tone="muted">{subtitle}</Text>}
-        </View>
-
-        {error !== undefined && error !== null && <AuthError error={error} />}
-
-        <View style={{ gap: space.md }}>{children}</View>
-
-        {footer !== undefined && <View style={{ gap: space.sm }}>{footer}</View>}
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </GradientBackground>
   );
 }
 

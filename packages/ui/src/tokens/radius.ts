@@ -1,23 +1,24 @@
 /**
- * Radii, contained.
+ * Radii, generous.
  *
- * The reference this design started from used very large radii — 24 on a card,
- * 28 on a sheet — which reads as playful. The direction asked for is the
- * opposite: an instrument, not a toy. So the scale is tightened, and the
- * separation between surfaces is carried by a hairline and by the ground
- * colour instead (see `elevation.ts`, which is almost nothing on purpose).
+ * The references this design follows are round: cards at 20, sheets at 28,
+ * fields and buttons at 12 to 16. Roundness is what makes an interface read as
+ * approachable rather than as an instrument panel — and the brief that matters
+ * here asks for "facile d'utilisation, agréable à utiliser", not austere.
  *
- * `full` stays: a pill is a shape, not a radius, and it is what marks the
- * things you press.
+ * `full` is kept for what is genuinely a pill: chips, avatars, the progress
+ * ring. A primary button is **not** a pill in these references — it is a
+ * rounded rectangle, which reads as sturdier.
  */
 export const radius = {
-  /** Fields. Deliberately squarer than a button: shape tells them apart. */
-  xs: 6,
-  sm: 8,
-  md: 12,
-  lg: 14,
-  xl: 16,
-  sheet: 20,
+  xs: 8,
+  sm: 12,
+  /** Fields and primary buttons. */
+  md: 14,
+  lg: 18,
+  /** Cards. */
+  xl: 20,
+  sheet: 28,
   full: 9999,
 } as const;
 
@@ -27,8 +28,8 @@ export type RadiusToken = keyof typeof radius;
 export const stroke = {
   hairline: 1,
   thick: 2,
-  /** The progress ring. Thinner than the reference's: a thick ring is a gauge. */
-  ring: 6,
+  /** The progress ring of the highlight card. */
+  ring: 8,
 } as const;
 
 export type StrokeToken = keyof typeof stroke;

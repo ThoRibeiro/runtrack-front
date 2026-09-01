@@ -7,19 +7,22 @@ import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
 
 /**
- * The metric tile of the reference: title, round coloured pastille, big number,
- * small grey unit beside it, a state line under it, and an optional
- * micro-chart.
+ * The metric tile: a white card, a label, a round icon pastille, and the
+ * number.
  *
- * §5, and this is the requirement that is usually missed: it reads as ONE
- * block. "Fréquence cardiaque, 76 battements par minute, stable" — not four
- * disconnected fragments. That is why the whole card is `accessible` with a
- * built label, and why every string inside is marked decorative.
+ * The pastille is what makes a list of metrics scannable — the eye finds the
+ * heart before it reads "fréquence cardiaque" — and it is the single most
+ * recognisable element of the references this design follows. It is tinted
+ * from the theme, never from a literal colour, so the same card works on the
+ * light, dark and running themes.
  *
- * The accent is named, never a colour: `accent="heart"` picks the pastille AND
- * the icon colour that is legible on it, which differ per theme.
+ * §5, and this is the requirement usually missed: it reads as ONE block —
+ * "Fréquence cardiaque, 76 battements par minute, stable", not four
+ * disconnected fragments. Hence the built label and the decorative strings.
+ * §15 is why the icon is never the only carrier: the label says the same thing
+ * in words.
  */
-export type MetricAccent = 'heart' | 'pace' | 'climb' | 'brand';
+export type MetricAccent = 'heart' | 'pace' | 'climb' | 'count' | 'brand';
 
 export interface MetricCardProps {
   title: string;
@@ -55,14 +58,14 @@ export function MetricCard({
   const theme = useTheme();
   const { fontScale } = useWindowDimensions();
 
+  const spoken = [title, spokenValue ?? `${value} ${spokenUnit ?? unit ?? ''}`.trim(), status]
+    .filter((part) => part !== undefined && part !== '')
+    .join(', ');
+
   const pastille =
     accent === 'brand'
       ? { fill: theme.colours.brand.surface, on: theme.colours.brand.text }
       : theme.colours.accent[accent];
-
-  const spoken = [title, spokenValue ?? `${value} ${spokenUnit ?? unit ?? ''}`.trim(), status]
-    .filter((part) => part !== undefined && part !== '')
-    .join(', ');
 
   return (
     <Card accessibilityLabel={spoken} testID={testID}>
@@ -77,14 +80,14 @@ export function MetricCard({
             gap: space.xs,
           }}
         >
-          <Text variant="caption" tone="muted" decorative>
+          <Text variant="overline" tone="muted" decorative>
             {title}
           </Text>
           <View
             style={{
               width: pastilleSize,
               height: pastilleSize,
-              borderRadius: radius.full,
+              borderRadius: radius.sm,
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: pastille.fill,

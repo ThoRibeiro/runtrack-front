@@ -38,12 +38,22 @@ export const darkTheme: Theme = {
       text: palette.teal400,
       surface: palette.teal900,
       track: palette.ink600,
+      gradientEnd: palette.teal500,
+      onFillTrack: palette.onAccentTrack,
     },
 
+    /**
+     * One pale disc per metric, with a dark icon on it.
+     *
+     * The colour is a landmark, never the message: §15 forbids information
+     * carried by colour alone, and every metric card also states its name in
+     * words. Each pair is measured — see `contrast.test.ts`.
+     */
     accent: {
-      heart: { fill: palette.ink700, on: palette.ink100 },
-      pace: { fill: palette.ink700, on: palette.ink100, line: palette.teal400 },
-      climb: { fill: palette.ink700, on: palette.ink100 },
+      heart: { fill: palette.heartSurfaceDark, on: palette.heartIconDark },
+      pace: { fill: palette.teal900, on: palette.teal400, line: palette.teal400 },
+      climb: { fill: palette.climbSurfaceDark, on: palette.climbIconDark },
+      count: { fill: palette.countSurfaceDark, on: palette.countIconDark },
     },
 
     info: { surface: palette.infoSurfaceDark, text: palette.infoTextDark },

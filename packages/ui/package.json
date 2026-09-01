@@ -13,11 +13,11 @@
     "test": "jest"
   },
   "dependencies": {
+    "@shopify/flash-list": "^2.3.2",
     "expo-haptics": "~57.0.2",
     "react-native-gesture-handler": "~2.32.0",
     "react-native-reanimated": "4.5.1",
     "react-native-svg": "15.13.0",
-    "@shopify/flash-list": "^2.3.2",
     "react-native-worklets": "0.10.1"
   },
   "peerDependencies": {
@@ -28,6 +28,7 @@
     "@testing-library/react-native": "^14.0.1",
     "@types/jest": "^30.0.0",
     "@types/react": "~19.2.2",
+    "expo-linear-gradient": "~15.0.8",
     "jest": "^30.5.0",
     "jest-expo": "~57.0.5",
     "react": "19.2.3",
