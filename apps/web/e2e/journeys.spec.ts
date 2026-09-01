@@ -30,13 +30,13 @@ test('on passe de la connexion à l’inscription et retour', async ({ page }) =
 
 test('un lien de partage invalide le dit, sans laisser tourner un spinner', async ({ page }) => {
   await stubApi(page);
-  await page.route('**/shared/v1/**', (route) =>
-    route.fulfill({
+  await page.route('**/shared/v1/**', async (route) => {
+    await route.fulfill({
       status: 404,
       contentType: 'application/problem+json',
       body: JSON.stringify({ code: 'SHARE_LINK_NOT_FOUND', detail: 'Lien inconnu' }),
-    }),
-  );
+    });
+  });
 
   await page.goto('/shared/jeton-invalide');
 

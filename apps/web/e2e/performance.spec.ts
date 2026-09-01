@@ -56,7 +56,9 @@ test('le plus grand rendu reste sous le plafond mesuré, en 4G simulée', async 
         observer.observe({ type: 'largest-contentful-paint', buffered: true });
         // A page with no candidate element never fires: resolve at zero rather
         // than time the test out on a screen that painted nothing.
-        setTimeout(() => resolve(0), 8_000);
+        setTimeout(() => {
+          resolve(0);
+        }, 8_000);
       }),
   );
 

@@ -32,14 +32,39 @@ const ACTIVITY = {
 };
 
 const ROUTES: { pattern: RegExp; body: unknown }[] = [
-  { pattern: /\/feed\/v1/, body: { items: [{ ...ACTIVITY, author: { id: 'u-2', handle: 'camille', displayName: 'Camille' } }] } },
-  { pattern: /\/race\/v1\/[^/]+\/likes/, body: { total: 3, likedByViewer: false, recentUserIds: [] } },
+  {
+    pattern: /\/feed\/v1/,
+    body: {
+      items: [{ ...ACTIVITY, author: { id: 'u-2', handle: 'camille', displayName: 'Camille' } }],
+    },
+  },
+  {
+    pattern: /\/race\/v1\/[^/]+\/likes/,
+    body: { total: 3, likedByViewer: false, recentUserIds: [] },
+  },
   { pattern: /\/race\/v1\/[^/]+\/comments/, body: { items: [], total: 0 } },
   { pattern: /\/race\/v1\/[^/]+\/splits/, body: { items: [] } },
   { pattern: /\/race\/v1\/[^/]+\/track/, body: { polyline: '', pointCount: 0 } },
   { pattern: /\/race\/v1\/[^/]+$/, body: ACTIVITY },
-  { pattern: /\/user\/v1\/me\/stats/, body: { distanceMeters: 27_200, activityCount: 4, movingTimeSeconds: 8_400, elevationGain: 412 } },
-  { pattern: /\/user\/v1\/me/, body: { id: 'u-1', handle: 'thomas', displayName: 'Thomas', email: 'thomas@example.test', status: 'ACTIVE' } },
+  {
+    pattern: /\/user\/v1\/me\/stats/,
+    body: {
+      distanceMeters: 27_200,
+      activityCount: 4,
+      movingTimeSeconds: 8_400,
+      elevationGain: 412,
+    },
+  },
+  {
+    pattern: /\/user\/v1\/me/,
+    body: {
+      id: 'u-1',
+      handle: 'thomas',
+      displayName: 'Thomas',
+      email: 'thomas@example.test',
+      status: 'ACTIVE',
+    },
+  },
   { pattern: /\/notification\/v1\/unread-count/, body: { unread: 2 } },
   { pattern: /\/notification\/v1/, body: { items: [] } },
 ];
@@ -57,7 +82,7 @@ export async function stubApi(page: Page): Promise<void> {
 
   // The map style is fetched from a tile provider; it has no business being
   // reached from a test, and its absence must not fail one.
-  await page.route('**/demotiles.maplibre.org/**', (route) =>
-    route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }),
-  );
+  await page.route('**/demotiles.maplibre.org/**', async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+  });
 }
