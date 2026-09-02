@@ -1,6 +1,10 @@
 packages:
   - apps/*
   - packages/*
+
+overrides:
+  react-native-worklets: 0.10.1
+
 allowBuilds:
-  '@parcel/watcher': set this to true or false
-  unrs-resolver: set this to true or false
+  '@parcel/watcher': true
+  unrs-resolver: true
