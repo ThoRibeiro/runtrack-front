@@ -10,6 +10,7 @@ import {
 import type { MapSurfaceColours } from '@runtrack/adapters';
 import { Button, EmptyState, Spinner, space, useReduceMotion, useTheme } from '@runtrack/ui';
 import { useRuntime } from '../runtime/RuntimeProvider';
+import { useMe } from '../user/hooks/useProfile';
 import { translate } from '../i18n';
 
 /**
@@ -31,7 +32,13 @@ export interface ActivityMapProps {
   unavailable?: boolean;
   /** Handed the presenter, so a screen can focus one kilometre on it. */
   onPresenter?: (presenter: ActivityMapPresenter) => void;
-  testID?: string;
+  /** Overrides what the map announces — a map before a run shows no track. */
+  accessibilityLabel?: string | undefined;
+  /** Faux pour une vignette de liste : la carte se regarde, la liste défile. */
+  interactive?: boolean | undefined;
+  /** §3 : sombre pendant une course, comme les panneaux posés dessus. */
+  dark?: boolean | undefined;
+  testID?: string | undefined;
 }
 
 export function ActivityMap({
@@ -40,6 +47,9 @@ export function ActivityMap({
   live = false,
   unavailable = false,
   onPresenter,
+  accessibilityLabel,
+  interactive = true,
+  dark = false,
   testID,
 }: ActivityMapProps): ReactNode {
   const { map: MapSurface } = useRuntime();
@@ -48,14 +58,26 @@ export function ActivityMap({
   const [presenter, setPresenter] = useState<ActivityMapPresenter | undefined>(undefined);
   const [following, setFollowing] = useState(true);
 
+  // Le visage du coureur connecté : sur sa propre carte, une photo dit
+  // « c'est vous » mieux qu'une épingle. Les labels ne changent qu'avec lui.
+  const me = useMe();
+  const runnerAvatar = useMemo(
+    () => ({
+      uri: me.data?.avatarUrl,
+      initial: (me.data?.displayName ?? '?').trim().charAt(0).toUpperCase(),
+    }),
+    [me.data?.avatarUrl, me.data?.displayName],
+  );
+
   const labels = useMemo<ActivityMapLabels>(
     () => ({
       start: translate('map.start'),
       finish: translate('map.finish'),
       runner: translate('map.runner'),
+      runnerAvatar,
       kilometre: (index) => translate('activity.splitLabel', { index }),
     }),
-    [],
+    [runnerAvatar],
   );
 
   const colours = useMemo<MapSurfaceColours>(
@@ -122,8 +144,10 @@ export function ActivityMap({
   return (
     <View style={{ flex: 1, backgroundColor: theme.colours.surfaceAlt }} testID={testID}>
       <MapSurface
+        interactive={interactive}
+        dark={dark}
         onReady={handleReady}
-        accessibilityLabel={translate(live ? 'map.labelLive' : 'map.label')}
+        accessibilityLabel={accessibilityLabel ?? translate(live ? 'map.labelLive' : 'map.label')}
         colours={colours}
         reduceMotion={reduceMotion}
         testID={testID === undefined ? undefined : `${testID}-surface`}
@@ -144,7 +168,7 @@ export function ActivityMap({
         take it back. A labelled button and not a bare icon — this one is worth
         the words, because "recentrer" is not a guessable pictogram.
       */}
-      {!following && (
+      {interactive && !following && (
         <View style={{ position: 'absolute', bottom: space.md, alignSelf: 'center' }}>
           <Button
             variant="solid"

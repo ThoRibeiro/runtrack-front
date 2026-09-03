@@ -44,6 +44,7 @@ interface MapLibreModule {
     center: [number, number];
     zoom: number;
     attributionControl: { compact: boolean };
+    interactive?: boolean;
   }) => MapLibreMap;
   Marker: new (options: { element: HTMLElement }) => {
     setLngLat(position: [number, number]): unknown;
@@ -62,11 +63,12 @@ export function WebMapSurface({
   accessibilityLabel,
   colours,
   reduceMotion = false,
+  interactive = true,
   testID,
 }: MapSurfaceProps): ReactNode {
   const container = useRef<unknown>(null);
-  const keep = useRef({ onReady, colours, reduceMotion });
-  keep.current = { onReady, colours, reduceMotion };
+  const keep = useRef({ onReady, colours, reduceMotion, interactive });
+  keep.current = { onReady, colours, reduceMotion, interactive };
 
   const attach = useCallback((node: unknown) => {
     container.current = node;
@@ -97,6 +99,9 @@ export function WebMapSurface({
         center: INITIAL_CENTRE,
         zoom: INITIAL_ZOOM,
         attributionControl: { compact: true },
+        // Une vignette se regarde : sans cela, la molette zoomerait la carte
+        // au lieu de faire défiler la liste qui la contient.
+        interactive: keep.current.interactive,
       });
 
       renderer = new MapLibreRenderer({

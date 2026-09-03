@@ -42,6 +42,20 @@ export interface MapSurfaceProps {
    * stops being an animation.
    */
   reduceMotion?: boolean | undefined;
+  /**
+   * Faux pour une vignette : la carte se laisse regarder, pas manipuler.
+   *
+   * Une liste de courses en montre plusieurs à la fois ; sans cela, chaque
+   * glissement du doigt sur une carte déplacerait la carte au lieu de faire
+   * défiler la liste, et la liste deviendrait inutilisable.
+   */
+  interactive?: boolean | undefined;
+  /**
+   * §3 : pendant une course, l'écran est sombre — il se lit en plein soleil et
+   * reste allumé trois heures. Une carte claire sous des panneaux noirs coupe
+   * l'écran en deux ; ce drapeau la met au même diapason.
+   */
+  dark?: boolean | undefined;
   testID?: string | undefined;
 }
 

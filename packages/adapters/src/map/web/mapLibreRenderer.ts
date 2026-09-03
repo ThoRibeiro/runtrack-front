@@ -41,8 +41,13 @@ export interface MapLike {
     bounds: [[number, number], [number, number]],
     options: { padding: number; animate: boolean; duration?: number },
   ): void;
-  easeTo(options: { center: [number, number]; duration: number }): void;
-  jumpTo(options: { center: [number, number] }): void;
+  /**
+   * `zoom` sans `| undefined` : MapLibre le déclare ainsi, et sous
+   * `exactOptionalPropertyTypes` lui passer un `undefined` explicite ne compile
+   * pas. Le champ est absent quand on ne veut pas toucher à l'échelle.
+   */
+  easeTo(options: { center: [number, number]; zoom?: number; duration: number }): void;
+  jumpTo(options: { center: [number, number]; zoom?: number }): void;
   on(
     event: 'dragstart' | 'zoomstart' | 'rotatestart',
     listener: (event: MapEventLike) => void,
@@ -107,6 +112,12 @@ const TRACE_WIDTH_PIXELS = 4;
 const FIT_PADDING_PIXELS = 48;
 const CAMERA_DURATION_MILLIS = 400;
 
+/**
+ * L'échelle de la rue. Imposée au premier suivi seulement : la carte s'ouvre
+ * sinon sur le monde entier, et le coureur y est un point perdu au milieu.
+ */
+const FOLLOW_ZOOM = 15;
+
 function acceptsData(candidate: unknown): candidate is GeoJsonSourceLike {
   return (
     typeof candidate === 'object' &&
@@ -140,6 +151,8 @@ export class MapLibreRenderer<Element = HTMLElement> implements MapRenderer {
   private markers = new Map<string, MarkerLike>();
   private panListeners = new Set<() => void>();
   private disposed = false;
+  /** Vrai dès que l'échelle a été décidée une fois — cadrage ou premier suivi. */
+  private framed = false;
 
   private readonly onCameraGesture = (event: MapEventLike): void => {
     // §8: only a *user* move releases the follow. `easeTo` fires the same
@@ -193,6 +206,8 @@ export class MapLibreRenderer<Element = HTMLElement> implements MapRenderer {
   }
 
   fitTo(box: BoundingBox, options?: { animated?: boolean }): void {
+    // Un cadrage choisit son échelle : le suivi n'a plus à en imposer une.
+    this.framed = true;
     this.options.map.fitBounds(
       [
         [box.west, box.south],
@@ -208,10 +223,15 @@ export class MapLibreRenderer<Element = HTMLElement> implements MapRenderer {
 
   followPosition(position: GeoPoint): void {
     const centre: [number, number] = [position.longitude, position.latitude];
+    // Le niveau n'est imposé qu'au premier cadrage : ensuite on suit sans
+    // défaire le zoom que l'utilisateur vient peut-être de choisir.
+    const scale = this.framed ? {} : { zoom: FOLLOW_ZOOM };
+    this.framed = true;
+
     if (this.animates(true)) {
-      this.options.map.easeTo({ center: centre, duration: CAMERA_DURATION_MILLIS });
+      this.options.map.easeTo({ center: centre, ...scale, duration: CAMERA_DURATION_MILLIS });
     } else {
-      this.options.map.jumpTo({ center: centre });
+      this.options.map.jumpTo({ center: centre, ...scale });
     }
   }
 
