@@ -6,8 +6,7 @@ export type {
   RecordingStore,
   ResumableRecording,
 } from './recordingStore';
-export { PrepareScreen } from './screens/PrepareScreen';
-export type { PrepareScreenProps } from './screens/PrepareScreen';
-export { RecordingScreen } from './screens/RecordingScreen';
-export type { RecordingScreenProps } from './screens/RecordingScreen';
+export { RunScreen } from './screens/RunScreen';
+export type { RunScreenProps } from './screens/RunScreen';
+export { RunMap } from './RunMap';
 export { useElapsedSeconds } from './hooks/useElapsed';

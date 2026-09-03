@@ -114,6 +114,56 @@ describe('Recorder', () => {
       expect(fresh.activity).toBeUndefined();
     });
 
+    it('ne garde pas un point que le serveur a refusé pour de bon', async () => {
+      await recorder.record(aFix());
+      await recorder.record(aFix());
+      await recorder.record(aFix());
+
+      // Le premier passe, les deux suivants sautent : ils ne deviendront jamais
+      // valides. Les garder, c'était les renvoyer à chaque battement et bloquer
+      // la purge de tout ce qui suit — « 28 points en attente » à vie.
+      gateway.nextOutcome = (batch) => ({
+        stats: gateway.activity.stats,
+        lastAcceptedSequence: 0,
+        acceptedCount: 1,
+        rejected: batch.points.slice(1).map((point) => ({
+          sequenceNumber: point.sequenceNumber,
+          reason: 'IMPLAUSIBLE_SPEED' as const,
+        })),
+      });
+
+      await recorder.flush();
+
+      expect(await buffer.pendingCount(gateway.activity.id)).toBe(0);
+    });
+
+    it('donne la trace à qui la dessine, au fil des points', async () => {
+      const drawn: { latitude: number; longitude: number }[] = [];
+      const stop = recorder.onPointRecorded((point) => drawn.push(point));
+
+      await recorder.record({ ...aFix(), position: { latitude: 50.6, longitude: 3.0 } });
+      await recorder.record({ ...aFix(), position: { latitude: 50.7, longitude: 3.1 } });
+      stop();
+      await recorder.record({ ...aFix(), position: { latitude: 50.8, longitude: 3.2 } });
+
+      // L'abonné n'entend plus rien, mais la trace, elle, continue : une carte
+      // remontée en cours de course redessine tout ce qui a été capté.
+      expect(drawn).toHaveLength(2);
+      expect(recorder.trace).toHaveLength(3);
+      expect(recorder.trace[0]?.latitude).toBe(50.6);
+    });
+
+    it('ne dessine pas un point que la course refuse', async () => {
+      await recorder.pause();
+      const drawn: unknown[] = [];
+      recorder.onPointRecorded((point) => drawn.push(point));
+
+      await recorder.record(aFix());
+
+      expect(drawn).toEqual([]);
+      expect(recorder.trace).toEqual([]);
+    });
+
     it('capte les positions que la plateforme pousse, sans qu’on l’appelle', async () => {
       // Le branchement entre le GPS et le tampon : c'est lui qui casse en
       // silence si le rappel n'est pas posé au démarrage.
@@ -135,21 +185,22 @@ describe('Recorder', () => {
       expect(gateway.ingested).toHaveLength(0);
     });
 
-    it('purge le tampon jusqu’au dernier accusé, et pas au-delà', async () => {
+    it('garde ce que le serveur n’a pas traité, et rien d’autre', async () => {
       await recorder.record(aFix());
       await recorder.record(aFix());
       await recorder.record(aFix());
 
+      // Le serveur s'arrête au point 1 : le 2 n'a été ni accepté ni refusé, il
+      // n'est donc pas parvenu jusqu'au filtre et reste dû.
       gateway.nextOutcome = () => ({
         stats: EMPTY_STATS,
         lastAcceptedSequence: 1,
         acceptedCount: 2,
-        rejected: [{ sequenceNumber: 2, reason: 'ACCURACY_TOO_LOW' }],
+        rejected: [],
       });
 
       await recorder.flush();
 
-      // Le point 2 est encore dû : il n'a pas été accepté.
       expect(await buffer.pendingCount(gateway.activity.id)).toBe(1);
     });
 
@@ -332,6 +383,42 @@ describe('Recorder', () => {
       expect(state).toBeUndefined();
       expect(gateway.ingested).toHaveLength(1);
       expect(await buffer.interrupted()).toBeUndefined();
+    });
+
+    it('oublie une course close même quand le serveur refuse ses points', async () => {
+      await recorder.start({ type: 'RUN', title: 'Sortie', visibility: 'PUBLIC' });
+      await recorder.record(aFix());
+      const interrupted = await buffer.interrupted();
+      if (interrupted === undefined) throw new Error('course interrompue attendue');
+
+      gateway.activity = { ...gateway.activity, status: { kind: 'finished', since: 9 } };
+      gateway.nextOutcome = () => {
+        throw new Error('ACTIVITY_ALREADY_ENDED');
+      };
+
+      const afterKill = new Recorder({ gateway, buffer, tracker, clock });
+      const state = await afterKill.resumeInterrupted(interrupted);
+
+      // Sans cela : « une course était en cours » à chaque ouverture, proposant
+      // d'envoyer des points que rien n'acceptera jamais.
+      expect(state).toBeUndefined();
+      expect(await buffer.interrupted()).toBeUndefined();
+    });
+
+    it('abandonner une course interrompue la fait disparaître, quoi qu’il arrive', async () => {
+      await recorder.start({ type: 'RUN', title: 'Sortie', visibility: 'PUBLIC' });
+      await recorder.record(aFix());
+      const interrupted = await buffer.interrupted();
+      if (interrupted === undefined) throw new Error('course interrompue attendue');
+
+      gateway.nextOutcome = () => {
+        throw new Error('serveur injoignable');
+      };
+      const afterKill = new Recorder({ gateway, buffer, tracker, clock });
+      await afterKill.dropInterrupted(interrupted);
+
+      expect(await buffer.interrupted()).toBeUndefined();
+      expect(await afterKill.resumable()).toBeUndefined();
     });
   });
 });

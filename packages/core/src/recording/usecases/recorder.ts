@@ -7,8 +7,10 @@ import type {
 import { acceptsPoints } from '../../activity/domain/activity';
 import type { LocationFix, RecordedPoint } from '../../activity/domain/track';
 import type { ActivityGateway } from '../../activity/ports/activityGateway';
+import type { GeoPoint } from '../../measure/geo';
 import type { ActivityId } from '../../shared/identity/ids';
 import type { Clock } from '../../shared/time/clock';
+import type { Cancel } from '../../shared/time/scheduler';
 import { MAXIMUM_POINTS_PER_BATCH, batchesFor } from '../domain/batching';
 import { isSkewAcceptable, observeSkew, type ClockSkew } from '../domain/clockSkew';
 import {
@@ -18,7 +20,7 @@ import {
   type RecordingWarning,
 } from '../domain/ingestion';
 import type { InterruptedRecording, PointBuffer } from '../ports/pointBuffer';
-import type { LocationTracker } from '../ports/locationTracker';
+import type { LocationPermission, LocationTracker } from '../ports/locationTracker';
 
 /**
  * The recorder, and the reason the back-end was worth writing.
@@ -49,7 +51,12 @@ export interface RecorderState {
 
 export type StartOutcome =
   | { kind: 'started'; state: RecorderState }
-  | { kind: 'permission-refused' }
+  /**
+   * Carries what the system answered, because "refused" is two situations. A
+   * runner who only granted "while in use" can still be shown the dialog; one
+   * who said no outright cannot, and has to be sent to the settings app.
+   */
+  | { kind: 'permission-refused'; permission: LocationPermission }
   /** The phone's clock is too far off for the server to accept the activity. */
   | { kind: 'clock-unusable'; skew: ClockSkew };
 
@@ -59,6 +66,8 @@ export class Recorder {
   private accuracyStreak = 0;
   private warnings: readonly RecordingWarning[] = [];
   private lastStats: ActivityStats | undefined;
+  private captured: GeoPoint[] = [];
+  private readonly pointListeners = new Set<(point: GeoPoint) => void>();
 
   constructor(private readonly deps: RecorderDependencies) {}
 
@@ -79,6 +88,30 @@ export class Recorder {
   }
 
   /**
+   * The run as it is being drawn, for the map only.
+   *
+   * The server owns the numbers (see `stats`), but not the line: a trace that
+   * waited for the next flush would lag ten seconds behind the runner. These
+   * are the positions as captured, kept so a map remounting mid-run — the
+   * screen was left and come back to — redraws what is already there instead
+   * of starting from the current corner.
+   */
+  get trace(): readonly GeoPoint[] {
+    return this.captured;
+  }
+
+  /**
+   * Each accepted position, as it arrives. Imperative on purpose (§7): a run of
+   * three hours is ten thousand points, and none of them may go through React.
+   */
+  onPointRecorded(listener: (point: GeoPoint) => void): Cancel {
+    this.pointListeners.add(listener);
+    return () => {
+      this.pointListeners.delete(listener);
+    };
+  }
+
+  /**
    * §6: the "always" permission is asked here — when the runner starts their
    * first activity — and not on first launch. The explanation before the system
    * dialog is the shell's job; refusing to start without the permission is this
@@ -96,7 +129,7 @@ export class Recorder {
         ? permission
         : await this.deps.tracker.requestAlwaysPermission();
 
-    if (granted !== 'granted-always') return { kind: 'permission-refused' };
+    if (granted !== 'granted-always') return { kind: 'permission-refused', permission: granted };
 
     const deviceTime = this.deps.clock.now();
     const activity = await this.deps.gateway.start({ ...command, deviceTime });
@@ -113,6 +146,7 @@ export class Recorder {
     this.accuracyStreak = 0;
     this.warnings = [];
     this.lastStats = activity.stats;
+    this.captured = [];
     await this.deps.buffer.remember({
       activityId: activity.id,
       skew: this.skew,
@@ -135,7 +169,18 @@ export class Recorder {
     const sequenceNumber = await this.deps.buffer.reserveSequenceNumber(activity.id);
     const point: RecordedPoint = { ...fix, sequenceNumber };
     await this.deps.buffer.append(activity.id, point);
+
+    // Told to the map only once it is written: a line drawn for a point that
+    // was never persisted would show a run the server will never have.
+    this.captured.push(fix.position);
+    for (const listener of this.pointListeners) listener(fix.position);
     return point;
+  }
+
+  /** Ce qui attend encore d'être envoyé — zéro quand aucune course ne tourne. */
+  async pendingCount(): Promise<number> {
+    const activity = this.current;
+    return activity === undefined ? 0 : this.deps.buffer.pendingCount(activity.id);
   }
 
   /**
@@ -164,9 +209,21 @@ export class Recorder {
       const outcome = await this.deps.gateway.ingest(batch);
       lastOutcome = outcome;
 
-      // Up to `lastAcceptedSequence`, and no further: anything after it is
-      // still owed to the server, whether it was rejected or never reached it.
-      await this.deps.buffer.purgeUpTo(activity.id, outcome.lastAcceptedSequence);
+      // Jusqu'à ce que le serveur a **traité** : accepté, ou refusé nommément.
+      //
+      // Purger au seul `lastAcceptedSequence` paraissait prudent, mais un point
+      // refusé pour saut de position ne deviendra jamais valide : il restait
+      // dans le tampon, bloquait tout ce qui le suivait, repartait à chaque
+      // battement et se faisait refuser à nouveau. « 28 points en attente » qui
+      // ne descendent jamais, et une distance qui n'avance plus.
+      //
+      // Ce qui n'est ni accepté ni cité dans `rejected` n'a pas été traité : il
+      // reste, et repartira.
+      const handled = outcome.rejected.reduce(
+        (highest, rejection) => Math.max(highest, rejection.sequenceNumber),
+        outcome.lastAcceptedSequence,
+      );
+      await this.deps.buffer.purgeUpTo(activity.id, handled);
       this.accuracyStreak = trailingAccuracyRejections(outcome, this.accuracyStreak);
       this.lastStats = outcome.stats;
     }
@@ -207,6 +264,29 @@ export class Recorder {
     return finished;
   }
 
+  /**
+   * Laisse tomber une course qu'un arrêt a laissée derrière.
+   *
+   * Ce qui peut encore partir part — la fin d'une vraie course a de la valeur —
+   * mais **le tampon est vidé quoi qu'il arrive**. C'est la différence entre
+   * « on a essayé » et « on a fini » : sans le `finally`, un serveur qui refuse
+   * ces points les laisse en base locale, et la proposition de reprise revient
+   * à chaque ouverture de l'application.
+   */
+  async dropInterrupted(recording: InterruptedRecording): Promise<void> {
+    try {
+      const state = await this.resumeInterrupted(recording);
+      if (state !== undefined) await this.discard();
+    } catch {
+      // Voir plus haut : ce qui reste n'a plus de destination.
+    } finally {
+      await this.deps.tracker.stop();
+      await this.deps.buffer.forget(recording.activityId);
+      this.current = undefined;
+      this.captured = [];
+    }
+  }
+
   async discard(): Promise<Activity | undefined> {
     const discarded = await this.transition((id) => this.deps.gateway.discard(id));
     await this.stopTracking();
@@ -237,14 +317,28 @@ export class Recorder {
       // is left, then let go of it rather than reopening a closed activity.
       this.current = activity;
       this.skew = recording.skew;
-      await this.flush();
-      await this.stopTracking();
+      try {
+        await this.flush();
+      } catch {
+        // §15 forbids a silent catch; this one has a reason, and it is the whole
+        // point of the branch. The activity is **closed on the server**, so it
+        // refuses these points — and it will refuse them again at every launch.
+        // Swallowing the failure is what lets the `finally` forget them; without
+        // it the buffer survives, and "une course était en cours" comes back
+        // for ever, offering to send points nothing will ever accept.
+      } finally {
+        await this.stopTracking();
+      }
       return undefined;
     }
 
     this.current = activity;
     this.skew = recording.skew;
     this.accuracyStreak = 0;
+    // Nothing to redraw: what the crash left behind is in the buffer as points
+    // owed to the server, purged as they land, so it is not the run's shape.
+    // The line restarts from here, and the server keeps the whole of it.
+    this.captured = [];
     await this.startTracking();
     return { activity, skew: this.skew, warnings: this.warnings };
   }
@@ -269,5 +363,6 @@ export class Recorder {
     await this.deps.tracker.stop();
     if (this.current !== undefined) await this.deps.buffer.forget(this.current.id);
     this.current = undefined;
+    this.captured = [];
   }
 }

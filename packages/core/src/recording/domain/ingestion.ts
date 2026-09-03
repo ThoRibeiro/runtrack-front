@@ -37,6 +37,13 @@ export const NO_FIX_REJECTION_THRESHOLD = 5;
 export type RecordingWarning =
   | { kind: 'no-gps-fix'; consecutiveRejections: number }
   | { kind: 'clock-drift'; rejectedCount: number }
+  /**
+   * Le serveur a refusé des points, pour une raison qui n'est ni l'horloge ni
+   * une panne de GPS : un saut de position, un doublon. Sans cela, la distance
+   * reste à zéro et **rien à l'écran ne l'explique** — le coureur croit que
+   * l'application n'envoie pas, alors qu'elle envoie et se fait refuser.
+   */
+  | { kind: 'points-refused'; count: number; reason: PointRejection }
   | { kind: 'points-pending'; count: number };
 
 /**
@@ -63,11 +70,40 @@ export function warningsFrom(
     warnings.push({ kind: 'clock-drift', rejectedCount: clockRejections });
   }
 
+  // Le reste des refus, sous la raison qui revient le plus : dire « 27 points
+  // refusés » sans dire pourquoi ne laisse rien faire à personne.
+  const others = outcome.rejected.filter(
+    (rejection) =>
+      rejection.reason !== 'TIMESTAMP_IN_FUTURE' && rejection.reason !== 'TIMESTAMP_BEFORE_START',
+  );
+  const dominant = mostFrequentReason(others);
+  if (dominant !== undefined) {
+    warnings.push({ kind: 'points-refused', count: others.length, reason: dominant });
+  }
+
   if (pendingCount > 0) {
     warnings.push({ kind: 'points-pending', count: pendingCount });
   }
 
   return warnings;
+}
+
+/** La raison la plus fréquente d'un lot de refus, celle qui vaut d'être dite. */
+function mostFrequentReason(rejections: readonly RejectedPoint[]): PointRejection | undefined {
+  const counts = new Map<PointRejection, number>();
+  for (const rejection of rejections) {
+    counts.set(rejection.reason, (counts.get(rejection.reason) ?? 0) + 1);
+  }
+
+  let best: PointRejection | undefined;
+  let bestCount = 0;
+  for (const [reason, count] of counts) {
+    if (count > bestCount) {
+      best = reason;
+      bestCount = count;
+    }
+  }
+  return best;
 }
 
 /**

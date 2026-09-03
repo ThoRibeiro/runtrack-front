@@ -134,6 +134,28 @@ describe('lecture des rejets', () => {
     expect(warnings).toContainEqual({ kind: 'clock-drift', rejectedCount: 2 });
   });
 
+  it('dit pourquoi le serveur a refusé, pas seulement combien', () => {
+    const warnings = warningsFrom(
+      outcome({
+        rejected: [
+          { sequenceNumber: 11, reason: 'IMPLAUSIBLE_SPEED' },
+          { sequenceNumber: 12, reason: 'IMPLAUSIBLE_SPEED' },
+          { sequenceNumber: 13, reason: 'ACCURACY_TOO_LOW' },
+        ],
+      }),
+      0,
+      0,
+    );
+
+    // Sans la raison, la distance reste à zéro et rien à l'écran ne l'explique :
+    // le coureur croit que rien ne part, alors que tout part et se fait refuser.
+    expect(warnings).toContainEqual({
+      kind: 'points-refused',
+      count: 3,
+      reason: 'IMPLAUSIBLE_SPEED',
+    });
+  });
+
   it('compte les points en attente plutôt que d’afficher une icône ambiguë', () => {
     expect(warningsFrom(outcome(), 0, 3)).toContainEqual({ kind: 'points-pending', count: 3 });
   });

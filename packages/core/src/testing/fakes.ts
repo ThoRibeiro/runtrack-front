@@ -17,6 +17,7 @@ import {
 } from '../map/ports/trackDecoder';
 import { activityId, userId, type ActivityId } from '../shared/identity/ids';
 import type { Page } from '../shared/paging/page';
+import type { Cancel } from '../shared/time/scheduler';
 import type { Visibility } from '../activity/domain/activity';
 
 /**
@@ -52,6 +53,7 @@ export function anActivity(overrides: Partial<Activity> = {}): Activity {
     startedAt: 1_700_000_000_000,
     endedAt: undefined,
     stats: EMPTY_STATS,
+    previewPolyline: undefined,
     ...overrides,
   };
 }
@@ -122,9 +124,11 @@ export class InMemoryPointBuffer implements PointBuffer {
 export class FakeLocationTracker implements LocationTracker {
   started = false;
   stopped = false;
+  watching = false;
   starts = 0;
   stops = 0;
   private emit: ((fix: LocationFix) => void) | undefined;
+  private emitWhileVisible: ((fix: LocationFix) => void) | undefined;
 
   constructor(private granted: LocationPermission = 'granted-always') {}
 
@@ -150,6 +154,21 @@ export class FakeLocationTracker implements LocationTracker {
     return Promise.resolve();
   }
 
+  watchWhileVisible(onFix: (fix: LocationFix) => void): Promise<Cancel> {
+    if (this.granted === 'denied') return Promise.resolve(() => undefined);
+    this.watching = true;
+    this.emitWhileVisible = onFix;
+    return Promise.resolve(() => {
+      this.watching = false;
+      this.emitWhileVisible = undefined;
+    });
+  }
+
+  /** Pushes a fix as the preview watch would, before the run starts. */
+  produceWhileVisible(fix: LocationFix): void {
+    this.emitWhileVisible?.(fix);
+  }
+
   /** Pushes a fix as the platform would. */
   produce(fix: LocationFix): void {
     this.emit?.(fix);
@@ -158,6 +177,16 @@ export class FakeLocationTracker implements LocationTracker {
   /** The runner says no to the system dialog. */
   deny(): void {
     this.granted = 'denied';
+  }
+
+  /** A half-yes: the foreground dialog was accepted, the background one not. */
+  grantWhileInUse(): void {
+    this.granted = 'granted-while-in-use';
+  }
+
+  /** The runner accepts, on the dialog they are shown again. */
+  allow(): void {
+    this.granted = 'granted-always';
   }
 }
 
@@ -212,6 +241,13 @@ export class FakeActivityGateway implements ActivityGateway {
   discard(): Promise<Activity> {
     this.activity = { ...this.activity, status: { kind: 'discarded', since: 4 } };
     return Promise.resolve(this.activity);
+  }
+
+  readonly deleted: ActivityId[] = [];
+
+  delete(id: ActivityId): Promise<void> {
+    this.deleted.push(id);
+    return Promise.resolve();
   }
 
   changeVisibility(_id: ActivityId, visibility: Visibility): Promise<Activity> {

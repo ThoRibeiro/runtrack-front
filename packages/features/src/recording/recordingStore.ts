@@ -5,6 +5,7 @@ import {
   type ActivityStats,
   type ActivityType,
   type Cancel,
+  type GeoPoint,
   type InterruptedRecording,
   type RecordingWarning,
   type Visibility,
@@ -25,7 +26,9 @@ import type { Runtime } from '../runtime/runtime';
  *
  * There is no `positions` field, and that is on purpose: the trace is drawn on
  * the map imperatively, exactly as in §7. A run of three hours would otherwise
- * put ten thousand points through React.
+ * put ten thousand points through React. `trace` and `onPoint` are how a map
+ * gets at it — a snapshot to draw on mount, then a subscription — and neither
+ * of them changes when a point arrives, so neither re-renders anything.
  */
 export type RecordingStatus =
   | 'idle'
@@ -49,8 +52,19 @@ export interface RecordingState {
   stats: ActivityStats | undefined;
   warnings: readonly RecordingWarning[];
   refusal: RecordingRefusal | undefined;
+  /**
+   * Whether the system will still show the permission dialog. False once the
+   * runner has refused outright — the only way back is the settings app, and
+   * offering a button that opens nothing is worse than saying so.
+   */
+  canAskPermissionAgain: boolean;
   /** A run a crash left behind, offered at launch (§6). */
   resumable: ResumableRecording | undefined;
+
+  /** The run so far, read when a map mounts. Never rendered (§7). */
+  trace: () => readonly GeoPoint[];
+  /** Each position as it is captured, straight to the map. */
+  onPoint: (listener: (point: GeoPoint) => void) => Cancel;
 
   lookForInterrupted: () => Promise<void>;
   start: (command: { type: ActivityType; title: string; visibility: Visibility }) => Promise<void>;
@@ -98,8 +112,10 @@ export function createRecordingStore(runtime: Runtime): RecordingStore {
         const warnings = await recorder.flush();
         set({ warnings, stats: recorder.stats });
       } catch {
-        // Nothing is lost: the points are still buffered.
-        set({ warnings: [{ kind: 'points-pending', count: 0 }] });
+        // Rien n'est perdu : les points restent dans le tampon. Mais le nombre
+        // affiché est le vrai — « 0 point en attente » après un envoi qui vient
+        // d'échouer était un chiffre faux, et il masquait la panne.
+        set({ warnings: [{ kind: 'points-pending', count: await recorder.pendingCount() }] });
       }
     };
 
@@ -129,7 +145,11 @@ export function createRecordingStore(runtime: Runtime): RecordingStore {
       stats: undefined,
       warnings: [],
       refusal: undefined,
+      canAskPermissionAgain: true,
       resumable: undefined,
+
+      trace: () => recorder.trace,
+      onPoint: (listener) => recorder.onPointRecorded(listener),
 
       lookForInterrupted: async () => {
         set({ resumable: await recorder.resumable() });
@@ -140,7 +160,13 @@ export function createRecordingStore(runtime: Runtime): RecordingStore {
         const outcome = await recorder.start({ ...command });
 
         if (outcome.kind === 'permission-refused') {
-          set({ status: 'refused', refusal: 'permission' });
+          // "While in use" is a half-yes: the background dialog has not been
+          // answered yet, so asking again is a dialog, not a dead end.
+          set({
+            status: 'refused',
+            refusal: 'permission',
+            canAskPermissionAgain: outcome.permission !== 'denied',
+          });
           return;
         }
         if (outcome.kind === 'clock-unusable') {
@@ -174,24 +200,50 @@ export function createRecordingStore(runtime: Runtime): RecordingStore {
         set({ status: 'finishing' });
         const finished = await recorder.finish();
         stopBeating();
-        set({ status: 'idle', activity: undefined, stats: undefined, warnings: [] });
+        // `resumable` repart à zéro : la course qu'on vient de terminer n'a plus
+        // rien à reprendre, et la laisser afficherait « une course était en
+        // cours » sur l'écran de départ, juste après l'avoir finie.
+        set({
+          status: 'idle',
+          activity: undefined,
+          stats: undefined,
+          warnings: [],
+          resumable: undefined,
+        });
         return finished;
       },
 
       discard: async () => {
         await recorder.discard();
         stopBeating();
-        set({ status: 'idle', activity: undefined, stats: undefined, warnings: [] });
+        set({
+          status: 'idle',
+          activity: undefined,
+          stats: undefined,
+          warnings: [],
+          resumable: undefined,
+        });
       },
 
       resumeInterrupted: async () => {
         const offered = await recorder.resumable();
         if (offered === undefined) return;
 
-        const state = await recorder.resumeInterrupted(offered.recording);
+        let state;
+        try {
+          state = await recorder.resumeInterrupted(offered.recording);
+        } catch {
+          // §15 : le catch a une raison. La course est injoignable — hors ligne,
+          // ou supprimée côté serveur — et laisser l'erreur remonter afficherait
+          // « une course était en cours » indéfiniment. On lâche prise, en
+          // gardant les points : `dropInterrupted` est le geste qui les efface.
+          set({ status: 'idle', resumable: undefined });
+          return;
+        }
+
         if (state === undefined) {
           // Finished or discarded server-side while the phone was off. The
-          // recorder has already flushed what was left.
+          // recorder has already flushed what it could, and forgotten the rest.
           set({ status: 'idle', resumable: undefined });
           return;
         }
@@ -208,13 +260,9 @@ export function createRecordingStore(runtime: Runtime): RecordingStore {
 
       dropInterrupted: async () => {
         const offered = await recorder.resumable();
-        if (offered !== undefined) {
-          // Resumed only to be let go: the flush inside `resumeInterrupted`
-          // is what sends the points a crash left behind, and dropping them
-          // unsent would lose the end of a run for nothing.
-          await recorder.resumeInterrupted(offered.recording);
-          await recorder.discard();
-        }
+        // Ce qui peut encore partir part — la fin d'une vraie course a de la
+        // valeur — mais le tampon est vidé même si le serveur refuse tout.
+        if (offered !== undefined) await recorder.dropInterrupted(offered.recording);
         stopBeating();
         set({ status: 'idle', resumable: undefined, activity: undefined });
       },
