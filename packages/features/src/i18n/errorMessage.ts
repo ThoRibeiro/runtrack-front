@@ -1,4 +1,4 @@
-import { isRunTrackError, type ErrorCode } from '@runtrack/core';
+import { isRunTrackError, type ErrorCode, type RunTrackError } from '@runtrack/core';
 import { translate } from './translate';
 import type { TranslationKey } from './fr';
 
@@ -10,7 +10,12 @@ import type { TranslationKey } from './fr';
  */
 export interface DisplayableError {
   title: string;
-  detail: string;
+  /**
+   * Only where the title cannot say it all — a failure the user can do nothing
+   * about. A known code already has its sentence, and the server's `detail`
+   * would just repeat it in slightly different words.
+   */
+  detail: string | undefined;
   correlationId: string | undefined;
 }
 
@@ -22,6 +27,19 @@ export interface DisplayableError {
  */
 function keyFor(code: ErrorCode): TranslationKey {
   return `error.${code}`;
+}
+
+const SERVER_FAILURE = 500;
+
+/**
+ * The correlation id is a support handle, not something to put in front of
+ * someone who mistyped their password: on an error they can act on it explains
+ * nothing and reads as a leak. It survives only where nothing else can be said
+ * — an unrecognised code, or a server that failed on its own.
+ */
+function referenceOf(error: RunTrackError): string | undefined {
+  const serverFailed = error.status !== undefined && error.status >= SERVER_FAILURE;
+  return error.code === 'UNKNOWN' || serverFailed ? error.correlationId : undefined;
 }
 
 export function describeError(error: unknown): DisplayableError {
@@ -43,9 +61,11 @@ export function describeError(error: unknown): DisplayableError {
     };
   }
 
+  // The sentence belongs to the client: the server's `detail` is written for a
+  // log, and showing both put the same thing on screen twice.
   return {
     title: translate(keyFor(error.code)),
-    detail: error.message,
-    correlationId: error.correlationId,
+    detail: undefined,
+    correlationId: referenceOf(error),
   };
 }

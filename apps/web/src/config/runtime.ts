@@ -1,5 +1,6 @@
 import { BrowserNetworkMonitor, secureStoreForPlatform } from '@runtrack/adapters';
 import { WebMapSurface } from '@runtrack/adapters/map/web';
+import { ExpoImagePicker } from '@runtrack/adapters/media';
 import { createRuntime, type Runtime } from '@runtrack/features';
 
 /**
@@ -26,4 +27,6 @@ export const runtime: Runtime = createRuntime({
   // §9 : `navigator.onLine` est faible, mais il a raison sur le cas qui compte
   // — l'onglet qui vient de perdre le Wi-Fi.
   network: new BrowserNetworkMonitor(),
+  // Le même sélecteur : sur le web, il ouvre le champ de fichier du navigateur.
+  imagePicker: new ExpoImagePicker(),
 });

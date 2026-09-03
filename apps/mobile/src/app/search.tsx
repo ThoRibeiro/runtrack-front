@@ -8,6 +8,9 @@ export default function SearchRoute(): ReactNode {
       onOpenProfile={(handle) => {
         router.push(`/profile/${handle}`);
       }}
+      onBack={() => {
+        router.back();
+      }}
     />
   );
 }

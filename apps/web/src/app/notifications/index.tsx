@@ -12,6 +12,9 @@ export default function NotificationsRoute(): ReactNode {
       onOpenPreferences={() => {
         router.push('/notifications/preferences');
       }}
+      onBack={() => {
+        router.back();
+      }}
     />
   );
 }

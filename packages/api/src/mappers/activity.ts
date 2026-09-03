@@ -85,6 +85,7 @@ export function toActivity(dto: ActivityResponse): Activity {
     startedAt,
     endedAt: toOptionalInstant(dto.endedAt),
     stats: toStats(dto.stats),
+    previewPolyline: toOptionalString(dto.previewPolyline),
   };
 }
 

@@ -15,13 +15,14 @@ import {
 } from '@runtrack/features';
 import { RecordingProvider } from '@runtrack/features/recording';
 import { PushLinks } from '../config/pushLinks';
-import { ToastProvider } from '@runtrack/ui';
+import { ToastProvider, useTheme } from '@runtrack/ui';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
+import { View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { persister, preferencesStorage } from '../config/persistence';
 import { ThemedApp } from '../config/ThemedApp';
 import { runtime } from '../config/runtime';
@@ -38,6 +39,34 @@ import { runtime } from '../config/runtime';
  * at start-up.
  */
 void SplashScreen.preventAutoHideAsync();
+
+/**
+ * La zone sûre, une fois pour toutes les routes.
+ *
+ * Aucun écran n'a de barre de navigation (`headerShown: false`) : sans ce
+ * décalage, le premier titre de chaque écran passe sous l'encoche ou la Dynamic
+ * Island, et sur la carte plein écran c'est le bouton de départ qui s'y cache.
+ * Ici plutôt que dans chaque écran : celui qu'on ajoutera demain l'aura déjà.
+ */
+function SafeArea({ children }: { children: ReactNode }): ReactNode {
+  const insets = useSafeAreaInsets();
+  const theme = useTheme();
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        paddingTop: insets.top,
+        paddingLeft: insets.left,
+        paddingRight: insets.right,
+        backgroundColor: theme.colours.canvas,
+      }}
+    >
+      {children}
+    </View>
+  );
+}
+
 
 const queryClient = createQueryClient();
 
@@ -83,7 +112,9 @@ export default function RootLayout() {
                       <ThemedApp>
                         <ToastProvider>
                           <StatusBar style="auto" />
-                          <Stack screenOptions={{ headerShown: false }} />
+                          <SafeArea>
+                            <Stack screenOptions={{ headerShown: false }} />
+                          </SafeArea>
                         </ToastProvider>
                       </ThemedApp>
                     </PushLinks>

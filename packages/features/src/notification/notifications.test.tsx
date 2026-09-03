@@ -93,9 +93,7 @@ describe('la boîte de réception', () => {
     const harness = signedIn();
     await renderWithRuntime(<InboxScreen onOpen={noop} onOpenPreferences={noop} />, harness);
 
-    // §5 : « Tout marquer lu » seul ne dit pas de quoi — le design system
-    // accole la section.
-    await userEvent.press(await screen.findByLabelText('Tout marquer lu : Notifications'));
+    await userEvent.press(await screen.findByTestId('inbox-mark-all'));
 
     await waitFor(() => {
       expect(harness.notifications.markedAll).toBe(1);

@@ -1,7 +1,7 @@
 import { ACTIVITY_TYPES, activityId, type FeedItem } from '@runtrack/core';
 import type { components } from '../generated/schema';
 import { toStatus } from './activity';
-import { narrow, required, toInstant, toOptionalInstant } from './primitives';
+import { narrow, required, toInstant, toOptionalInstant, toOptionalString } from './primitives';
 import { toAuthor } from './user';
 
 type FeedItemDto = components['schemas']['FeedItem'];
@@ -22,5 +22,6 @@ export function toFeedItem(dto: FeedItemDto): FeedItem {
     endedAt,
     likeCount: dto.likeCount ?? 0,
     commentCount: dto.commentCount ?? 0,
+    previewPolyline: toOptionalString(dto.previewPolyline),
   };
 }

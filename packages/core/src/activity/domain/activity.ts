@@ -46,6 +46,8 @@ export interface Activity {
   startedAt: Instant;
   endedAt: Instant | undefined;
   stats: ActivityStats;
+  /** La forme du parcours, simplifiée : de quoi dessiner une vignette de liste. */
+  previewPolyline: string | undefined;
 }
 
 /** The only state that accepts points. The recorder asks before it sends. */

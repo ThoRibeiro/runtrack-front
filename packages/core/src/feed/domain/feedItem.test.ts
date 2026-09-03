@@ -15,6 +15,7 @@ const item = (status: ActivityStatus): FeedItem => ({
   endedAt: undefined,
   likeCount: 3,
   commentCount: 1,
+  previewPolyline: undefined,
 });
 
 describe('carte du fil', () => {

@@ -45,6 +45,9 @@ export default function MyProfileRoute(): ReactNode {
       onOpenFollowing={(id) => {
         router.push(`/following/${id}`);
       }}
+      onEditProfile={() => {
+        router.push('/profile/edit');
+      }}
       onSignOut={() => {
         void signOut();
       }}

@@ -86,7 +86,9 @@ export function Select<T extends string>({
           setOpen(false);
         }}
         title={field.accessibilityLabel}
-        detents={[0.5]}
+        // Plus haut que la moitié de l'écran : à mi-hauteur, une liste de
+        // quatre choix se lisait à travers une fente.
+        detents={[0.6]}
       >
         <View accessibilityRole="menu" style={{ gap: space.xxs }}>
           {options.map((option) => (

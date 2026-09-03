@@ -34,7 +34,9 @@ export function LikeButton({ activityId, testID }: LikeButtonProps): ReactNode {
       icon="heart"
       label={counted}
       active={liked}
-      disabled={likes.isPending || toggle.isPending}
+      // Désactivé le temps du chargement initial, pas pendant l'envoi : le
+      // cœur a déjà pris son nouvel état, le geler ferait croire à une panne.
+      disabled={likes.isPending}
       accessibilityLabel={`${translate(liked ? 'engagement.liked' : 'engagement.like')}, ${counted}`}
       onPress={() => {
         toggle.mutate(liked);

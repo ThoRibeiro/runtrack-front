@@ -24,7 +24,7 @@ export interface ListProps<T> {
   loading?: boolean | undefined;
   loadingLabel?: string | undefined;
   /** Already read from the `problem+json` `code` by the caller. */
-  error?: { title: string; message: string } | undefined;
+  error?: { title: string; message?: string | undefined } | undefined;
   /**
    * §9: shown instead of the spinner when the query is *paused* for want of a
    * network. A paused query and a slow one look identical from inside the list;
@@ -34,6 +34,13 @@ export interface ListProps<T> {
     | { title: string; description?: string | undefined; retryLabel?: string | undefined }
     | undefined;
   onRetry?: (() => void) | undefined;
+  /**
+   * Tirer vers le bas pour recharger. Le geste que tout le monde essaie en
+   * premier quand une liste semble figée — la refuser, c'est laisser croire à
+   * une panne.
+   */
+  onRefresh?: (() => void) | undefined;
+  refreshing?: boolean | undefined;
   onEndReached?: (() => void) | undefined;
   header?: ReactElement | undefined;
   testID?: string | undefined;
@@ -50,6 +57,8 @@ export function List<T>({
   error,
   offline,
   onRetry,
+  onRefresh,
+  refreshing = false,
   onEndReached,
   header,
   testID,
@@ -82,6 +91,7 @@ export function List<T>({
       keyExtractor={keyExtractor}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.6}
+      {...(onRefresh === undefined ? {} : { onRefresh, refreshing })}
       ListHeaderComponent={header}
       ListEmptyComponent={<EmptyState title={emptyTitle} description={emptyDescription} />}
       ListFooterComponent={loading && data !== undefined ? <Spinner label={loadingLabel} /> : null}

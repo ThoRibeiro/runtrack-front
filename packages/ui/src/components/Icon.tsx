@@ -21,6 +21,18 @@ const ICONS = {
   'chevron-right': ['M9 18l6-6-6-6'],
   'chevron-down': ['M6 9l6 6 6-6'],
   x: ['M18 6L6 18', 'M6 6l12 12'],
+  edit: ['M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z'],
+  send: ['M22 2L11 13', 'M22 2l-7 20-4-9-9-4z'],
+  // Deux roues et un cadre : dessiné ici plutôt qu'emprunté, comme le reste du
+  // jeu — même grille de 24, même graisse de trait.
+  bike: [
+    'M5.5 17.5m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0',
+    'M18.5 17.5m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0',
+    'M6 17.5L12 6',
+    'M12 6h4l2.5 11.5',
+    'M9 9h6',
+  ],
+  walk: ['M13 4.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0', 'M12 21l1-6-2-4 1-3 2 2 2 1', 'M13 15l3 6'],
   check: ['M20 6L9 17l-5-5'],
   plus: ['M12 5v14', 'M5 12h14'],
   'more-horizontal': ['M5 12h.01', 'M12 12h.01', 'M19 12h.01'],

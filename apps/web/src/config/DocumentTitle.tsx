@@ -21,7 +21,6 @@ const TITLES: { pattern: RegExp; title: string }[] = [
   { pattern: /^\/forgot-password/, title: 'Mot de passe oublié' },
   { pattern: /^\/reset-password/, title: 'Nouveau mot de passe' },
   { pattern: /^\/verify-email/, title: 'Confirmation d’adresse' },
-  { pattern: /^\/feed/, title: 'Fil' },
   { pattern: /^\/notifications\/preferences/, title: 'Préférences de notification' },
   { pattern: /^\/notifications/, title: 'Notifications' },
   { pattern: /^\/profile/, title: 'Profil' },

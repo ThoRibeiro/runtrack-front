@@ -60,3 +60,39 @@ export function spokenPace(pace: SecondsPerKm | undefined): string {
   const minutes = parts.hours * 60 + parts.minutes;
   return `${String(minutes)} minute${minutes > 1 ? 's' : ''} ${String(parts.seconds)} par kilomètre`;
 }
+
+/**
+ * Le jour d'une course, tel qu'on le dit : « 3 sept. ».
+ *
+ * Sans l'année quand c'est cette année — elle n'apprend rien et prend la place
+ * du titre à côté. `Intl` fait le travail, y compris l'abréviation du mois, que
+ * personne n'a envie de maintenir à la main pour douze valeurs.
+ */
+export function formatDay(instant: number, now: number = Date.now()): string {
+  const date = new Date(instant);
+  const sameYear = date.getFullYear() === new Date(now).getFullYear();
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'short',
+    ...(sameYear ? {} : { year: 'numeric' }),
+  }).format(date);
+}
+
+/**
+ * Une vitesse en kilomètres par heure, à partir d'une allure.
+ *
+ * À vélo, personne ne pense en minutes par kilomètre : on roule à 24 km/h, on ne
+ * roule pas à 2:30/km. À pied, c'est l'inverse — et c'est le **type de course**
+ * qui tranche, pas la mesure : afficher l'instantanée en km/h et la moyenne en
+ * min/km sur le même écran donnerait deux nombres qu'on ne peut pas comparer.
+ */
+export function formatSpeed(pace: SecondsPerKm | undefined): string {
+  if (pace === undefined || pace <= 0) return '—';
+  const kilometresPerHour = 3_600 / pace;
+  return kilometresPerHour.toFixed(1).replace('.', ',');
+}
+
+export function spokenSpeed(pace: SecondsPerKm | undefined): string {
+  if (pace === undefined || pace <= 0) return 'vitesse inconnue';
+  return `${formatSpeed(pace)} kilomètres par heure`;
+}

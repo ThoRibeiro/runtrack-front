@@ -33,6 +33,13 @@ export interface FormFieldProps {
   /** Shown, announced, and attached to the field it concerns. */
   error?: string | undefined;
   required?: boolean | undefined;
+  /**
+   * Hides the label from sight, never from a screen reader: it still travels
+   * to the field as its `accessibilityLabel`. For a form whose fields ask
+   * their question inside — "Votre pseudonyme" as the placeholder — where a
+   * label above each one would say it twice.
+   */
+  labelHidden?: boolean | undefined;
   testID?: string | undefined;
 }
 
@@ -42,6 +49,7 @@ export function FormField({
   hint,
   error,
   required = false,
+  labelHidden = false,
   testID,
 }: FormFieldProps): ReactNode {
   const theme = useTheme();
@@ -57,9 +65,11 @@ export function FormField({
 
   return (
     <View style={{ gap: space.xs }} testID={testID}>
-      <Text variant="caption" tone="muted" decorative>
-        {required ? `${label} *` : label}
-      </Text>
+      {!labelHidden && (
+        <Text variant="caption" tone="muted" decorative>
+          {required ? `${label} *` : label}
+        </Text>
+      )}
 
       {children(binding)}
 

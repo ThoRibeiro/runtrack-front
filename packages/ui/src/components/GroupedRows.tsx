@@ -4,7 +4,7 @@ import { Pressable } from '../motion';
 import { useTheme } from '../theme';
 import { iconSize, space } from '../tokens';
 import { Divider } from './Divider';
-import { Icon } from './Icon';
+import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
 
 /**
@@ -21,6 +21,10 @@ export interface GroupedRow {
   onPress?: (() => void) | undefined;
   /** Replaces the value — a `Switch` inside a `FormField`, typically. */
   accessory?: ReactNode | undefined;
+  /** In a tinted disc, as the reference draws its settings list. */
+  icon?: IconName | undefined;
+  /** One line under the label: what the row leads to, in the runner's terms. */
+  description?: string | undefined;
 }
 
 export interface GroupedRowsProps {
@@ -41,7 +45,9 @@ export function GroupedRows({ rows, testID }: GroupedRowsProps): ReactNode {
       }}
     >
       {rows.map((row, index) => {
-        const spoken = row.value === undefined ? row.label : `${row.label}, ${row.value}`;
+        // One announcement per row, in reading order: a label, what it leads
+        // to, then its current value. Split up it reads as three fragments.
+        const spoken = [row.label, row.description, row.value].filter(Boolean).join(', ');
         const content = (
           <View
             style={{
@@ -54,7 +60,32 @@ export function GroupedRows({ rows, testID }: GroupedRowsProps): ReactNode {
               paddingVertical: space.sm,
             }}
           >
-            <Text decorative>{row.label}</Text>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flex: 1 }}
+            >
+              {row.icon !== undefined && (
+                <View
+                  style={{
+                    width: space['3xl'],
+                    height: space['3xl'],
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: theme.radius.full,
+                    backgroundColor: theme.colours.brand.surface,
+                  }}
+                >
+                  <Icon name={row.icon} size={iconSize.md} colour={theme.colours.brand.text} />
+                </View>
+              )}
+              <View style={{ flex: 1 }}>
+                <Text decorative>{row.label}</Text>
+                {row.description !== undefined && (
+                  <Text variant="caption" tone="muted" decorative>
+                    {row.description}
+                  </Text>
+                )}
+              </View>
+            </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
               {row.accessory ??
                 (row.value !== undefined && (

@@ -7,10 +7,20 @@ import type { Instant } from '../../shared/time/clock';
  * hundred comments would otherwise repeat the same profile two hundred times.
  * The shell resolves the ids it needs, once.
  */
+/** Ce qu'il faut pour dessiner une ligne : un visage, un nom. */
+export interface CommentAuthor {
+  id: UserId;
+  handle: string;
+  displayName: string;
+  avatarUrl: string | undefined;
+}
+
 export interface Comment {
   id: CommentId;
   activityId: ActivityId;
   authorId: UserId;
+  /** Absent d'un commentaire dont le compte a disparu depuis. */
+  author: CommentAuthor | undefined;
   body: string;
   postedAt: Instant;
   editedAt: Instant | undefined;

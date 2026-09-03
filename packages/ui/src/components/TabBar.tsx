@@ -26,10 +26,18 @@ export interface TabBarProps {
   items: readonly TabItem[];
   activeKey: string;
   onSelect: (key: string) => void;
+  /** La marge système sous la barre, mesurée par le shell (geste « accueil »). */
+  bottomInset?: number | undefined;
   testID?: string | undefined;
 }
 
-export function TabBar({ items, activeKey, onSelect, testID }: TabBarProps): ReactNode {
+export function TabBar({
+  items,
+  activeKey,
+  onSelect,
+  bottomInset = 0,
+  testID,
+}: TabBarProps): ReactNode {
   const theme = useTheme();
 
   return (
@@ -42,7 +50,10 @@ export function TabBar({ items, activeKey, onSelect, testID }: TabBarProps): Rea
         justifyContent: 'space-around',
         gap: space.xs,
         paddingTop: space.sm,
-        paddingBottom: space.md,
+        // Le geste « accueil » de l'iPhone passe sous la barre : sans sa marge,
+        // les libellés sont à cheval sur la barre système. La mesure vient du
+        // shell — ce paquet ne connaît pas la plateforme.
+        paddingBottom: space.md + bottomInset,
         paddingHorizontal: space.sm,
         backgroundColor: theme.colours.canvas,
         borderTopWidth: theme.stroke.hairline,

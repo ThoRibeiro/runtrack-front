@@ -91,6 +91,10 @@ export class HttpActivityGateway implements ActivityGateway {
     return this.transition(id, 'discard');
   }
 
+  async delete(id: ActivityId): Promise<void> {
+    await this.http.requestVoid(`/race/v1/${id}`, { method: 'DELETE' });
+  }
+
   async changeVisibility(id: ActivityId, visibility: Visibility): Promise<Activity> {
     await this.http.requestVoid(`/race/v1/${id}/visibility`, {
       method: 'PUT',
@@ -120,9 +124,17 @@ export class HttpActivityGateway implements ActivityGateway {
     return (dto.items ?? []).map(toActivity);
   }
 
+  /**
+   * Pause, reprise, fin, abandon : le serveur répond **204, sans corps**, et
+   * l'état d'après se relit.
+   *
+   * Réclamer un corps ici, c'était « Réponse vide là où un corps était
+   * attendu » au moment de terminer une course — l'appel échouait alors que la
+   * course était bel et bien terminée côté serveur, et le second essai
+   * répondait ACTIVITY_ALREADY_ENDED.
+   */
   private async transition(id: ActivityId, move: string): Promise<Activity> {
-    return toActivity(
-      await this.http.request<ActivityResponse>(`/race/v1/${id}/${move}`, { method: 'POST' }),
-    );
+    await this.http.requestVoid(`/race/v1/${id}/${move}`, { method: 'POST' });
+    return this.byId(id);
   }
 }

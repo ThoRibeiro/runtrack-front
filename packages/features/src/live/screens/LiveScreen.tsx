@@ -85,7 +85,7 @@ export function LiveScreen({ id, onBack, onOpenSummary }: LiveScreenProps): Reac
     const described = describeError(activity.error);
     return (
       <ErrorState
-        title={translate('activity.notFound')}
+        title={described.title}
         message={described.detail}
         correlationId={described.correlationId}
         onRetry={() => {

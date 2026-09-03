@@ -2,7 +2,7 @@ import { QueryClient, onlineManager } from '@tanstack/react-query';
 import { act, screen, waitFor } from '@testing-library/react-native';
 import { activityId } from '@runtrack/core';
 import { aRuntime, renderWithRuntime, aSession } from '../testing/harness';
-import { FeedScreen } from '../feed/screens/FeedScreen';
+import { HomeScreen } from '../user/screens/HomeScreen';
 import { ActivityScreen } from '../activity/screens/ActivityScreen';
 import type { PersistedClient } from '@tanstack/query-persist-client-core';
 import {
@@ -129,7 +129,10 @@ describe('un écran hors connexion', () => {
     const harness = aRuntime({ session: aSession() });
     onlineManager.setOnline(false);
 
-    await renderWithRuntime(<FeedScreen onOpenActivity={noop} />, harness);
+    await renderWithRuntime(
+      <HomeScreen onOpenNotifications={noop} onOpenProfile={noop} onOpenActivity={noop} />,
+      harness,
+    );
 
     // §9 : « pas de spinner infini : un écran qui tourne indéfiniment est un
     // mensonge ». Une requête en pause n'est pas une requête lente.
@@ -139,7 +142,10 @@ describe('un écran hors connexion', () => {
   it('propose de réessayer plutôt que d’attendre un signal', async () => {
     const harness = aRuntime({ session: aSession() });
     onlineManager.setOnline(false);
-    await renderWithRuntime(<FeedScreen onOpenActivity={noop} />, harness);
+    await renderWithRuntime(
+      <HomeScreen onOpenNotifications={noop} onOpenProfile={noop} onOpenActivity={noop} />,
+      harness,
+    );
     await screen.findByTestId('list-offline');
 
     expect(screen.getByTestId('offline-retry')).toBeOnTheScreen();
@@ -160,7 +166,10 @@ describe('un écran hors connexion', () => {
   it('repart dès que le réseau revient', async () => {
     const harness = aRuntime({ session: aSession() });
     onlineManager.setOnline(false);
-    await renderWithRuntime(<FeedScreen onOpenActivity={noop} />, harness);
+    await renderWithRuntime(
+      <HomeScreen onOpenNotifications={noop} onOpenProfile={noop} onOpenActivity={noop} />,
+      harness,
+    );
     await screen.findByTestId('list-offline');
 
     await act(async () => {

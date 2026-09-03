@@ -1,7 +1,7 @@
 import type { ReactElement, ReactNode } from 'react';
 import { View } from 'react-native';
 import type { FollowRequest } from '@runtrack/core';
-import { Button, Card, List, Text, space, useTheme } from '@runtrack/ui';
+import { Button, Card, List, ScreenHeader, Text, space, useTheme } from '@runtrack/ui';
 import { describeError, translate } from '../../i18n';
 import { useAnswerFollowRequest, useFollowRequests } from '../hooks/useSocial';
 
@@ -11,7 +11,11 @@ import { useAnswerFollowRequest, useFollowRequests } from '../hooks/useSocial';
  * is asking. That gap, and the change it needs on the server, are in
  * `docs/decisions-lot-6.md`.
  */
-export function FollowRequestsScreen(): ReactNode {
+export interface FollowRequestsScreenProps {
+  onBack?: (() => void) | undefined;
+}
+
+export function FollowRequestsScreen({ onBack }: FollowRequestsScreenProps = {}): ReactNode {
   const theme = useTheme();
   const requests = useFollowRequests();
   const answer = useAnswerFollowRequest();
@@ -52,9 +56,16 @@ export function FollowRequestsScreen(): ReactNode {
 
   return (
     <View
-      style={{ flex: 1, backgroundColor: theme.colours.canvas, padding: space.md }}
+      style={{ flex: 1, backgroundColor: theme.colours.canvas }}
       testID="follow-requests-screen"
     >
+      <ScreenHeader
+        title={translate('social.requests')}
+        onBack={onBack}
+        backLabel={translate('common.back')}
+        testID="follow-requests-header"
+      />
+      <View style={{ flex: 1, padding: space.md }}>
       <List
         data={requests.isPending ? undefined : (requests.data ?? [])}
         renderItem={renderItem}
@@ -73,6 +84,7 @@ export function FollowRequestsScreen(): ReactNode {
         }}
         testID="follow-requests-list"
       />
+      </View>
     </View>
   );
 }

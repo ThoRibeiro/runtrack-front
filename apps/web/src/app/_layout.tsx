@@ -123,6 +123,10 @@ export default function RootLayout() {
                             name="profile/[handle]"
                             options={{ title: 'Profil — RunTrack' }}
                           />
+                          <Stack.Screen
+                            name="profile/edit"
+                            options={{ title: 'Mon profil — RunTrack' }}
+                          />
                           <Stack.Screen name="search" options={{ title: 'Recherche — RunTrack' }} />
                           <Stack.Screen
                             name="follow-requests"

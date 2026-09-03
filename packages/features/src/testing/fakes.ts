@@ -15,6 +15,7 @@ import {
   type Comment,
   type CommentId,
   type EngagementGateway,
+  type ImagePicker,
   type IngestionOutcome,
   type Likes,
   type LiveMessage,
@@ -30,6 +31,8 @@ import {
   type StartActivityCommand,
   type MyProfile,
   type Page,
+  type Physiology,
+  type PickedImage,
   type PublicProfile,
   type PublicProfile as Profile,
   type RunnerTotals,
@@ -39,6 +42,7 @@ import {
   type UserGateway,
   type UserId,
   type UserIdList,
+  type Visibility,
 } from '@runtrack/core';
 
 /**
@@ -81,6 +85,7 @@ export function anActivity(overrides: Partial<Activity> = {}): Activity {
       averageHeartRate: 152,
     },
     ...overrides,
+    previewPolyline: undefined,
   };
 }
 
@@ -102,6 +107,7 @@ export function aFeedItem(overrides: Partial<FeedItem> = {}): FeedItem {
     endedAt: 1_700_003_862_000,
     likeCount: 3,
     commentCount: 1,
+    previewPolyline: undefined,
     ...overrides,
   };
 }
@@ -217,6 +223,13 @@ export class FakeActivityGateway implements ActivityGateway {
     return Promise.resolve(this.activity);
   }
 
+  readonly deleted: ActivityId[] = [];
+
+  delete(id: ActivityId): Promise<void> {
+    this.deleted.push(id);
+    return Promise.resolve();
+  }
+
   changeVisibility(): Promise<Activity> {
     return Promise.resolve(this.activity);
   }
@@ -244,30 +257,75 @@ export class FakeActivityGateway implements ActivityGateway {
 export class FakeUserGateway implements UserGateway {
   profile: MyProfile = myProfile();
   stat: RunnerTotals = totals();
+  body: Physiology = {
+    birthDate: undefined,
+    biologicalSex: 'UNSPECIFIED',
+    weightKilograms: undefined,
+    heightCentimetres: undefined,
+  };
   onMe: (() => Promise<MyProfile>) | undefined;
   onStats: (() => Promise<RunnerTotals>) | undefined;
+  onUpdatePhysiology: ((physiology: Physiology) => Promise<Physiology>) | undefined;
+  onUpdateProfile: ((profile: MyProfile) => Promise<MyProfile>) | undefined;
+  onChangeHandle: ((profile: MyProfile) => Promise<MyProfile>) | undefined;
+  onChangeAvatar: ((profile: MyProfile) => Promise<MyProfile>) | undefined;
+  onUploadAvatar: ((profile: MyProfile) => Promise<MyProfile>) | undefined;
+  readonly uploaded: PickedImage[] = [];
 
   me(): Promise<MyProfile> {
     return this.onMe === undefined ? Promise.resolve(this.profile) : this.onMe();
   }
 
-  updateProfile(): Promise<MyProfile> {
-    return Promise.resolve(this.profile);
+  updateProfile(update: {
+    displayName?: string | undefined;
+    bio?: string | undefined;
+  }): Promise<MyProfile> {
+    this.profile = {
+      ...this.profile,
+      displayName: update.displayName ?? this.profile.displayName,
+      bio: update.bio,
+    };
+    return this.onUpdateProfile === undefined
+      ? Promise.resolve(this.profile)
+      : this.onUpdateProfile(this.profile);
   }
 
-  changeHandle(): Promise<MyProfile> {
-    return Promise.resolve(this.profile);
+  changeHandle(handle: string): Promise<MyProfile> {
+    this.profile = { ...this.profile, handle };
+    return this.onChangeHandle === undefined
+      ? Promise.resolve(this.profile)
+      : this.onChangeHandle(this.profile);
   }
 
-  changeAvatar(): Promise<MyProfile> {
-    return Promise.resolve(this.profile);
+  uploadAvatar(image: PickedImage): Promise<MyProfile> {
+    this.uploaded.push(image);
+    // Ce que le serveur rend : l'adresse qu'il a fabriquée, pas l'URI locale.
+    this.profile = { ...this.profile, avatarUrl: `https://runtrack.test/media/v1/avatars/${image.name}` };
+    return this.onUploadAvatar === undefined
+      ? Promise.resolve(this.profile)
+      : this.onUploadAvatar(this.profile);
   }
 
-  updatePhysiology(): never {
-    throw new Error('non utilisé à ce lot');
+  changeAvatar(avatarUrl: string | undefined): Promise<MyProfile> {
+    this.profile = { ...this.profile, avatarUrl };
+    return this.onChangeAvatar === undefined
+      ? Promise.resolve(this.profile)
+      : this.onChangeAvatar(this.profile);
   }
 
-  changeVisibility(): Promise<MyProfile> {
+  physiology(): Promise<Physiology> {
+    return Promise.resolve(this.body);
+  }
+
+  updatePhysiology(physiology: Physiology): Promise<Physiology> {
+    this.body = physiology;
+    return this.onUpdatePhysiology === undefined
+      ? Promise.resolve(physiology)
+      : this.onUpdatePhysiology(physiology);
+  }
+
+  changeVisibility(accountScope: Visibility): Promise<MyProfile> {
+    this.profile = { ...this.profile, accountScope };
     return Promise.resolve(this.profile);
   }
 
@@ -441,6 +499,12 @@ export function aComment(overrides: Partial<Comment> = {}): Comment {
     id: commentId('c1'),
     activityId: activityId('a1'),
     authorId: userId('u-9'),
+    author: {
+      id: userId('u-9'),
+      handle: 'camille',
+      displayName: 'Camille',
+      avatarUrl: undefined,
+    },
     body: 'Belle sortie',
     postedAt: 1_700_000_000_000,
     editedAt: undefined,
@@ -457,12 +521,15 @@ export class FakeEngagementGateway implements EngagementGateway {
   readonly posted: { body: string; parentId: CommentId | undefined }[] = [];
   readonly deleted: CommentId[] = [];
   onPost: (() => Promise<Comment>) | undefined;
+  /** Ce que rend le serveur quand on aime : un test peut le retarder, ou le refuser. */
+  onLike: (() => Promise<Likes>) | undefined;
 
   likes(): Promise<Likes> {
     return Promise.resolve(this.likeState);
   }
 
   like(): Promise<Likes> {
+    if (this.onLike !== undefined) return this.onLike();
     this.likeState = {
       ...this.likeState,
       total: this.likeState.total + 1,
@@ -536,5 +603,19 @@ export class FakeSharingGateway implements SharingGateway {
     this.revoked.push(id);
     this.links = this.links.filter((link) => link.id !== id);
     return Promise.resolve();
+  }
+}
+
+/**
+ * La galerie, en test : elle rend l'image posée par le test, ou rien — ce que
+ * fait une vraie quand on la referme sans choisir.
+ */
+export class FakeImagePicker implements ImagePicker {
+  picks = 0;
+  next: PickedImage | undefined;
+
+  pick(): Promise<PickedImage | undefined> {
+    this.picks += 1;
+    return Promise.resolve(this.next);
   }
 }

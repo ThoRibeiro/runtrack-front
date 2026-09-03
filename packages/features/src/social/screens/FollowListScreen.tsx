@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 import type { UserId } from '@runtrack/core';
-import { EmptyState, Spinner, Text, space, useTheme } from '@runtrack/ui';
+import { EmptyState, ScreenHeader, Spinner, Text, space, useTheme } from '@runtrack/ui';
 import { translate } from '../../i18n';
 import { useFollowers, useFollowing } from '../hooks/useSocial';
 
@@ -21,42 +21,44 @@ import { useFollowers, useFollowing } from '../hooks/useSocial';
 export interface FollowListScreenProps {
   userId: UserId;
   kind: 'followers' | 'following';
+  onBack?: (() => void) | undefined;
 }
 
-export function FollowListScreen({ userId, kind }: FollowListScreenProps): ReactNode {
+export function FollowListScreen({ userId, kind, onBack }: FollowListScreenProps): ReactNode {
   const theme = useTheme();
   const followers = useFollowers(userId);
   const following = useFollowing(userId);
   const list = kind === 'followers' ? followers : following;
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: theme.colours.canvas,
-        padding: space.md,
-        gap: space.md,
-      }}
-      testID={`follow-list-${kind}`}
-    >
-      {list.isPending ? (
+    <View style={{ flex: 1, backgroundColor: theme.colours.canvas }} testID={`follow-list-${kind}`}>
+      <ScreenHeader
+        title={translate(kind === 'followers' ? 'profile.followers' : 'profile.following')}
+        onBack={onBack}
+        backLabel={translate('common.back')}
+        testID="follow-list-header"
+      />
+      <View style={{ flex: 1, padding: space.md, gap: space.md }}>
+        {list.isPending ? (
         <Spinner label={translate('common.loading')} />
-      ) : (
-        <>
-          <View accessible accessibilityRole="header">
-            <Text variant="title">
-              {translate(kind === 'followers' ? 'social.followerCount' : 'social.followingCount', {
-                count: list.data?.count ?? 0,
-              })}
-            </Text>
-          </View>
-          <EmptyState
-            icon="users"
-            title={translate('social.listUnavailable')}
-            description={translate('social.listUnavailableDetail')}
-          />
-        </>
-      )}
+        ) : (
+          <>
+            <View accessible accessibilityRole="header">
+              <Text variant="title">
+                {translate(
+                  kind === 'followers' ? 'social.followerCount' : 'social.followingCount',
+                  { count: list.data?.count ?? 0 },
+                )}
+              </Text>
+            </View>
+            <EmptyState
+              icon="users"
+              title={translate('social.listUnavailable')}
+              description={translate('social.listUnavailableDetail')}
+            />
+          </>
+        )}
+      </View>
     </View>
   );
 }

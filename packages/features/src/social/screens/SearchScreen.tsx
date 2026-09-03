@@ -9,6 +9,7 @@ import {
   Input,
   List,
   Pressable,
+  ScreenHeader,
   Text,
   space,
   useTheme,
@@ -18,9 +19,10 @@ import { useSearchRunners } from '../hooks/useSocial';
 
 export interface SearchScreenProps {
   onOpenProfile: (handle: string) => void;
+  onBack?: (() => void) | undefined;
 }
 
-export function SearchScreen({ onOpenProfile }: SearchScreenProps): ReactNode {
+export function SearchScreen({ onOpenProfile, onBack }: SearchScreenProps): ReactNode {
   const theme = useTheme();
   const [query, setQuery] = useState('');
   const search = useSearchRunners(query);
@@ -52,10 +54,14 @@ export function SearchScreen({ onOpenProfile }: SearchScreenProps): ReactNode {
   );
 
   return (
-    <View
-      style={{ flex: 1, backgroundColor: theme.colours.canvas, padding: space.md, gap: space.md }}
-      testID="search-screen"
-    >
+    <View style={{ flex: 1, backgroundColor: theme.colours.canvas }} testID="search-screen">
+      <ScreenHeader
+        title={translate('social.search')}
+        onBack={onBack}
+        backLabel={translate('common.back')}
+        testID="search-header"
+      />
+      <View style={{ flex: 1, padding: space.md, gap: space.md }}>
       <FormField label={translate('social.search')} hint={translate('social.searchHint')}>
         {(field) => (
           <Input
@@ -95,7 +101,8 @@ export function SearchScreen({ onOpenProfile }: SearchScreenProps): ReactNode {
           }}
           testID="search-results"
         />
-      )}
+        )}
+      </View>
     </View>
   );
 }

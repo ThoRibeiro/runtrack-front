@@ -6,6 +6,7 @@ import {
   Card,
   FormField,
   GroupedRows,
+  ScreenHeader,
   Skeleton,
   Slider,
   Switch,
@@ -37,6 +38,7 @@ import { usePushRegistration } from '../hooks/usePush';
 export interface NotificationPreferencesScreenProps {
   /** The runner's own zone, read by the shell — `Intl` is not in the hexagon. */
   timeZone: string;
+  onBack?: (() => void) | undefined;
 }
 
 const MINUTES_PER_HOUR = 60;
@@ -57,6 +59,7 @@ function kindLabel(type: string): string {
 
 export function NotificationPreferencesScreen({
   timeZone,
+  onBack,
 }: NotificationPreferencesScreenProps): ReactNode {
   const theme = useTheme();
   const preferences = useNotificationPreferences();
@@ -95,12 +98,17 @@ export function NotificationPreferencesScreen({
   const quietOn = current.quietHours !== undefined;
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: theme.colours.canvas }}
-      contentContainerStyle={{ padding: space.md, gap: space.lg }}
-      testID="preferences-screen"
-    >
-      <Text variant="title">{translate('preferences.title')}</Text>
+    <View style={{ flex: 1, backgroundColor: theme.colours.canvas }}>
+      <ScreenHeader
+        title={translate('preferences.title')}
+        onBack={onBack}
+        backLabel={translate('common.back')}
+        testID="preferences-header"
+      />
+      <ScrollView
+        contentContainerStyle={{ padding: space.md, paddingBottom: space['3xl'], gap: space.lg }}
+        testID="preferences-screen"
+      >
 
       {/*
         §12: the permission is asked **after** showing what it buys. This card
@@ -252,6 +260,7 @@ export function NotificationPreferencesScreen({
           />
         )}
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

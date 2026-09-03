@@ -19,6 +19,7 @@ import { HttpClient, HttpDeviceGateway, SessionHolder, RefreshCoordinator } from
 import { ThemeProvider } from '@runtrack/ui';
 import {
   FakeActivityGateway,
+  FakeImagePicker,
   FakeEngagementGateway,
   FakeFeedGateway,
   FakeNotificationGateway,
@@ -175,6 +176,7 @@ export interface Harness {
   live: FakeLiveStream;
   scheduler: ManualScheduler;
   tracker: FakeLocationTracker;
+  imagePicker: FakeImagePicker;
   buffer: InMemoryPointBuffer;
   network: TestNetworkMonitor;
   notifications: FakeNotificationGateway;
@@ -225,6 +227,7 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
   const notificationStream = new FakeNotificationStream();
   const scheduler = new ManualScheduler();
   const tracker = new FakeLocationTracker();
+  const imagePicker = new FakeImagePicker();
   const buffer = new InMemoryPointBuffer();
   const network = new TestNetworkMonitor();
   const map = new RecordingMapRenderer();
@@ -272,6 +275,7 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     random: new FixedRandom(0.5),
     network,
     recording: { buffer, tracker },
+    imagePicker,
   };
 
   return {
@@ -286,6 +290,7 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     live,
     scheduler,
     tracker,
+    imagePicker,
     buffer,
     network,
     notifications,

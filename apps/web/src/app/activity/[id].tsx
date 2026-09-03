@@ -16,6 +16,10 @@ export default function ActivityRoute(): ReactNode {
       onFollowLive={(activity) => {
         router.push(`/activity/${activity}/live`);
       }}
+      onDeleted={() => {
+        // La course n'existe plus : y revenir afficherait « introuvable ».
+        router.back();
+      }}
       onCopyLink={(url) => {
         void Clipboard.setStringAsync(url);
       }}

@@ -4,6 +4,8 @@ import type {
   Clock,
   FeedGateway,
   EngagementGateway,
+  FileUploader,
+  ImagePicker,
   LiveStream,
   LocationTracker,
   NetworkMonitor,
@@ -101,6 +103,11 @@ export interface Runtime {
    * that need it only exist on mobile.
    */
   recording: RecordingCapability | undefined;
+  /**
+   * La galerie de l'appareil, pour la photo de profil. `undefined` là où il n'y
+   * en a pas : l'écran propose alors de retirer la photo, pas d'en choisir une.
+   */
+  imagePicker: ImagePicker | undefined;
 }
 
 /** What §6 needs from the platform, and what the web shell cannot provide. */
@@ -119,6 +126,13 @@ export interface RuntimeOptions {
   /** Mobile only (§2). */
   recording?: RecordingCapability | undefined;
   network: NetworkMonitor;
+  imagePicker?: ImagePicker | undefined;
+  /**
+   * Mobile : le téléversement natif. Un `FormData` autour d'une URI `file://`
+   * échoue sur iOS sans statut ni corps, donc la coque fournit ce que la
+   * plateforme sait faire.
+   */
+  uploader?: FileUploader | undefined;
   /**
    * Mobile only (§12): a browser has no push token.
    *
@@ -139,6 +153,8 @@ export function createRuntime({
   recording,
   push,
   network,
+  imagePicker,
+  uploader,
 }: RuntimeOptions): Runtime {
   const sessions = new SessionHolder(secureStore);
 
@@ -158,7 +174,12 @@ export function createRuntime({
     clock,
   );
 
-  const http = new HttpClient({ baseUrl, clock, session: { holder: sessions, refresh } });
+  const http = new HttpClient({
+    baseUrl,
+    clock,
+    session: { holder: sessions, refresh },
+    uploader,
+  });
   auth = new HttpAuthGateway(http, clock);
 
   // The stream carries the same bearer and renews through the same coordinator
@@ -202,5 +223,6 @@ export function createRuntime({
     random: new SystemRandom(),
     network,
     recording,
+    imagePicker,
   };
 }

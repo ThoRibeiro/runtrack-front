@@ -5,8 +5,9 @@ import { describeError, translate } from '../../i18n';
 
 /**
  * §15: never "une erreur est survenue" without looking at the `code`.
- * `describeError` does the looking; this shows the result, with the correlation
- * id the user will quote if they report it (§11).
+ * `describeError` does the looking; this shows the result. The detail and the
+ * reference come with it only when the failure is not the user's to fix — a
+ * wrong password gets the sentence and nothing else.
  */
 export function AuthError({ error }: { error: unknown }): ReactNode {
   const theme = useTheme();
@@ -16,7 +17,9 @@ export function AuthError({ error }: { error: unknown }): ReactNode {
     <View
       accessible
       accessibilityRole="alert"
-      accessibilityLabel={`${described.title}. ${described.detail}`}
+      accessibilityLabel={
+        described.detail === undefined ? described.title : `${described.title}. ${described.detail}`
+      }
       testID="auth-error"
       style={{
         flexDirection: 'row',
@@ -32,9 +35,11 @@ export function AuthError({ error }: { error: unknown }): ReactNode {
         <Text variant="bodyStrong" tone="danger" decorative>
           {described.title}
         </Text>
-        <Text variant="caption" tone="muted" decorative>
-          {described.detail}
-        </Text>
+        {described.detail !== undefined && (
+          <Text variant="caption" tone="muted" decorative>
+            {described.detail}
+          </Text>
+        )}
         {described.correlationId !== undefined && (
           <Text variant="caption" tone="muted" decorative>
             {translate('error.reference', { correlationId: described.correlationId })}

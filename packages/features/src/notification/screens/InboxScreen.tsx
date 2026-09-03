@@ -6,7 +6,7 @@ import {
   Button,
   List,
   Pressable,
-  SectionHeader,
+  ScreenHeader,
   Text,
   space,
   useTheme,
@@ -30,6 +30,7 @@ import { notificationsOf, useInbox, useMarkAllRead, useMarkRead } from '../hooks
 export interface InboxScreenProps {
   onOpen: (link: DeepLink) => void;
   onOpenPreferences: () => void;
+  onBack?: (() => void) | undefined;
 }
 
 /** A relative moment, in the words a French speaker uses out loud. */
@@ -64,7 +65,7 @@ function wording(notification: Notification): string {
   }
 }
 
-export function InboxScreen({ onOpen, onOpenPreferences }: InboxScreenProps): ReactNode {
+export function InboxScreen({ onOpen, onOpenPreferences, onBack }: InboxScreenProps): ReactNode {
   const theme = useTheme();
   const runtime = useRuntime();
   const inbox = useInbox();
@@ -80,6 +81,25 @@ export function InboxScreen({ onOpen, onOpenPreferences }: InboxScreenProps): Re
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colours.canvas }} testID="inbox-screen">
+      <ScreenHeader
+        title={translate('inbox.title')}
+        onBack={onBack}
+        backLabel={translate('common.back')}
+        // L'action vit dans l'en-tête plutôt que dans une section de plus :
+        // deux titres l'un sous l'autre disaient deux fois la même chose.
+        action={
+          <Button
+            variant="ghost"
+            size="sm"
+            label={translate('inbox.markAllRead')}
+            onPress={() => {
+              markAllRead.mutate();
+            }}
+            testID="inbox-mark-all"
+          />
+        }
+        testID="inbox-header"
+      />
       <List
         data={notifications}
         keyExtractor={(notification) => notification.id}
@@ -90,7 +110,7 @@ export function InboxScreen({ onOpen, onOpenPreferences }: InboxScreenProps): Re
         error={
           described === undefined
             ? undefined
-            : { title: translate('inbox.error'), message: described.detail }
+            : { title: described.title, message: described.detail }
         }
         offline={
           paused
@@ -107,15 +127,6 @@ export function InboxScreen({ onOpen, onOpenPreferences }: InboxScreenProps): Re
         onEndReached={() => {
           if (inbox.hasNextPage && !inbox.isFetchingNextPage) void inbox.fetchNextPage();
         }}
-        header={
-          <SectionHeader
-            title={translate('inbox.title')}
-            actionLabel={translate('inbox.markAllRead')}
-            onAction={() => {
-              markAllRead.mutate();
-            }}
-          />
-        }
         renderItem={({ item }) => {
           const text = wording(item);
           const when = ago(item.createdAt, now);

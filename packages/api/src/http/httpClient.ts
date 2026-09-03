@@ -1,4 +1,10 @@
-import { RunTrackError, type Clock, type Page } from '@runtrack/core';
+import {
+  RunTrackError,
+  type Clock,
+  type FileUploader,
+  type Page,
+  type PickedImage,
+} from '@runtrack/core';
 import type { RefreshCoordinator } from '../auth/refreshCoordinator';
 import type { SessionHolder } from '../auth/sessionHolder';
 import { defaultCorrelationIdFactory, type CorrelationIdFactory } from './correlationId';
@@ -14,6 +20,11 @@ export interface HttpClientOptions {
   newCorrelationId?: CorrelationIdFactory;
   /** Absent on the public share pages, which are read without an account. */
   session?: { holder: SessionHolder; refresh: RefreshCoordinator };
+  /**
+   * Le téléversement de fichiers, quand la plateforme en a un. Absent sur le
+   * web, qui poste un `Blob` par la voie normale.
+   */
+  uploader?: FileUploader | undefined;
 }
 
 export interface RequestOptions {
@@ -28,6 +39,13 @@ export interface RequestOptions {
    * account, and a stale bearer would have the server answer as them.
    */
   anonymous?: boolean;
+  /**
+   * Un envoi de fichier. Exclusif du corps JSON : `Content-Type` n'est **pas**
+   * posé ici, parce que la frontière multipart est calculée par le runtime au
+   * moment de l'envoi — l'écrire à la main produit un corps que le serveur ne
+   * sait pas découper.
+   */
+  form?: FormData | undefined;
 }
 
 const NO_CONTENT = 204;
@@ -40,6 +58,63 @@ export class HttpClient {
   constructor(private readonly options: HttpClientOptions) {
     this.fetchImpl = options.fetch ?? ((input, init) => globalThis.fetch(input, init));
     this.newCorrelationId = options.newCorrelationId ?? defaultCorrelationIdFactory;
+  }
+
+  /** Vrai quand la coque a fourni un téléversement natif. */
+  get canUploadFiles(): boolean {
+    return this.options.uploader !== undefined;
+  }
+
+  /**
+   * Téléverse un fichier local, par le chemin que la plateforme sait prendre.
+   *
+   * L'en-tête d'authentification et la corrélation viennent d'ici — c'est ce
+   * client qui tient la session —, mais l'envoi lui-même est confié à
+   * l'`uploader` de la coque : sur React Native, un `FormData` autour d'une URI
+   * `file://` échoue sans statut ni corps.
+   */
+  async upload<T>(path: string, fieldName: string, file: PickedImage): Promise<T> {
+    const uploader = this.options.uploader;
+    if (uploader === undefined) {
+      throw new RunTrackError({
+        code: 'UNKNOWN',
+        message: 'Cette plateforme ne sait pas envoyer de fichier',
+      });
+    }
+
+    const correlationId = this.newCorrelationId();
+    const token = this.options.session?.holder.current()?.accessToken;
+
+    const result = await uploader.upload({
+      url: this.options.baseUrl + path,
+      fieldName,
+      file,
+      headers: {
+        Accept: 'application/json',
+        'X-Correlation-Id': correlationId,
+        ...(token === undefined ? {} : { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    let body: unknown;
+    try {
+      body = JSON.parse(result.body);
+    } catch {
+      body = undefined;
+    }
+
+    if (result.status >= 400) {
+      throw toRunTrackError(body, { status: result.status, correlationId });
+    }
+    if (body === undefined) {
+      throw new RunTrackError({
+        code: 'UNKNOWN',
+        message: 'Réponse vide là où un corps était attendu',
+        correlationId,
+      });
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return body as T;
   }
 
   /** For the endpoints that answer 204, or whose body is of no interest. */
@@ -113,7 +188,8 @@ export class HttpClient {
     }
 
     const init: RequestInit = { method: options.method ?? 'GET', headers };
-    if (options.body !== undefined) init.body = JSON.stringify(options.body);
+    if (options.form !== undefined) init.body = options.form;
+    else if (options.body !== undefined) init.body = JSON.stringify(options.body);
 
     return this.fetchImpl(this.options.baseUrl + path + queryString(options.query), init);
   }
