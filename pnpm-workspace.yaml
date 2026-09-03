@@ -2,9 +2,19 @@ packages:
   - apps/*
   - packages/*
 
+# Expo/Metro ne résout pas de façon fiable les liens symboliques que pnpm pose par
+# défaut : un `node_modules` à plat est la configuration supportée en monorepo.
+nodeLinker: hoisted
+# Les paquets internes ne sont jamais publiés : on les lie, on ne les télécharge pas.
+linkWorkspacePackages: true
+
+# Expo SDK 57 pins Reanimated 4.5.1, which asserts the Worklets version at import.
+# Left to resolve on its own, pnpm hoists 0.12.1 and every test fails on a version
+# assertion rather than on anything real.
 overrides:
   react-native-worklets: 0.10.1
 
+# Native postinstall builds: watcher for Metro, unrs-resolver for eslint-import.
 allowBuilds:
   '@parcel/watcher': true
   unrs-resolver: true

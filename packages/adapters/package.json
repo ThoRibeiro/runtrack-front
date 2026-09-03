@@ -9,7 +9,8 @@
     "./map/native": "./src/map/native/index.ts",
     "./map/web": "./src/map/web/index.ts",
     "./recording/native": "./src/recording/native.ts",
-    "./notification/native": "./src/notification/native.ts"
+    "./notification/native": "./src/notification/native.ts",
+    "./media": "./src/media/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -21,18 +22,26 @@
     "expo-secure-store": "~57.0.2"
   },
   "peerDependencies": {
+    "expo-device": "*",
+    "expo-notifications": "*",
     "maplibre-gl": "*",
     "react": "*",
     "react-native": "*",
-    "react-native-maps": "*",
-    "expo-notifications": "*",
-    "expo-device": "*"
+    "react-native-maps": "*"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "~19.2.2",
     "@types/sql.js": "^1.4.11",
     "expo-device": "~57.0.1",
+    "expo-file-system": "^57.0.6",
+    "expo-image-picker": "^57.0.14",
+    "expo-location": "~57.0.14",
+    "expo-network": "~57.0.1",
     "expo-notifications": "~57.0.15",
+    "expo-sqlite": "~57.0.2",
+    "expo-task-manager": "~57.0.14",
     "fake-indexeddb": "^6.2.5",
     "jest": "^30.5.0",
     "jest-expo": "~57.0.5",
