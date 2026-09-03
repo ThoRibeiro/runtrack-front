@@ -61,7 +61,31 @@ describe('SignUpScreen', () => {
     expect(screen.getByLabelText(/thomas@exemple\.fr/)).toBeOnTheScreen();
   });
 
-  it('dit quel pseudonyme est déjà pris', async () => {
+  it('envoie et réaffiche l’adresse dans la forme que le serveur enregistre', async () => {
+    // Le serveur normalise en minuscules : réafficher la saisie telle quelle
+    // nommerait une adresse qui n’est celle d’aucun compte.
+    const harness = aRuntime();
+    await renderWithRuntime(<SignUpScreen onSignIn={noop} />, harness);
+
+    await userEvent.type(screen.getByTestId('sign-up-handle'), 'thomas');
+    await userEvent.type(screen.getByTestId('sign-up-display-name'), 'Thomas');
+    await userEvent.type(screen.getByTestId('sign-up-email'), 'Thomas@Exemple.FR');
+    await userEvent.type(screen.getByTestId('sign-up-password'), 'motdepasse1234');
+    await userEvent.press(screen.getByRole('button', { name: 'Créer mon compte' }));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('sign-up-done')).toBeOnTheScreen();
+    });
+    expect(harness.auth.signUpCalls[0]).toEqual({
+      handle: 'thomas',
+      displayName: 'Thomas',
+      email: 'thomas@exemple.fr',
+      password: 'motdepasse1234',
+    });
+    expect(screen.getByLabelText(/thomas@exemple\.fr/)).toBeOnTheScreen();
+  });
+
+  it('dit que le pseudonyme est déjà pris, avec sa propre phrase', async () => {
     const harness = aRuntime();
     harness.auth.onSignUp = () =>
       Promise.reject(new RunTrackError({ code: 'HANDLE_TAKEN', message: 'thomas est déjà pris' }));
@@ -71,8 +95,10 @@ describe('SignUpScreen', () => {
     await userEvent.press(screen.getByRole('button', { name: 'Créer mon compte' }));
 
     const alert = await screen.findByRole('alert');
+    // La phrase montrée vient du dictionnaire, pas du serveur : le pseudonyme
+    // refusé est déjà sous les yeux, dans le champ.
     expect(alert.props['accessibilityLabel']).toContain('Ce pseudonyme est déjà pris');
-    expect(alert.props['accessibilityLabel']).toContain('thomas est déjà pris');
+    expect(alert.props['accessibilityLabel']).not.toContain('thomas est déjà pris');
   });
 });
 

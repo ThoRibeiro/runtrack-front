@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { TextInput, View, type KeyboardTypeOptions } from 'react-native';
+import { Platform, TextInput, View, type KeyboardTypeOptions } from 'react-native';
 import { useControllableState } from '../a11y';
 import { useTheme } from '../theme';
 import { controlHeight, iconSize, space } from '../tokens';
@@ -28,10 +28,38 @@ export interface InputProps {
    * with it. The value for a sign-in field is `current-password`; for a new
    * one, `new-password`. React Native maps both onto its own vocabulary.
    */
-  autoComplete?: 'email' | 'current-password' | 'new-password' | 'name' | 'off' | undefined;
+  autoComplete?:
+    | 'email'
+    | 'username'
+    | 'current-password'
+    | 'new-password'
+    | 'name'
+    | 'off'
+    | undefined;
   editable?: boolean | undefined;
+  /**
+   * `bare` retire le fond et le cadre : le champ vit alors dans un conteneur
+   * qui les porte déjà — une bulle de commentaire, une barre de recherche.
+   * Deux cadres emboîtés se lisent comme un défaut d'alignement.
+   */
+  variant?: 'filled' | 'bare' | undefined;
   testID?: string | undefined;
 }
+
+/**
+ * Fields whose value is an identifier, not prose.
+ *
+ * iOS capitalises the first letter and autocorrects what it takes for a
+ * misspelling — which is how `thomas@exemple.fr` becomes `Thomas@exemple.fr`,
+ * and how a corrected word arrives with a trailing space. The server normalises
+ * the address anyway, but the person typing should not have to notice.
+ */
+const VERBATIM_FIELDS: ReadonlySet<string> = new Set([
+  'email',
+  'username',
+  'current-password',
+  'new-password',
+]);
 
 export function Input({
   field,
@@ -44,8 +72,10 @@ export function Input({
   secureTextEntry = false,
   autoComplete = 'off',
   editable = true,
+  variant = 'filled',
   testID,
 }: InputProps): ReactNode {
+  const verbatim = VERBATIM_FIELDS.has(autoComplete);
   const theme = useTheme();
   const [text, setText] = useControllableState<string>({
     value,
@@ -60,13 +90,19 @@ export function Input({
         alignItems: 'center',
         gap: space.xs,
         minHeight: controlHeight.md,
-        paddingHorizontal: space.md,
-        borderRadius: theme.radius.xs,
-        backgroundColor: theme.colours.surfaceAlt,
-        // §5: a field outline carries meaning, so it meets 3:1 — and the error
-        // state changes more than the colour, it changes the width too.
-        borderWidth: field.invalid ? theme.stroke.thick : theme.stroke.hairline,
-        borderColor: field.invalid ? theme.colours.danger.text : theme.colours.borderStrong,
+        ...(variant === 'bare'
+          ? { flex: 1 }
+          : {
+              paddingHorizontal: space.md,
+              borderRadius: theme.radius.xs,
+              backgroundColor: theme.colours.surfaceAlt,
+              // §5: a field outline carries meaning, so it meets 3:1 — and the
+              // error state changes more than the colour, it changes the width.
+              borderWidth: field.invalid ? theme.stroke.thick : theme.stroke.hairline,
+              borderColor: field.invalid
+                ? theme.colours.danger.text
+                : theme.colours.borderStrong,
+            }),
       }}
     >
       {icon !== undefined && (
@@ -83,13 +119,22 @@ export function Input({
         keyboardType={keyboardType}
         secureTextEntry={secureTextEntry}
         autoComplete={autoComplete}
+        autoCapitalize={verbatim ? 'none' : 'sentences'}
+        autoCorrect={!verbatim}
         editable={editable}
         testID={testID}
         style={{
           flex: 1,
           paddingVertical: space.sm,
           fontSize: theme.typography.body.size,
-          lineHeight: theme.typography.body.lineHeight,
+          // iOS clips the ascenders and descenders of an *editing* field when
+          // the line height is set: UIKit lays the glyphs out itself once the
+          // field has focus, and the two disagree. Android and the web need it
+          // to match the rest of the type scale, so only iOS goes without.
+          ...Platform.select({
+            ios: {},
+            default: { lineHeight: theme.typography.body.lineHeight },
+          }),
           fontFamily: theme.typography.body.family,
           color: theme.colours.text,
         }}

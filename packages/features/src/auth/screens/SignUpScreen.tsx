@@ -30,6 +30,11 @@ export function SignUpScreen({ onSignIn }: SignUpScreenProps): ReactNode {
     password: validateNewPassword(password),
   };
 
+  // The address the server will store: it normalises to lower case on the way
+  // in, so sending and echoing that form keeps the confirmation screen honest
+  // about the account that now exists.
+  const submittedEmail = email.trim().toLowerCase();
+
   const submit = (): void => {
     setShowErrors(true);
     if (Object.values(errors).some((error) => error !== undefined)) return;
@@ -37,7 +42,7 @@ export function SignUpScreen({ onSignIn }: SignUpScreenProps): ReactNode {
     signUp.mutate({
       handle: handle.trim(),
       displayName: displayName.trim(),
-      email: email.trim(),
+      email: submittedEmail,
       password,
     });
   };
@@ -51,7 +56,7 @@ export function SignUpScreen({ onSignIn }: SignUpScreenProps): ReactNode {
         <EmptyState
           icon="check"
           title={translate('auth.signUp.done')}
-          description={translate('auth.signUp.doneDetail', { email: email.trim() })}
+          description={translate('auth.signUp.doneDetail', { email: submittedEmail })}
           actionLabel={translate('auth.signUp.haveAccount')}
           onAction={onSignIn}
         />
@@ -65,7 +70,6 @@ export function SignUpScreen({ onSignIn }: SignUpScreenProps): ReactNode {
   return (
     <AuthLayout
       title={translate('auth.signUp.title')}
-      subtitle={translate('auth.signUp.subtitle')}
       error={signUp.error}
       testID="sign-up"
       footer={
@@ -85,7 +89,13 @@ export function SignUpScreen({ onSignIn }: SignUpScreenProps): ReactNode {
         error={shown('handle')}
       >
         {(field) => (
-          <Input field={field} value={handle} onChangeText={setHandle} testID="sign-up-handle" />
+          <Input
+            field={field}
+            value={handle}
+            onChangeText={setHandle}
+            autoComplete="username"
+            testID="sign-up-handle"
+          />
         )}
       </FormField>
 
