@@ -1,6 +1,7 @@
 import type {
   MyProfile,
   Physiology,
+  PickedImage,
   RunnerTotals,
   StatsPeriod,
   UserGateway,
@@ -35,12 +36,47 @@ export class HttpUserGateway implements UserGateway {
     return this.me();
   }
 
-  async changeAvatar(url: string): Promise<MyProfile> {
+  async changeAvatar(url: string | undefined): Promise<MyProfile> {
     await this.http.requestVoid('/user/v1/me/avatar', {
       method: 'PUT',
-      body: { avatarUrl: url },
+      // `null` et non la chaîne vide : c'est `null` que le serveur lit comme
+      // « retire la photo », une chaîne vide serait une URL vide enregistrée.
+      body: { avatarUrl: url ?? null },
     });
     return this.me();
+  }
+
+  async physiology(): Promise<Physiology> {
+    return toPhysiology(await this.http.request<PhysiologyDto>('/user/v1/me/physiology'));
+  }
+
+  /**
+   * La photo, en multipart.
+   *
+   * Deux mondes derrière une même signature : React Native envoie un
+   * descripteur `{ uri, name, type }` que le pont natif sait lire — `fetch` sur
+   * une URI `file://` n'y est pas fiable — tandis qu'un navigateur veut un vrai
+   * `Blob`, que `fetch` sur une URI `blob:` lui donne.
+   */
+  async uploadAvatar(image: PickedImage): Promise<MyProfile> {
+    // Deux mondes, deux chemins. Un navigateur poste un `Blob` par la voie
+    // normale ; React Native passe par le module natif de fichiers, parce
+    // qu'un `FormData` autour d'une URI `file://` y échoue avec « Network
+    // request failed » — sans statut ni corps, indiscernable d'une coupure.
+    if (this.http.canUploadFiles) {
+      return toMyProfile(await this.http.upload<MyProfileDto>('/user/v1/me/avatar/file', 'file', image));
+    }
+
+    const form = new FormData();
+    const response = await fetch(image.uri);
+    form.append('file', await response.blob(), image.name);
+
+    return toMyProfile(
+      await this.http.request<MyProfileDto>('/user/v1/me/avatar/file', {
+        method: 'POST',
+        form,
+      }),
+    );
   }
 
   async updatePhysiology(physiology: Physiology): Promise<Physiology> {

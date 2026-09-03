@@ -1,82 +1,74 @@
-import { useMemo, type ReactNode } from 'react';
-import { ScrollView, View } from 'react-native';
-import type { ActivityId } from '@runtrack/core';
-import { goalProgress, paceOver } from '@runtrack/core';
+import { useCallback, type ReactNode } from 'react';
+import { View } from 'react-native';
+import type { ActivityId, FeedItem } from '@runtrack/core';
 import {
   Avatar,
   Badge,
-  Card,
-  EmptyState,
-  MetricCard,
+  List,
   Pressable,
-  ProgressRing,
-  SectionHeader,
   Skeleton,
   Text,
   space,
   useTheme,
 } from '@runtrack/ui';
-import { formatKilometres, formatPace, formatWhole, spokenPace } from '../../format';
-import { translate } from '../../i18n';
+import { describeError, translate } from '../../i18n';
 import { useUnreadCount } from '../../notification';
 import { itemsOf, useFeed } from '../../feed/hooks/useFeed';
 import { FeedCard } from '../../feed/components/FeedCard';
-import { currentTimeZone, useMe, useMyStats } from '../hooks/useProfile';
+import { useMe } from '../hooks/useProfile';
 
 /**
- * The reference's home screen, transposed (§10): avatar and greeting, the bell,
- * the tinted card with its progress ring, the two-per-row metric grid, then
- * "Dernières courses".
+ * L'accueil, et c'est **le fil** : ce que les autres ont couru.
  *
- * What the reference has and this does not: blood pressure, calories, the
- * training-video carousel. The back-end has none of that, and §3 is explicit —
- * one does not invent a screen to fill a mock-up.
+ * Il n'y a pas deux endroits où lire les courses des gens qu'on suit : il y en
+ * avait deux — un accueil qui en montrait trois, un onglet « Fil » qui les
+ * montrait toutes — et la barre d'onglets portait le doublon. Ici, la semaine
+ * du coureur tient en tête de liste, et le fil déroule dessous.
+ *
+ * Les chiffres de la semaine et l'objectif sont passés sur le profil : ils
+ * parlent du coureur, pas de son fil, et les avoir en tête de liste repoussait
+ * les courses des autres sous la ligne de flottaison. Il ne reste ici que de
+ * quoi savoir chez qui on est, puis les courses.
  */
-const RECENT_COUNT = 3;
-
 export interface HomeScreenProps {
   onOpenNotifications: () => void;
   onOpenProfile: () => void;
-  onOpenFeed: () => void;
   onOpenActivity: (id: ActivityId) => void;
-  /** §9: client state. Not persisted yet — the settings screen comes later. */
-  weeklyGoalMetres?: number;
 }
-
-const DEFAULT_WEEKLY_GOAL = 40_000;
 
 export function HomeScreen({
   onOpenNotifications,
   onOpenProfile,
-  onOpenFeed,
   onOpenActivity,
-  weeklyGoalMetres = DEFAULT_WEEKLY_GOAL,
 }: HomeScreenProps): ReactNode {
   const theme = useTheme();
-  const zone = useMemo(() => currentTimeZone(), []);
   const me = useMe();
   const unread = useUnreadCount();
-  const stats = useMyStats('WEEK', zone);
   const feed = useFeed();
 
-  const recent = itemsOf(feed.data).slice(0, RECENT_COUNT);
-  const totals = stats.data;
-  const progress = totals === undefined ? 0 : goalProgress(totals, weeklyGoalMetres);
-  const remaining = Math.max(0, weeklyGoalMetres - (totals?.distanceMetres ?? 0));
+  const items = itemsOf(feed.data);
 
-  return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: theme.colours.canvas }}
-      // De l'air, beaucoup : c'est l'espace qui sépare les sections, pas des
-      // boîtes. Une page où chaque bloc a un contour se lit comme un formulaire.
-      contentContainerStyle={{
-        paddingHorizontal: space.md,
-        paddingTop: space.lg,
-        paddingBottom: space['2xl'],
-        gap: space.lg,
-      }}
-      testID="home-screen"
-    >
+  const renderItem = useCallback(
+    ({ item }: { item: FeedItem }) => (
+      <FeedCard
+        item={item}
+        onPress={() => {
+          onOpenActivity(item.activityId);
+        }}
+      />
+    ),
+    [onOpenActivity],
+  );
+
+  const described = feed.error === null ? undefined : describeError(feed.error);
+  // §9 : une requête en pause n'est pas une requête lente. Le dire, c'est la
+  // différence entre un écran honnête et un rond qui tourne pour rien.
+  const paused = feed.fetchStatus === 'paused';
+
+  // De l'air, beaucoup : c'est l'espace qui sépare les sections, pas des boîtes.
+  // Une page où chaque bloc a un contour se lit comme un formulaire.
+  const header = (
+    <View style={{ paddingTop: space.lg, paddingBottom: space.md, gap: space.lg }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space.sm }}>
         <View style={{ flex: 1, gap: space.xxs }}>
           <Text tone="muted" decorative>
@@ -112,146 +104,51 @@ export function HomeScreen({
           </Pressable>
         </View>
       </View>
-
-      {/*
-        La carte d'accroche des maquettes : un aplat de l'accent, l'anneau de
-        progression dedans, et le texte en blanc dessus. C'est le seul bloc de
-        couleur pleine de l'écran — ce qui est précisément ce qui le fait lire
-        en premier.
-      */}
-      <Card
-        tone="accent"
-        // §5 : la carte se lit d'un bloc — « Objectif de la semaine, 0 sur
-        // 40 km, plus que 40 km ». Ses textes sont décoratifs, donc sans ce
-        // label elle ne serait plus annoncée du tout.
-        accessibilityLabel={[
-          translate('home.weeklyGoal'),
-          translate('home.weeklyGoalProgress', {
-            done: formatKilometres(totals?.distanceMetres ?? 0),
-            goal: formatKilometres(weeklyGoalMetres),
-          }),
-          remaining === 0
-            ? translate('home.weeklyGoalReached')
-            : translate('home.weeklyGoalRemaining', { remaining: formatKilometres(remaining) }),
-        ].join(', ')}
-        testID="home-goal"
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-          <ProgressRing progress={progress} label={translate('home.weeklyGoal')} onAccent />
-          <View style={{ flex: 1, gap: space.xxs }}>
-            <Text variant="section" tone="onBrand" decorative>
-              {translate('home.weeklyGoal')}
-            </Text>
-            <Text tone="onBrand" decorative>
-              {translate('home.weeklyGoalProgress', {
-                done: formatKilometres(totals?.distanceMetres ?? 0),
-                goal: formatKilometres(weeklyGoalMetres),
-              })}
-            </Text>
-            <Text variant="caption" tone="onBrand" decorative>
-              {remaining === 0
-                ? translate('home.weeklyGoalReached')
-                : translate('home.weeklyGoalRemaining', {
-                    remaining: formatKilometres(remaining),
-                  })}
-            </Text>
-          </View>
-        </View>
-      </Card>
-
-      <View style={{ gap: space.sm }}>
-        <SectionHeader title={translate('home.statistics')} />
-        <View
-          style={{
-            flexDirection: 'row',
-            flexWrap: 'wrap',
-            rowGap: space['2xl'],
-            columnGap: space.md,
-          }}
-        >
-          <View style={{ flexGrow: 1, flexBasis: '46%' }}>
-            <MetricCard
-              title={translate('home.distance')}
-              icon="activity"
-              accent="pace"
-              value={formatKilometres(totals?.distanceMetres ?? 0)}
-              unit={translate('common.km')}
-              spokenUnit={translate('common.spokenKilometres')}
-              testID="home-metric-distance"
-            />
-          </View>
-          <View style={{ flexGrow: 1, flexBasis: '46%' }}>
-            <MetricCard
-              title={translate('home.averagePace')}
-              icon="trending-up"
-              accent="pace"
-              value={formatPace(averagePaceOf(totals?.distanceMetres, totals?.movingTimeSeconds))}
-              unit={translate('common.perKm')}
-              spokenValue={spokenPace(
-                averagePaceOf(totals?.distanceMetres, totals?.movingTimeSeconds),
-              )}
-              testID="home-metric-pace"
-            />
-          </View>
-          <View style={{ flexGrow: 1, flexBasis: '46%' }}>
-            <MetricCard
-              title={translate('home.elevation')}
-              icon="mountain"
-              accent="climb"
-              value={formatWhole(totals?.elevationGain ?? 0)}
-              unit={translate('common.metres')}
-              spokenUnit={translate('common.spokenMetres')}
-              testID="home-metric-elevation"
-            />
-          </View>
-          <View style={{ flexGrow: 1, flexBasis: '46%' }}>
-            <MetricCard
-              title={translate('home.outings')}
-              icon="calendar"
-              accent="count"
-              value={formatWhole(totals?.activityCount ?? 0)}
-              unit={translate(
-                (totals?.activityCount ?? 0) === 1 ? 'home.outingUnit' : 'home.outingsUnit',
-              )}
-              testID="home-metric-outings"
-            />
-          </View>
-        </View>
-      </View>
-
-      <View style={{ gap: space.sm }}>
-        <SectionHeader title={translate('home.recentActivities')} onAction={onOpenFeed} />
-        {recent.length === 0 && !feed.isPending ? (
-          <EmptyState
-            title={translate('home.noActivities')}
-            description={translate('home.noActivitiesDetail')}
-          />
-        ) : (
-          recent.map((item) => (
-            <FeedCard
-              key={item.activityId}
-              item={item}
-              onPress={() => {
-                onOpenActivity(item.activityId);
-              }}
-            />
-          ))
-        )}
-      </View>
-    </ScrollView>
+    </View>
   );
-}
 
-/**
- * The weekly totals carry a distance and a moving time but no average pace —
- * the server computes it per activity, not per period. `paceOver` is the
- * hexagon's, so the home screen and an activity screen cannot disagree about
- * what an average pace is.
- */
-function averagePaceOf(
-  distanceMetres: number | undefined,
-  movingTimeSeconds: number | undefined,
-): number | undefined {
-  if (distanceMetres === undefined || movingTimeSeconds === undefined) return undefined;
-  return paceOver(distanceMetres, movingTimeSeconds);
+  return (
+    <View
+      style={{ flex: 1, backgroundColor: theme.colours.canvas, paddingHorizontal: space.md }}
+      testID="home-screen"
+    >
+      <List
+        data={feed.isPending ? undefined : items}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.activityId}
+        header={header}
+        emptyTitle={translate('feed.empty')}
+        emptyDescription={translate('feed.emptyDetail')}
+        loading={feed.isPending || feed.isFetchingNextPage}
+        loadingLabel={translate('common.loading')}
+        error={
+          described === undefined
+            ? undefined
+            : { title: described.title, message: described.detail }
+        }
+        offline={
+          paused
+            ? {
+                title: translate('offline.title'),
+                description: translate('offline.feed'),
+                retryLabel: translate('common.retry'),
+              }
+            : undefined
+        }
+        onRetry={() => {
+          void feed.refetch();
+        }}
+        onRefresh={() => {
+          void feed.refetch();
+        }}
+        refreshing={feed.isRefetching}
+        onEndReached={() => {
+          // Demander une page qui n'existe pas, c'est une liste qui défile sans
+          // fin : `hasNextPage` est la réponse du serveur, pas une supposition.
+          if (feed.hasNextPage && !feed.isFetchingNextPage) void feed.fetchNextPage();
+        }}
+        testID="home-feed"
+      />
+    </View>
+  );
 }

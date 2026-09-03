@@ -1,24 +1,38 @@
-import { useCallback, type ReactNode } from 'react';
+import { useCallback, useMemo, type ReactNode } from 'react';
 import { View } from 'react-native';
+import { goalProgress, paceOver } from '@runtrack/core';
 import type { Activity, ActivityId, PublicProfile, UserId } from '@runtrack/core';
 import {
   Avatar,
   Button,
   Card,
   ErrorState,
+  MetricCard,
+  ProgressRing,
   List,
   Pressable,
+  ScreenHeader,
+  SectionHeader,
   Skeleton,
   StatTile,
   Text,
   space,
   useTheme,
 } from '@runtrack/ui';
-import { formatDuration, formatKilometres, spokenDuration } from '../../format';
+import {
+  formatDay,
+  formatDuration,
+  formatKilometres,
+  formatPace,
+  formatWhole,
+  spokenDuration,
+  spokenPace,
+} from '../../format';
 import { describeError, translate } from '../../i18n';
 import { useFollow, useFollowers, useFollowing, useUnfollow } from '../../social/hooks/useSocial';
+import { TrackPreview } from '../../map';
 import { useActivitiesOf } from '../hooks/useActivitiesOf';
-import { useProfile } from '../hooks/useProfile';
+import { currentTimeZone, useMyStats, useProfile } from '../hooks/useProfile';
 
 /**
  * A runner's profile — someone else's, or one's own.
@@ -36,6 +50,10 @@ export interface ProfileScreenProps {
   onOpenFollowers: (id: UserId) => void;
   onOpenFollowing: (id: UserId) => void;
   onSignOut?: (() => void) | undefined;
+  /** Own profile only: where the name, the bio and the physiology are changed. */
+  onEditProfile?: (() => void) | undefined;
+  /** Someone else's profile is reached from somewhere, and one comes back. */
+  onBack?: (() => void) | undefined;
 }
 
 export function ProfileScreen({
@@ -45,6 +63,8 @@ export function ProfileScreen({
   onOpenFollowers,
   onOpenFollowing,
   onSignOut,
+  onEditProfile,
+  onBack,
 }: ProfileScreenProps): ReactNode {
   const theme = useTheme();
   const profile = useProfile(handle);
@@ -66,7 +86,7 @@ export function ProfileScreen({
     const described = describeError(profile.error);
     return (
       <ErrorState
-        title={translate('profile.notFound')}
+        title={described.title}
         message={described.detail}
         correlationId={described.correlationId}
         onRetry={() => {
@@ -85,6 +105,8 @@ export function ProfileScreen({
       onOpenFollowers={onOpenFollowers}
       onOpenFollowing={onOpenFollowing}
       onSignOut={onSignOut}
+      onEditProfile={onEditProfile}
+      onBack={onBack}
     />
   );
 }
@@ -96,6 +118,8 @@ function ProfileBody({
   onOpenFollowers,
   onOpenFollowing,
   onSignOut,
+  onEditProfile,
+  onBack,
 }: Omit<ProfileScreenProps, 'handle'> & { profile: PublicProfile }): ReactNode {
   const theme = useTheme();
   const followers = useFollowers(profile.id);
@@ -103,6 +127,11 @@ function ProfileBody({
   const activities = useActivitiesOf(profile.id);
   const follow = useFollow();
   const unfollow = useUnfollow();
+  // Les chiffres de la semaine sont ceux du coureur connecté : le serveur ne
+  // les publie que pour soi, et un profil visité n'en montre donc pas.
+  const zone = useMemo(() => currentTimeZone(), []);
+  const stats = useMyStats('WEEK', zone);
+  const totals = isMe ? stats.data : undefined;
 
   const items = activities.data?.pages.flatMap((page) => page.items) ?? [];
 
@@ -113,15 +142,28 @@ function ProfileBody({
           onOpenActivity(item.id);
         }}
         // §5: one announcement per card, not four fragments.
-        accessibilityLabel={`${item.title}, ${formatKilometres(item.stats.distanceMetres)} ${translate('common.spokenKilometres')}, ${spokenDuration(item.stats.movingTimeSeconds)}`}
+        accessibilityLabel={`${item.title}, ${formatDay(item.startedAt)}, ${formatKilometres(item.stats.distanceMetres)} ${translate('common.spokenKilometres')}, ${spokenDuration(item.stats.movingTimeSeconds)}`}
         enforceTouchTarget={false}
         testID={`profile-activity-${item.id}`}
       >
         <Card>
           <View style={{ gap: space.sm }}>
-            <Text variant="bodyStrong" decorative numberOfLines={1}>
-              {item.title}
-            </Text>
+            {/* Le jour à droite du titre : c'est ce qui distingue deux
+                « Sortie du jour » l'une de l'autre. */}
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.sm }}>
+              <Text variant="bodyStrong" decorative numberOfLines={1} style={{ flex: 1 }}>
+                {item.title}
+              </Text>
+              <Text variant="caption" tone="muted" decorative>
+                {formatDay(item.startedAt)}
+              </Text>
+            </View>
+            {/* Le parcours : on reconnaît une sortie à sa forme avant de lire son titre. */}
+            <TrackPreview
+              polyline={item.previewPolyline}
+              height={120}
+              testID={`profile-track-${item.id}`}
+            />
             <View style={{ flexDirection: 'row', gap: space.xl }}>
               <StatTile
                 label={translate('activity.distance')}
@@ -149,6 +191,117 @@ function ProfileBody({
         {profile.bio !== undefined && <Text align="center">{profile.bio}</Text>}
       </View>
 
+      {totals !== undefined && (
+        <View style={{ gap: space.sm }}>
+          {/*
+            L'objectif d'abord : c'est la seule ligne qui dit ce qu'il reste à
+            faire, là où les quatre autres disent ce qui est fait.
+          */}
+          <Card
+            tone="accent"
+            // §5 : la carte se lit d'un bloc — ses textes sont décoratifs, donc
+            // sans ce libellé elle ne serait plus annoncée du tout.
+            accessibilityLabel={[
+              translate('home.weeklyGoal'),
+              translate('home.weeklyGoalProgress', {
+                done: formatKilometres(totals.distanceMetres),
+                goal: formatKilometres(WEEKLY_GOAL_METRES),
+              }),
+              WEEKLY_GOAL_METRES - totals.distanceMetres <= 0
+                ? translate('home.weeklyGoalReached')
+                : translate('home.weeklyGoalRemaining', {
+                    remaining: formatKilometres(WEEKLY_GOAL_METRES - totals.distanceMetres),
+                  }),
+            ].join(', ')}
+            testID="profile-goal"
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+              <ProgressRing
+                progress={goalProgress(totals, WEEKLY_GOAL_METRES)}
+                label={translate('home.weeklyGoal')}
+                onAccent
+              />
+              <View style={{ flex: 1, gap: space.xxs }}>
+                <Text variant="section" tone="onBrand" decorative>
+                  {translate('home.weeklyGoal')}
+                </Text>
+                <Text tone="onBrand" decorative>
+                  {translate('home.weeklyGoalProgress', {
+                    done: formatKilometres(totals.distanceMetres),
+                    goal: formatKilometres(WEEKLY_GOAL_METRES),
+                  })}
+                </Text>
+                <Text variant="caption" tone="onBrand" decorative>
+                  {WEEKLY_GOAL_METRES - totals.distanceMetres <= 0
+                    ? translate('home.weeklyGoalReached')
+                    : translate('home.weeklyGoalRemaining', {
+                        remaining: formatKilometres(WEEKLY_GOAL_METRES - totals.distanceMetres),
+                      })}
+                </Text>
+              </View>
+            </View>
+          </Card>
+
+          <SectionHeader title={translate('home.statistics')} />
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              rowGap: space['2xl'],
+              columnGap: space.md,
+            }}
+          >
+            <View style={{ flexGrow: 1, flexBasis: '46%' }}>
+              <MetricCard
+                title={translate('home.distance')}
+                icon="activity"
+                accent="pace"
+                value={formatKilometres(totals.distanceMetres)}
+                unit={translate('common.km')}
+                spokenUnit={translate('common.spokenKilometres')}
+                testID="profile-metric-distance"
+              />
+            </View>
+            <View style={{ flexGrow: 1, flexBasis: '46%' }}>
+              <MetricCard
+                title={translate('home.averagePace')}
+                icon="trending-up"
+                accent="pace"
+                value={formatPace(averagePaceOf(totals.distanceMetres, totals.movingTimeSeconds))}
+                unit={translate('common.perKm')}
+                spokenValue={spokenPace(
+                  averagePaceOf(totals.distanceMetres, totals.movingTimeSeconds),
+                )}
+                testID="profile-metric-pace"
+              />
+            </View>
+            <View style={{ flexGrow: 1, flexBasis: '46%' }}>
+              <MetricCard
+                title={translate('home.elevation')}
+                icon="mountain"
+                accent="climb"
+                value={formatWhole(totals.elevationGain)}
+                unit={translate('common.metres')}
+                spokenUnit={translate('common.spokenMetres')}
+                testID="profile-metric-elevation"
+              />
+            </View>
+            <View style={{ flexGrow: 1, flexBasis: '46%' }}>
+              <MetricCard
+                title={translate('home.outings')}
+                icon="calendar"
+                accent="count"
+                value={formatWhole(totals.activityCount)}
+                unit={translate(
+                  totals.activityCount === 1 ? 'home.outingUnit' : 'home.outingsUnit',
+                )}
+                testID="profile-metric-outings"
+              />
+            </View>
+          </View>
+        </View>
+      )}
+
       <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
         <Button
           label={translate('social.followerCount', { count: followers.data?.count ?? 0 })}
@@ -169,13 +322,24 @@ function ProfileBody({
       </View>
 
       {isMe ? (
-        <Button
-          label={translate('profile.signOut')}
-          variant="outline"
-          onPress={onSignOut}
-          fullWidth
-          testID="profile-sign-out"
-        />
+        <View style={{ gap: space.sm }}>
+          {onEditProfile !== undefined && (
+            <Button
+              label={translate('profile.edit')}
+              icon="user"
+              onPress={onEditProfile}
+              fullWidth
+              testID="profile-edit"
+            />
+          )}
+          <Button
+            label={translate('profile.signOut')}
+            variant="outline"
+            onPress={onSignOut}
+            fullWidth
+            testID="profile-sign-out"
+          />
+        </View>
       ) : (
         <View style={{ flexDirection: 'row', gap: space.sm }}>
           <Button
@@ -208,10 +372,14 @@ function ProfileBody({
   );
 
   return (
-    <View
-      style={{ flex: 1, backgroundColor: theme.colours.canvas, padding: space.md }}
-      testID="profile-screen"
-    >
+    <View style={{ flex: 1, backgroundColor: theme.colours.canvas }} testID="profile-screen">
+      <ScreenHeader
+        title={`@${profile.handle}`}
+        onBack={onBack}
+        backLabel={translate('common.back')}
+        testID="profile-header"
+      />
+      <View style={{ flex: 1, padding: space.md }}>
       <List
         data={activities.isPending ? undefined : items}
         renderItem={renderItem}
@@ -225,6 +393,13 @@ function ProfileBody({
         }
         loading={activities.isPending}
         loadingLabel={translate('common.loading')}
+        onRefresh={() => {
+          // Le geste recharge ce que la page montre : les courses et les
+          // chiffres de la semaine, pas seulement la liste.
+          void activities.refetch();
+          void stats.refetch();
+        }}
+        refreshing={activities.isRefetching}
         onEndReached={() => {
           if (activities.hasNextPage && !activities.isFetchingNextPage) {
             void activities.fetchNextPage();
@@ -232,6 +407,20 @@ function ProfileBody({
         }}
         testID="profile-activities"
       />
+      </View>
     </View>
   );
+}
+
+/** §9 : côté client, et pas encore réglable — l'écran de réglages viendra. */
+const WEEKLY_GOAL_METRES = 40_000;
+
+/**
+ * Les totaux de la semaine portent une distance et un temps, pas une allure —
+ * le serveur la calcule par course, pas par période. `paceOver` appartient à
+ * l'hexagone, pour que deux écrans ne puissent pas être en désaccord sur ce
+ * qu'est une allure moyenne.
+ */
+function averagePaceOf(distanceMetres: number, movingTimeSeconds: number): number | undefined {
+  return paceOver(distanceMetres, movingTimeSeconds);
 }
