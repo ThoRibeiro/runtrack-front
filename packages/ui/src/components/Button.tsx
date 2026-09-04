@@ -13,7 +13,7 @@ import { Text } from './Text';
  * cannot make, the answer is a new variant here, not an override from outside.
  *
  * `brand.solid` and `brand.fill` are the same colour now, and that is the point
- * of the palette: `#137C8B` carries a white label at 4.90:1, so the accent does
+ * of the palette: `#2563EB` carries a white label at 5.17:1, so the accent does
  * not have to change shade depending on whether something is written on it. The
  * two names stay because the dark theme still separates them.
  */

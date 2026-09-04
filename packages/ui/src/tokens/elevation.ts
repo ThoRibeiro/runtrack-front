@@ -6,9 +6,9 @@
  * what makes a list of cards readable at a glance: each one is an object, not
  * a region of a page.
  *
- * `raised` is for the accent card that carries the summary: it sits on colour,
- * so its shadow is tinted rather than grey — a neutral shadow under a coloured
- * surface reads as dirt.
+ * The accent card gets none of them. A full-colour block already stands off a
+ * near-white page, and a tinted shadow under it reads as a halo — a smear of
+ * another colour where the eye expects an edge.
  */
 export const elevation = {
   none: {
@@ -24,13 +24,6 @@ export const elevation = {
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 6 },
     elevation: 3,
-  },
-  raised: {
-    shadowColor: '#137C8B',
-    shadowOpacity: 0.28,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 8,
   },
   sheet: {
     shadowColor: '#0A0F12',

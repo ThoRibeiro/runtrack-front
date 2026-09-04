@@ -80,13 +80,11 @@ export function Card({
           borderWidth: stroke.hairline,
           borderColor: theme.colours.border,
         },
-        // A coloured surface gets a tinted shadow: a grey one under it reads
-        // as dirt.
-        tone === 'plain' || tone === 'outlined'
+        // A coloured surface carries no shadow: it separates by its own fill,
+        // and a tinted one around it reads as a halo rather than as depth.
+        tone === 'plain' || tone === 'outlined' || tone === 'accent'
           ? theme.elevation.none
-          : tone === 'accent'
-            ? theme.elevation.raised
-            : theme.elevation.card,
+          : theme.elevation.card,
         style,
       ]}
     >
