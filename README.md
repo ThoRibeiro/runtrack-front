@@ -146,11 +146,26 @@ et les chemins d'API du §0 ne sont pas ceux du back-end livré
 Le budget de bundle du §14 est **plafonné sur le poids ajouté** par le code applicatif —
 le plancher de la pile imposée valant 495 Ko à lui seul — et porte sur le **bundle
 initial** : MapLibre est chargé à la demande, dans un morceau séparé qui n'arrive qu'à
-l'ouverture d'une course. `pnpm budget` le vérifie, et la CI casse au-delà : **159 Ko
+l'ouverture d'une course. `pnpm budget` le vérifie, et la CI casse au-delà : **208 Ko
 applicatifs sur 250** à ce stade, plus 273 Ko différés.
+
+Le flux d'authentification déléguée y pèse une cinquantaine de kilo-octets, arrivés avec
+`expo-auth-session`. La marge restante — 42 Ko — est la première chose à surveiller au
+prochain ajout ; le levier connu est de charger ce flux à la demande, comme MapLibre, la
+connexion n'ayant lieu qu'une fois.
 
 Avant une mise en production, il manque un **fournisseur de tuiles** :
 `EXPO_PUBLIC_MAP_STYLE_URL` vaut par défaut le style de démonstration de MapLibre.
+
+**L'authentification bascule sur une seule variable.** `EXPO_PUBLIC_KEYCLOAK_ISSUER`
+configurée — l'adresse du realm, par exemple `http://localhost:8180/realms/runtrack` —, les
+comptes sont tenus par le fournisseur d'identité et l'écran de connexion se réduit à un
+bouton qui ouvre le navigateur du système. Absente, l'application garde son formulaire et
+son mot de passe. `EXPO_PUBLIC_KEYCLOAK_CLIENT_ID` vaut `runtrack-app` par défaut.
+
+Les deux côtés doivent dire la même chose : `runtrack.auth.provider` côté API (voir
+`docs/decisions-keycloak.md` dans le dépôt back-end). Une application en mode délégué contre
+une API en mode local obtient des jetons que l'API refusera.
 
 **L'enregistreur demande un appareil.** Service de premier plan tenu trois heures, relance
 par le système après un kill, batterie sur une heure de course : rien de tout cela ne se
