@@ -48,6 +48,9 @@ export default function MyProfileRoute(): ReactNode {
       onEditProfile={() => {
         router.push('/profile/edit');
       }}
+      onOpenSettings={() => {
+        router.push('/settings');
+      }}
       onSignOut={() => {
         void signOut();
       }}

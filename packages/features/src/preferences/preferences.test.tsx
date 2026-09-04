@@ -126,6 +126,7 @@ describe('les réglages', () => {
   const settings = () => (
     <SettingsScreen
       version="0.1.0"
+      onBack={noop}
       onOpenProfile={noop}
       onOpenNotifications={noop}
       onSignedOut={noop}
@@ -179,6 +180,7 @@ describe('les réglages', () => {
     await renderWithRuntime(
       <SettingsScreen
         version="0.1.0"
+        onBack={noop}
         onOpenProfile={noop}
         onOpenNotifications={noop}
         onSignedOut={signedOut}

@@ -25,6 +25,7 @@ const TITLES: { pattern: RegExp; title: string }[] = [
   { pattern: /^\/notifications/, title: 'Notifications' },
   { pattern: /^\/profile/, title: 'Profil' },
   { pattern: /^\/social/, title: 'Social' },
+  { pattern: /^\/settings/, title: 'Réglages' },
   { pattern: /^\/follow-requests/, title: 'Demandes d’abonnement' },
   { pattern: /^\/shared\//, title: 'Course partagée' },
   { pattern: /^\/activity\/[^/]+\/live/, title: 'Course en direct' },

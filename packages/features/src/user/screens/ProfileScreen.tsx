@@ -82,6 +82,14 @@ export interface ProfileScreenProps {
   onSignOut?: (() => void) | undefined;
   /** Own profile only: where the name, the bio and the physiology are changed. */
   onEditProfile?: (() => void) | undefined;
+  /**
+   * Own profile only: the settings page, which used to be a tab.
+   *
+   * It sits in the header rather than among the buttons below because it
+   * leaves the profile behind — the two buttons there act on the profile, and
+   * a third that navigates away would read as a third thing to do to it.
+   */
+  onOpenSettings?: (() => void) | undefined;
   /** Someone else's profile is reached from somewhere, and one comes back. */
   onBack?: (() => void) | undefined;
 }
@@ -94,6 +102,7 @@ export function ProfileScreen({
   onOpenFollowing,
   onSignOut,
   onEditProfile,
+  onOpenSettings,
   onBack,
 }: ProfileScreenProps): ReactNode {
   const theme = useTheme();
@@ -136,6 +145,7 @@ export function ProfileScreen({
       onOpenFollowing={onOpenFollowing}
       onSignOut={onSignOut}
       onEditProfile={onEditProfile}
+      onOpenSettings={onOpenSettings}
       onBack={onBack}
     />
   );
@@ -174,6 +184,7 @@ function ProfileBody({
   onOpenFollowing,
   onSignOut,
   onEditProfile,
+  onOpenSettings,
   onBack,
 }: Omit<ProfileScreenProps, 'handle'> & { profile: PublicProfile }): ReactNode {
   const theme = useTheme();
@@ -526,10 +537,21 @@ function ProfileBody({
         title={`@${profile.handle}`}
         onBack={onBack}
         backLabel={translate('common.back')}
-        // Rien à modérer sur son propre profil : un menu qui ne propose que de
-        // se bloquer soi-même est un menu qu'on ouvre une fois.
+        // Deux profils, deux actions au même endroit : chez soi l'engrenage des
+        // réglages, chez les autres le menu de modération. Rien à modérer sur
+        // son propre profil — un menu qui ne propose que de se bloquer soi-même
+        // est un menu qu'on ouvre une fois.
         action={
-          isMe ? undefined : (
+          isMe ? (
+            onOpenSettings === undefined ? undefined : (
+              <FloatingIconButton
+                icon="settings"
+                accessibilityLabel={translate('settings.title')}
+                onPress={onOpenSettings}
+                testID="profile-settings"
+              />
+            )
+          ) : (
             <FloatingIconButton
               icon="more-horizontal"
               accessibilityLabel={translate('profile.menu')}

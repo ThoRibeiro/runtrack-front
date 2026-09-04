@@ -80,6 +80,49 @@ describe('HomeScreen', () => {
     expect(screen.queryByTestId('profile-metric-distance')).toBeNull();
   });
 
+  it('ouvre les réglages depuis l’engrenage de son propre profil', async () => {
+    const harness = aRuntime();
+    const openSettings = jest.fn();
+    await renderWithRuntime(
+      <ProfileScreen
+        handle="thomas"
+        isMe
+        onOpenActivity={noop}
+        onOpenFollowers={noop}
+        onOpenFollowing={noop}
+        onOpenSettings={openSettings}
+      />,
+      harness,
+    );
+
+    // Les réglages ne sont plus un onglet : cet engrenage est le seul chemin
+    // vers eux, donc son absence ne se verrait qu'à l'usage.
+    await userEvent.press(await screen.findByTestId('profile-settings'));
+
+    expect(openSettings).toHaveBeenCalled();
+  });
+
+  it('remplace l’engrenage par le menu sur le profil d’un autre', async () => {
+    const harness = aRuntime();
+    await renderWithRuntime(
+      <ProfileScreen
+        handle="camille"
+        isMe={false}
+        onOpenActivity={noop}
+        onOpenFollowers={noop}
+        onOpenFollowing={noop}
+        onOpenSettings={noop}
+      />,
+      harness,
+    );
+
+    // Une seule action à cette place : régler son compte chez soi, modérer
+    // ailleurs. Les deux à la fois donneraient un engrenage qui règle le compte
+    // de quelqu'un d'autre.
+    expect(await screen.findByTestId('profile-menu')).toBeOnTheScreen();
+    expect(screen.queryByTestId('profile-settings')).toBeNull();
+  });
+
   it('borne un objectif dépassé plutôt que de dessiner deux tours', async () => {
     const harness = aRuntime();
     harness.users.stat = totals({ distanceMetres: 56_000 });

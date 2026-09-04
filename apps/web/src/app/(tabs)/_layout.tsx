@@ -4,12 +4,14 @@ import { Redirect, Tabs, router, usePathname } from 'expo-router';
 import type { ReactNode } from 'react';
 
 /**
- * The four-tab bar of §3, drawn by the design system rather than by the router.
+ * The tab bar of §3, drawn by the design system rather than by the router.
  *
  * Expo Router owns the routes; `TabBar` owns the look and the accessibility —
- * `selected` announced, the active tab named as well as coloured. Four tabs
- * here and five on mobile: **only mobile records** (§2), and the web does not
+ * `selected` announced, the active tab named as well as coloured. Three tabs
+ * here and four on mobile: **only mobile records** (§2), and the web does not
  * show a greyed-out "démarrer une course" — it does not mention it at all.
+ *
+ * Settings are not among them: the gear on one's own profile opens them.
  *
  * The route guard lives here rather than in each screen: everything under this
  * layout needs a session, and saying it once is what stops a screen from
@@ -20,7 +22,6 @@ const TABS = [
   { key: '/', icon: 'home', label: 'Accueil' },
   { key: '/social', icon: 'search', label: 'Social' },
   { key: '/profile', icon: 'user', label: 'Profil' },
-  { key: '/settings', icon: 'sliders', label: 'Réglages' },
 ] as const satisfies readonly TabItem[];
 
 type TabRoute = (typeof TABS)[number]['key'];
@@ -56,7 +57,6 @@ export default function TabsLayout(): ReactNode {
       <Tabs.Screen name="index" options={{ title: translate('home.ready') }} />
       <Tabs.Screen name="social" options={{ title: translate('social.title') }} />
       <Tabs.Screen name="profile" options={{ title: translate('profile.activities') }} />
-      <Tabs.Screen name="settings" options={{ title: translate('settings.title') }} />
     </Tabs>
   );
 }

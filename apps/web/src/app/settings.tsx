@@ -6,6 +6,9 @@ import type { ReactNode } from 'react';
 export default function SettingsRoute(): ReactNode {
   return (
     <SettingsScreen
+      onBack={() => {
+        router.back();
+      }}
       version={Constants.expoConfig?.version ?? '0.1.0'}
       onOpenProfile={() => {
         router.push('/profile/edit');

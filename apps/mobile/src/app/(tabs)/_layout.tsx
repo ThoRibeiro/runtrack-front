@@ -5,12 +5,16 @@ import type { ReactNode } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
- * The four-tab bar of §3, drawn by the design system rather than by the router.
+ * The tab bar of §3, drawn by the design system rather than by the router.
  *
  * Expo Router owns the routes; `TabBar` owns the look and the accessibility —
- * `selected` announced, the active tab named as well as coloured. Five tabs
- * here and four on the web: **only mobile records** (§2), and the web does not
+ * `selected` announced, the active tab named as well as coloured. Four tabs
+ * here and three on the web: **only mobile records** (§2), and the web does not
  * show a greyed-out "démarrer une course" — it does not mention it at all.
+ *
+ * Settings are not among them. A bar carries the places one comes back to all
+ * day; a page one opens to change a setting and leaves again is reached from
+ * the gear on one's own profile, which is where it belongs.
  *
  * The route guard lives here rather than in each screen: everything under this
  * layout needs a session, and saying it once is what stops a screen from
@@ -24,7 +28,6 @@ const TABS = [
   // c'est là que le pouce tombe sans viser.
   { key: '/record', icon: 'play', label: 'Courir' },
   { key: '/profile', icon: 'user', label: 'Profil' },
-  { key: '/settings', icon: 'sliders', label: 'Réglages' },
 ] as const satisfies readonly TabItem[];
 
 type TabRoute = (typeof TABS)[number]['key'];
@@ -63,7 +66,6 @@ export default function TabsLayout(): ReactNode {
       <Tabs.Screen name="record" options={{ title: translate('record.prepareTitle') }} />
       <Tabs.Screen name="social" options={{ title: translate('social.title') }} />
       <Tabs.Screen name="profile" options={{ title: translate('profile.activities') }} />
-      <Tabs.Screen name="settings" options={{ title: translate('settings.title') }} />
     </Tabs>
   );
 }
