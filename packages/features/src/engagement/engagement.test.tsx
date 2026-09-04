@@ -1,5 +1,5 @@
-import { screen, userEvent, waitFor } from '@testing-library/react-native';
-import { activityId, commentId, shareLinkId } from '@runtrack/core';
+import { act, screen, userEvent, waitFor } from '@testing-library/react-native';
+import { RunTrackError, activityId, commentId, shareLinkId } from '@runtrack/core';
 import { aComment } from '../testing/fakes';
 import { aRuntime, renderWithRuntime, aSession, type Harness } from '../testing/harness';
 import { ActivityScreen } from '../activity/screens/ActivityScreen';
@@ -55,8 +55,51 @@ describe('les j’aime', () => {
   });
 });
 
+describe('le cœur', () => {
+  it('compte et se colore à l’appui, sans attendre le serveur', async () => {
+    const harness = signedIn();
+    harness.engagement.likeState = { total: 3, likedByViewer: false, recentUserIds: [] };
+    // Le serveur prend son temps : c'est justement le moment où l'écran doit
+    // avoir déjà réagi.
+    let answer: (() => void) | undefined;
+    harness.engagement.onLike = () =>
+      new Promise((resolve) => {
+        answer = () => {
+          resolve(harness.engagement.likeState);
+        };
+      });
+    await renderWithRuntime(activityScreen(), harness);
+    await screen.findByLabelText('Aimer, 3 j’aime');
+
+    await userEvent.press(screen.getByTestId('activity-like'));
+
+    // Le serveur n'a pas encore répondu, et le cœur a déjà changé.
+    expect(await screen.findByLabelText('Aimé, 4 j’aime')).toBeOnTheScreen();
+    await act(async () => {
+      answer?.();
+      await Promise.resolve();
+    });
+  });
+
+  it('revient en arrière quand le serveur refuse', async () => {
+    const harness = signedIn();
+    harness.engagement.likeState = { total: 3, likedByViewer: false, recentUserIds: [] };
+    harness.engagement.onLike = () =>
+      Promise.reject(new RunTrackError({ code: 'BLOCKED', message: 'refus', status: 403 }));
+    await renderWithRuntime(activityScreen(), harness);
+    await screen.findByLabelText('Aimer, 3 j’aime');
+
+    await userEvent.press(screen.getByTestId('activity-like'));
+
+    // Vif, mais honnête : le cœur ne garde pas un état que le serveur a refusé.
+    await waitFor(() => {
+      expect(screen.getByLabelText('Aimer, 3 j’aime')).toBeOnTheScreen();
+    });
+  });
+});
+
 describe('les commentaires', () => {
-  it('ne charge le fil qu’à l’ouverture de la section', async () => {
+  it('charge le fil avec l’écran : on vient les lire, pas les déplier', async () => {
     const harness = signedIn();
     let calls = 0;
     harness.engagement.comments = () => {
@@ -66,13 +109,12 @@ describe('les commentaires', () => {
     await renderWithRuntime(activityScreen(), harness);
     await screen.findByTestId('activity-screen');
 
-    expect(calls).toBe(0);
-
-    await userEvent.press(screen.getByTestId('activity-comments-toggle'));
-
+    // Deux chevrons au milieu d'une page de course, c'était deux gestes pour
+    // lire ce qu'on était venu voir.
     await waitFor(() => {
       expect(calls).toBe(1);
     });
+    expect(screen.queryByTestId('activity-comments-toggle')).toBeNull();
   });
 
   it('lit un commentaire d’un bloc : qui, quoi, quand', async () => {
@@ -80,16 +122,14 @@ describe('les commentaires', () => {
     await renderWithRuntime(activityScreen(), harness);
     await screen.findByTestId('activity-screen');
 
-    await userEvent.press(screen.getByTestId('activity-comments-toggle'));
-
-    expect(await screen.findByLabelText(/Un coureur, Belle sortie/)).toBeOnTheScreen();
+    // L'auteur arrive avec le commentaire : un visage et un nom, pas « un coureur ».
+    expect(await screen.findByLabelText(/Camille, Belle sortie/)).toBeOnTheScreen();
   });
 
   it('publie un commentaire et vide le champ', async () => {
     const harness = signedIn();
     await renderWithRuntime(activityScreen(), harness);
     await screen.findByTestId('activity-screen');
-    await userEvent.press(screen.getByTestId('activity-comments-toggle'));
     await screen.findByTestId('comment-draft');
 
     await userEvent.type(screen.getByTestId('comment-draft'), 'Bravo');
@@ -104,27 +144,103 @@ describe('les commentaires', () => {
     const harness = signedIn();
     await renderWithRuntime(activityScreen(), harness);
     await screen.findByTestId('activity-screen');
-    await userEvent.press(screen.getByTestId('activity-comments-toggle'));
 
     expect(await screen.findByTestId('comment-post')).toBeDisabled();
   });
 
-  it('garde sa place à un commentaire supprimé, sans son texte', async () => {
+  it('range la réponse sous le commentaire auquel elle répond', async () => {
     const harness = signedIn();
-    harness.engagement.thread = { items: [aComment({ deleted: true, body: '' })] };
+    harness.engagement.thread = {
+      items: [
+        aComment({ id: commentId('c1'), body: 'Belle sortie' }),
+        aComment({
+          id: commentId('c2'),
+          parentId: commentId('c1'),
+          body: 'Merci !',
+        }),
+      ],
+    };
     await renderWithRuntime(activityScreen(), harness);
+
+    await screen.findByTestId('comment-c1');
+    expect(screen.getByTestId('comment-c2')).toBeOnTheScreen();
+  });
+
+  it('poste une réponse rattachée au bon commentaire', async () => {
+    const harness = signedIn();
+    harness.engagement.thread = { items: [aComment({ id: commentId('c1') })] };
+    await renderWithRuntime(activityScreen(), harness);
+    await screen.findByTestId('comment-c1');
+
+    await userEvent.press(screen.getByTestId('comment-reply-c1'));
+    expect(screen.getByTestId('comment-replying-to')).toBeOnTheScreen();
+
+    await userEvent.type(screen.getByTestId('comment-draft'), 'Merci');
+    await userEvent.press(screen.getByTestId('comment-post'));
+
+    // Sans `parentId`, le serveur range le message à la racine et le fil se
+    // remet à plat.
+    await waitFor(() => {
+      expect(harness.engagement.posted).toEqual([{ body: 'Merci', parentId: commentId('c1') }]);
+    });
+  });
+
+  it('n’affiche pas un commentaire supprimé qui ne porte aucune réponse', async () => {
+    const harness = signedIn();
+    harness.engagement.thread = {
+      items: [aComment({ id: commentId('c1'), deleted: true, body: '' })],
+    };
+    await renderWithRuntime(activityScreen(), harness);
+
     await screen.findByTestId('activity-screen');
+    // « Commentaire supprimé » n'apprend rien à personne et occupe le fil.
+    expect(screen.queryByTestId('comment-c1')).toBeNull();
+  });
 
-    await userEvent.press(screen.getByTestId('activity-comments-toggle'));
+  it('garde la place d’un commentaire supprimé qui porte des réponses', async () => {
+    const harness = signedIn();
+    harness.engagement.thread = {
+      items: [
+        aComment({ id: commentId('c1'), deleted: true, body: '' }),
+        aComment({ id: commentId('c2'), parentId: commentId('c1'), body: 'Merci !' }),
+      ],
+    };
+    await renderWithRuntime(activityScreen(), harness);
 
-    expect(await screen.findByLabelText('Commentaire supprimé')).toBeOnTheScreen();
+    // Sa ligne sert alors de contexte à la réponse qui s'y accroche.
+    expect(await screen.findByTestId('comment-c1')).toBeOnTheScreen();
+    expect(screen.getByTestId('comment-c2')).toBeOnTheScreen();
+  });
+
+  it('ne propose de supprimer que ses propres commentaires', async () => {
+    const harness = signedIn();
+    harness.engagement.thread = { items: [aComment()] };
+    await renderWithRuntime(activityScreen(), harness);
+    await screen.findByTestId('comment-c1');
+
+    // Le serveur refuse la suppression du commentaire d'un autre : proposer le
+    // geste serait une promesse qu'on ne tient pas.
+    expect(screen.queryByTestId('comment-delete-c1')).toBeNull();
   });
 
   it('supprime un commentaire', async () => {
     const harness = signedIn();
+    // Le sien : `myProfile` et ce commentaire partagent l'identifiant `u-42`.
+    harness.engagement.thread = {
+      items: [
+        aComment({
+          authorId: harness.users.profile.id,
+          author: {
+            id: harness.users.profile.id,
+            handle: harness.users.profile.handle,
+            displayName: harness.users.profile.displayName,
+            avatarUrl: undefined,
+          },
+        }),
+      ],
+    };
     await renderWithRuntime(activityScreen(), harness);
     await screen.findByTestId('activity-screen');
-    await userEvent.press(screen.getByTestId('activity-comments-toggle'));
     await screen.findByTestId('comment-c1');
 
     await userEvent.press(screen.getByTestId('comment-delete-c1'));

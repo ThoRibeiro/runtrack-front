@@ -13,8 +13,9 @@ import {
   useTheme,
 } from '@runtrack/ui';
 import { isLive, type FeedItem } from '@runtrack/core';
-import { formatDuration, formatKilometres, spokenDuration } from '../../format';
+import { formatDay, formatDuration, formatKilometres, spokenDuration } from '../../format';
 import { translate } from '../../i18n';
+import { TrackPreview } from '../../map';
 
 /**
  * One card in the feed.
@@ -36,6 +37,7 @@ export function FeedCard({ item, onPress }: FeedCardProps): ReactNode {
   const spoken = [
     item.author.displayName,
     item.title,
+    formatDay(item.startedAt),
     `${formatKilometres(item.distanceMetres)} ${translate('common.spokenKilometres')}`,
     spokenDuration(item.movingTimeSeconds),
     live ? translate('feed.liveNow') : undefined,
@@ -50,21 +52,29 @@ export function FeedCard({ item, onPress }: FeedCardProps): ReactNode {
       enforceTouchTarget={false}
       testID={`feed-card-${item.activityId}`}
     >
-      <Card tone="plain">
+      <Card tone="outlined">
         <View style={{ gap: space.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-            <Avatar name={item.author.displayName} uri={item.author.avatarUrl} size="sm" />
+            <Avatar name={item.author.displayName} uri={item.author.avatarUrl} size="md" />
             <View style={{ flex: 1 }}>
               <Text variant="bodyStrong" decorative numberOfLines={1}>
                 {item.author.displayName}
               </Text>
-              <Text variant="caption" tone="muted" decorative numberOfLines={1}>
-                {item.title}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.xs }}>
+                <Text variant="caption" tone="muted" decorative numberOfLines={1}>
+                  {item.title}
+                </Text>
+                <Text variant="caption" tone="muted" decorative>
+                  {`· ${formatDay(item.startedAt)}`}
+                </Text>
+              </View>
             </View>
             {/* §15: never carried by colour alone — the chip has an icon and a word. */}
             {live && <Chip label={translate('feed.liveNow')} icon="live" selected />}
           </View>
+
+          {/* Le parcours d'abord : c'est ce qu'on reconnaît avant de lire un chiffre. */}
+          <TrackPreview polyline={item.previewPolyline} testID={`feed-track-${item.activityId}`} />
 
           <View style={{ flexDirection: 'row', gap: space.xl }}>
             <StatTile
@@ -74,7 +84,7 @@ export function FeedCard({ item, onPress }: FeedCardProps): ReactNode {
               spokenUnit={translate('common.spokenKilometres')}
             />
             <StatTile
-              label={translate('activity.movingTime')}
+              label={translate('activity.duration')}
               value={formatDuration(item.movingTimeSeconds)}
             />
           </View>

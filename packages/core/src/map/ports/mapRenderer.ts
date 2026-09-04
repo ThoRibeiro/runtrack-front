@@ -15,6 +15,12 @@ export interface MapMarker {
   kind: 'start' | 'finish' | 'split' | 'runner';
   /** §5: a marker carries meaning, so it says what it is. */
   accessibilityLabel: string;
+  /**
+   * Le visage du coureur, quand on le connaît : sur sa propre carte, une photo
+   * dit « c'est vous » mieux qu'une épingle. L'initiale sert de repli — un
+   * avatar qui ne charge pas ne doit pas laisser un trou sur la carte.
+   */
+  avatar?: { uri: string | undefined; initial: string } | undefined;
 }
 
 export interface MapRenderer {

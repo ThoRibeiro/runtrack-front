@@ -25,6 +25,8 @@ export { isLastPage, mergePages } from './shared/paging/page';
 export type { Page, PageRequest } from './shared/paging/page';
 export { ERROR_CODES, isKnownErrorCode } from './shared/errors/errorCode';
 export type { ErrorCode } from './shared/errors/errorCode';
+export type { ImagePicker, PickedImage } from './user/ports/imagePicker';
+export type { FileUploader, UploadedFileResponse } from './user/ports/fileUploader';
 export { RunTrackError, endsSession, isRunTrackError } from './shared/errors/runtrackError';
 export { FixedRandom } from './shared/random/random';
 export type { Random } from './shared/random/random';
@@ -137,6 +139,7 @@ export {
 } from './user/domain/profile';
 export type {
   AccountStatus,
+  Author,
   BiologicalSex,
   MyProfile,
   Physiology,
@@ -149,7 +152,7 @@ export type { UserGateway } from './user/ports/userGateway';
 
 // Fil, social, engagement, partage.
 export { isLive } from './feed/domain/feedItem';
-export type { FeedAuthor, FeedItem } from './feed/domain/feedItem';
+export type { FeedItem } from './feed/domain/feedItem';
 export type { FeedGateway } from './feed/ports/feedGateway';
 export { FOLLOW_STATUSES } from './social/ports/socialGateway';
 export type {
@@ -158,7 +161,12 @@ export type {
   SocialGateway,
   UserIdList,
 } from './social/ports/socialGateway';
-export type { Comment, EngagementGateway, Likes } from './engagement/ports/engagementGateway';
+export type {
+  CommentAuthor,
+  Comment,
+  EngagementGateway,
+  Likes,
+} from './engagement/ports/engagementGateway';
 export type { ShareLink, SharingGateway } from './sharing/ports/sharingGateway';
 
 // Notifications.

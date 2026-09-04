@@ -117,6 +117,13 @@ const ROUTES: Route[] = [
     body: PROFILE_BODY,
   },
   {
+    name: 'lecture de la physiologie',
+    call: (h) => new HttpUserGateway(h.client).physiology(),
+    method: 'GET',
+    path: '/user/v1/me/physiology',
+    body: { biologicalSex: 'MALE', weightKilograms: 72, heightCentimeters: 178 },
+  },
+  {
     name: 'physiologie',
     call: (h) =>
       new HttpUserGateway(h.client).updatePhysiology({
@@ -128,6 +135,13 @@ const ROUTES: Route[] = [
     method: 'PUT',
     path: '/user/v1/me/physiology',
     body: { heightCentimeters: 178, biologicalSex: 'MALE' },
+  },
+  {
+    name: 'suppression d’une course',
+    call: (h) => new HttpActivityGateway(h.client).delete(A1),
+    method: 'DELETE',
+    path: '/race/v1/a1',
+    body: {},
   },
   {
     name: 'suppression de compte',
@@ -268,6 +282,25 @@ describe.each(ROUTES)('$name', (route) => {
   });
 });
 
+describe('corps épinglés', () => {
+  /**
+   * Le verbe et le chemin ne suffisent pas : le serveur attend `password`, et
+   * envoyer `newPassword` rendait 422 sur un parcours qu'aucun test de chemin
+   * ne traversait. Ce que le corps nomme fait partie du contrat.
+   */
+  it('nomme le nouveau mot de passe comme le serveur le nomme', async () => {
+    const harness = aHarness();
+    harness.transport.answerWith(() => ({ body: {} }));
+
+    await new HttpAuthGateway(harness.client, harness.clock).resetPassword('t', 'motdepasse1234');
+
+    expect(bodyOf(harness.transport.sent[0]?.body)).toEqual({
+      token: 't',
+      password: 'motdepasse1234',
+    });
+  });
+});
+
 describe('appels en deux temps', () => {
   it('relit le profil après un changement de pseudonyme', async () => {
     const harness = aHarness();
@@ -356,5 +389,82 @@ describe('HttpSocialGateway', () => {
     harness.transport.answerWith(() => ({ body: [{ requestId: 'r1' }] }));
 
     await expect(new HttpSocialGateway(harness.client).pendingRequests()).rejects.toThrow();
+  });
+});
+
+describe('les transitions d’une course', () => {
+  /**
+   * Le serveur répond 204 sur pause/reprise/fin/abandon. Le client réclamait un
+   * corps, et terminer une course échouait sur « Réponse vide là où un corps
+   * était attendu » — alors que le serveur, lui, avait bien terminé la course.
+   */
+  const MOVES = [
+    { name: 'pause', call: (g: HttpActivityGateway) => g.pause(A1) },
+    { name: 'reprise', call: (g: HttpActivityGateway) => g.resume(A1) },
+    { name: 'fin', call: (g: HttpActivityGateway) => g.finish(A1) },
+    { name: 'abandon', call: (g: HttpActivityGateway) => g.discard(A1) },
+  ];
+
+  it.each(MOVES)('$name : accepte un 204 et relit l’état d’après', async ({ call }) => {
+    const harness = aHarness();
+    harness.transport.answerWith((request) =>
+      request.method === 'POST'
+        ? { status: 204 }
+        : { body: { ...ACTIVITY_BODY, status: 'Finished', endedAt: '2026-01-15T09:00:00Z' } },
+    );
+
+    const activity = await call(new HttpActivityGateway(harness.client));
+
+    expect(activity.status.kind).toBe('finished');
+    expect(harness.transport.sent.map((request) => request.method)).toEqual(['POST', 'GET']);
+  });
+});
+
+describe('le téléversement d’une photo', () => {
+  it('passe par le téléversement de la plateforme quand elle en a un', async () => {
+    const uploads: { url: string; fieldName: string }[] = [];
+    const harness = aHarness({
+      uploader: {
+        upload: (request) => {
+          uploads.push({ url: request.url, fieldName: request.fieldName });
+          return Promise.resolve({ status: 200, body: JSON.stringify(PROFILE_BODY) });
+        },
+      },
+    });
+
+    await new HttpUserGateway(harness.client).uploadAvatar({
+      uri: 'file:///tmp/moi.jpg',
+      name: 'moi.jpg',
+      mimeType: 'image/jpeg',
+    });
+
+    // Sur React Native, un `FormData` autour d'une URI `file://` échoue avec
+    // « Network request failed » — sans statut ni corps, indiscernable d'une
+    // coupure réseau. C'est ce que voyait l'écran de profil.
+    expect(uploads).toHaveLength(1);
+    expect(uploads[0]?.url).toContain('/user/v1/me/avatar/file');
+    expect(uploads[0]?.fieldName).toBe('file');
+    expect(harness.transport.sent).toHaveLength(0);
+  });
+
+  it('part en multipart quand la plateforme n’a rien de mieux', async () => {
+    const harness = aHarness();
+    harness.transport.answerWith(() => ({ body: PROFILE_BODY }));
+
+    // Le chemin du navigateur : l'image est lue par `fetch`, puis postée comme
+    // un `Blob`. Une `data:` URL en tient lieu ici.
+    await new HttpUserGateway(harness.client).uploadAvatar({
+      uri: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAf/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=',
+      name: 'moi.jpg',
+      mimeType: 'image/jpeg',
+    });
+
+    const sent = harness.transport.sent[0];
+    expect(sent?.method).toBe('POST');
+    expect(sent?.url).toContain('/user/v1/me/avatar/file');
+    // La frontière multipart est calculée par le runtime au moment de l'envoi :
+    // l'écrire à la main produit un corps que le serveur ne sait pas découper.
+    expect(sent?.headers['content-type']).toBeUndefined();
+    expect(sent?.body).toBeInstanceOf(FormData);
   });
 });

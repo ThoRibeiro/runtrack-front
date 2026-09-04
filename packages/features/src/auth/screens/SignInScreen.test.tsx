@@ -108,8 +108,9 @@ describe('SignInScreen', () => {
 
     const alert = await screen.findByRole('alert');
     expect(alert.props['accessibilityLabel']).toContain('Adresse ou mot de passe incorrect');
-    // §11 : la référence que l'utilisateur citera s'il signale le problème.
-    expect(screen.getByText('Référence : c-77', { includeHiddenElements: true })).toBeOnTheScreen();
+    // La référence sert au signalement d'un incident, pas à un mot de passe mal
+    // tapé : elle n'a rien à faire sous un refus que l'utilisateur peut corriger.
+    expect(screen.queryByText(/Référence/, { includeHiddenElements: true })).not.toBeOnTheScreen();
   });
 
   it('distingue une panne réseau d’un refus du serveur', async () => {

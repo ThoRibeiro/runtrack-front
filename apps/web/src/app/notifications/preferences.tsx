@@ -1,4 +1,5 @@
 import { NotificationPreferencesScreen } from '@runtrack/features';
+import { router } from 'expo-router';
 import type { ReactNode } from 'react';
 
 /**
@@ -7,6 +8,11 @@ import type { ReactNode } from 'react';
  */
 export default function PreferencesRoute(): ReactNode {
   return (
-    <NotificationPreferencesScreen timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone} />
+    <NotificationPreferencesScreen
+      timeZone={Intl.DateTimeFormat().resolvedOptions().timeZone}
+      onBack={() => {
+        router.back();
+      }}
+    />
   );
 }

@@ -198,6 +198,84 @@ describe('ActivityMapPresenter — une trace terminée', () => {
   });
 });
 
+describe('ActivityMapPresenter — le cadrage', () => {
+  it('montre la forme seule quand on le lui demande', () => {
+    const renderer = new FakeMapRenderer();
+    const presenter = new ActivityMapPresenter(renderer, labels);
+
+    presenter.showTrack(straightTrack(5, 100), [], { markers: false });
+
+    // Sur une vignette, deux épingles couvrent le tracé qu'elles situent.
+    expect(renderer.lastMarkers).toEqual([]);
+    expect(renderer.traces).toHaveLength(1);
+  });
+
+  it('ne recule pas jusqu’à la région pour une trace d’un mètre', () => {
+    const renderer = new FakeMapRenderer();
+    const presenter = new ActivityMapPresenter(renderer, labels);
+
+    // Une course qui vient de démarrer : deux points à quelques mètres l'un de
+    // l'autre. Cadrer leur boîte telle quelle, c'est afficher un département.
+    presenter.showTrack([
+      { latitude: 50.63, longitude: 3.06 },
+      { latitude: 50.630005, longitude: 3.060005 },
+    ]);
+
+    const framed = renderer.fits[0];
+    if (framed === undefined) throw new Error('cadrage attendu');
+    expect((framed.box.north - framed.box.south) * 111_320).toBeGreaterThan(300);
+  });
+});
+
+describe('ActivityMapPresenter — la position avant le départ', () => {
+  const here = { latitude: 50.63, longitude: 3.06 };
+
+  it('pose le visage du coureur quand la carte est la sienne', () => {
+    const renderer = new FakeMapRenderer();
+    const presenter = new ActivityMapPresenter(renderer, {
+      ...labels,
+      runnerAvatar: { uri: 'https://exemple.fr/moi.jpg', initial: 'T' },
+    });
+
+    presenter.showCurrentPosition(here);
+
+    // Une photo dit « c'est vous » là où une épingle ne dit rien.
+    expect(renderer.lastMarkers[0]?.avatar?.uri).toBe('https://exemple.fr/moi.jpg');
+  });
+
+  it('pose le coureur là où il est, et centre dessus', () => {
+    const renderer = new FakeMapRenderer();
+    const presenter = new ActivityMapPresenter(renderer, labels);
+
+    presenter.showCurrentPosition(here);
+
+    expect(renderer.lastMarkers.map((marker) => marker.kind)).toEqual(['runner']);
+    expect(renderer.followed).toHaveLength(1);
+  });
+
+  it('ne dessine aucune trace : la course n’a pas commencé', () => {
+    const renderer = new FakeMapRenderer();
+    const presenter = new ActivityMapPresenter(renderer, labels);
+
+    presenter.showCurrentPosition(here);
+
+    expect(renderer.traces).toHaveLength(0);
+  });
+
+  it('laisse la vue à qui l’a prise, même si le point bouge', () => {
+    const renderer = new FakeMapRenderer();
+    const presenter = new ActivityMapPresenter(renderer, labels);
+    presenter.showCurrentPosition(here);
+    renderer.pan();
+
+    presenter.showCurrentPosition({ latitude: 50.64, longitude: 3.07 });
+
+    // Le marqueur suit la position, mais la caméra ne bouge plus (§8).
+    expect(renderer.lastMarkers[0]?.position.latitude).toBe(50.64);
+    expect(renderer.followed).toHaveLength(1);
+  });
+});
+
 describe('ActivityMapPresenter — le suivi, et la main rendue à l’utilisateur', () => {
   const snapshot = straightTrack(5, 100);
 

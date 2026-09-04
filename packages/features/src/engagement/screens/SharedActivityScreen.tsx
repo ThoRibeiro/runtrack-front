@@ -5,14 +5,15 @@ import { isTerminal } from '@runtrack/core';
 import { SharedActivityGateway } from '@runtrack/api';
 import { Chip, EmptyState, Skeleton, StatTile, Text, space, useTheme } from '@runtrack/ui';
 import {
+  effortOf,
   formatDuration,
   formatKilometres,
-  formatPace,
   formatWhole,
   spokenDuration,
-  spokenPace,
+  usesSpeed,
 } from '../../format';
 import { translate } from '../../i18n';
+import { iconForActivityType } from '../../activity/activityIcon';
 import { ActivityMap } from '../../map';
 import { queryKeys } from '../../query/keys';
 import { useRuntime } from '../../runtime/RuntimeProvider';
@@ -120,7 +121,10 @@ export function SharedActivityScreen({ token }: SharedActivityScreenProps): Reac
             </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
-            <Chip label={translate(`activity.type.${data.type}`)} icon="activity" />
+            <Chip
+              label={translate(`activity.type.${data.type}`)}
+              icon={iconForActivityType(data.type)}
+            />
             {live && <Chip label={translate('live.connected')} icon="live" />}
           </View>
           <Text tone="muted" variant="caption">
@@ -141,10 +145,11 @@ export function SharedActivityScreen({ token }: SharedActivityScreenProps): Reac
             spokenValue={spokenDuration(data.stats.elapsedSeconds)}
           />
           <StatTile
-            label={translate('activity.pace')}
-            value={formatPace(data.stats.averagePaceSecondsPerKm)}
-            unit={translate('common.perKm')}
-            spokenValue={spokenPace(data.stats.averagePaceSecondsPerKm)}
+            // Le vélo se lit en km/h, la course à pied en min/km.
+            label={translate(usesSpeed(data.type) ? 'activity.speed' : 'activity.pace')}
+            value={effortOf(data.type, data.stats.averagePaceSecondsPerKm).value}
+            unit={effortOf(data.type, data.stats.averagePaceSecondsPerKm).unit}
+            spokenValue={effortOf(data.type, data.stats.averagePaceSecondsPerKm).spoken}
           />
           <StatTile
             label={translate('activity.elevationGain')}

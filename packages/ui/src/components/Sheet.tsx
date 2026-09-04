@@ -1,5 +1,5 @@
-import { useCallback, type ReactNode } from 'react';
-import { Modal, useWindowDimensions, View } from 'react-native';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Modal, ScrollView, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
@@ -29,6 +29,15 @@ import { Text } from './Text';
  */
 const DISMISS_VELOCITY = 900;
 
+/**
+ * Ce que prennent la poignée et le titre au-dessus du contenu.
+ *
+ * Approximatif, et volontairement : c'est le plancher du défilement, pas une
+ * mise en page. Le vrai correctif est que le contenu défile — un formulaire
+ * dont le bouton tombait sous le bas de l'écran n'était pas rattrapable.
+ */
+const HEADER_HEIGHT = 72;
+
 export interface SheetProps {
   visible: boolean;
   onClose: () => void;
@@ -55,8 +64,45 @@ export function Sheet({
   const lowest = stops[stops.length - 1] ?? screenHeight * 0.5;
   const highest = stops[0] ?? lowest;
 
-  const translateY = useSharedValue(lowest);
-  const startY = useSharedValue(lowest);
+  /**
+   * La feuille s'arrête sur son contenu quand il est plus court que le cran.
+   *
+   * Trois choix de visibilité laissaient la moitié de l'écran vide sous eux :
+   * un cran est un *plafond*, pas une hauteur à atteindre. La mesure vient du
+   * `ScrollView`, qui la connaît de toute façon, et elle ne peut que faire
+   * descendre la feuille — jamais la faire monter au-delà du cran demandé, ce
+   * qui rendrait la hauteur imprévisible d'un contenu à l'autre.
+   */
+  const [contentHeight, setContentHeight] = useState(0);
+  const resting =
+    contentHeight === 0
+      ? lowest
+      : Math.max(lowest, Math.min(screenHeight, screenHeight - contentHeight - HEADER_HEIGHT));
+
+  const translateY = useSharedValue(screenHeight);
+  const startY = useSharedValue(resting);
+
+  /**
+   * Le panneau monte, le voile ne monte pas.
+   *
+   * `animationType="slide"` faisait glisser **tout** le modal, voile compris :
+   * l'assombrissement remontait depuis le bas à chaque ouverture, ce qui se lit
+   * comme un rideau plutôt que comme un panneau. En fondu pour le voile,
+   * ressort pour le panneau : le contenu arrive, le fond se contente de
+   * s'assombrir sur place.
+   */
+  useEffect(() => {
+    if (!visible) {
+      translateY.set(screenHeight);
+      return;
+    }
+    translateY.set(screenHeight);
+    translateY.set(
+      reduceMotion
+        ? withTiming(resting, { duration: duration.fast })
+        : withSpring(resting, spring.sheet),
+    );
+  }, [visible, resting, screenHeight, reduceMotion, translateY]);
 
   const close = useCallback(() => {
     onClose();
@@ -80,7 +126,7 @@ export function Sheet({
         return;
       }
 
-      const nearest = stops.reduce((best, stop) =>
+      const nearest = [...stops, resting].reduce((best, stop) =>
         Math.abs(stop - projected) < Math.abs(best - projected) ? stop : best,
       );
       translateY.set(withSpring(nearest, { ...spring.sheet, velocity: event.velocityY }));
@@ -92,7 +138,7 @@ export function Sheet({
     <Modal
       visible={visible}
       transparent
-      animationType={reduceMotion ? 'fade' : 'slide'}
+      animationType="fade"
       onRequestClose={close}
       testID={testID}
     >
@@ -135,7 +181,23 @@ export function Sheet({
             </Text>
           )}
 
-          {children}
+          {/*
+            Borné au plus haut cran : la feuille fait toute la hauteur de
+            l'écran et n'en montre qu'une fraction, donc un contenu plus grand
+            que cette fraction disparaît sous le bord. Le bas de la marge tient
+            compte du geste « accueil ».
+          */}
+          <ScrollView
+            style={{ maxHeight: screenHeight - highest - HEADER_HEIGHT }}
+            contentContainerStyle={{ paddingBottom: space['2xl'] }}
+            onContentSizeChange={(_width, measured) => {
+              setContentHeight(measured);
+            }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {children}
+          </ScrollView>
         </Animated.View>
       </View>
     </Modal>

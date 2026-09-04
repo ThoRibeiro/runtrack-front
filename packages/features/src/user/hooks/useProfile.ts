@@ -11,12 +11,21 @@ export function useMe(): UseQueryResult<MyProfile> {
 /**
  * §10: calendar periods, in the client's own time zone. The zone is part of the
  * cache key — the same week is not the same week in Nouméa.
+ *
+ * `enabled` exists because this endpoint answers for the signed-in runner and
+ * for nobody else: asked from someone else's profile it returns *my* totals,
+ * which is a request for data the screen must then remember not to show.
  */
-export function useMyStats(period: StatsPeriod, zone: string): UseQueryResult<RunnerTotals> {
+export function useMyStats(
+  period: StatsPeriod,
+  zone: string,
+  enabled = true,
+): UseQueryResult<RunnerTotals> {
   const runtime = useRuntime();
   return useQuery({
     queryKey: queryKeys.myStats(period, zone),
     queryFn: () => runtime.users.stats(period, zone),
+    enabled,
   });
 }
 

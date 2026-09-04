@@ -18,6 +18,9 @@ export default function PublicProfileRoute(): ReactNode {
       onOpenFollowing={(id) => {
         router.push(`/following/${id}`);
       }}
+      onBack={() => {
+        router.back();
+      }}
     />
   );
 }

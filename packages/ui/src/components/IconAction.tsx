@@ -50,7 +50,9 @@ export function IconAction({
       accessibilityState={{ selected: active }}
       enforceTouchTarget={false}
       testID={testID}
-      style={{ alignItems: 'center', gap: space.xxs, opacity: disabled ? 0.45 : 1 }}
+      // `flex: 1` et non un espacement réparti : les libellés n'ont pas la même
+      // largeur, et sans colonnes égales chaque rond se décale du sien.
+      style={{ flex: 1, alignItems: 'center', gap: space.xxs, opacity: disabled ? 0.45 : 1 }}
     >
       <View
         style={{
@@ -68,7 +70,7 @@ export function IconAction({
           colour={active ? theme.colours.brand.onFill : theme.colours.text}
         />
       </View>
-      <Text variant="caption" tone="muted" decorative>
+      <Text variant="caption" tone="muted" align="center" decorative>
         {label}
       </Text>
     </Pressable>

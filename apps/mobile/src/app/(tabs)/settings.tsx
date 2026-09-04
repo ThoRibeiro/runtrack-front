@@ -7,6 +7,9 @@ export default function SettingsRoute(): ReactNode {
   return (
     <SettingsScreen
       version={Constants.expoConfig?.version ?? '0.1.0'}
+      onOpenProfile={() => {
+        router.push('/profile/edit');
+      }}
       onOpenNotifications={() => {
         router.push('/notifications/preferences');
       }}

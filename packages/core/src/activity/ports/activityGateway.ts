@@ -27,6 +27,14 @@ export interface ActivityGateway {
   resume(id: ActivityId): Promise<Activity>;
   finish(id: ActivityId): Promise<Activity>;
   discard(id: ActivityId): Promise<Activity>;
+  /**
+   * Supprime la course et tout ce qu'elle a laissé : points, trace, splits.
+   *
+   * Distinct de `discard`, qui abandonne une course **en cours**. Une course
+   * terminée ne peut plus être abandonnée — le serveur refuse —, et une sortie
+   * qu'on ne veut plus voir doit pouvoir disparaître.
+   */
+  delete(id: ActivityId): Promise<void>;
   changeVisibility(id: ActivityId, visibility: Visibility): Promise<Activity>;
   track(id: ActivityId): Promise<Track>;
   splits(id: ActivityId): Promise<readonly Split[]>;

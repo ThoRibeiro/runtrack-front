@@ -1,6 +1,6 @@
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
-import type { LocationFix, LocationPermission, LocationTracker } from '@runtrack/core';
+import type { Cancel, LocationFix, LocationPermission, LocationTracker } from '@runtrack/core';
 import { deliverFixes, onLocationFixes, persistFixes } from './backgroundLocation';
 import type { PointBuffer } from '@runtrack/core';
 
@@ -137,6 +137,32 @@ export class ExpoLocationTracker implements LocationTracker {
         killServiceOnDestroy: false,
       },
     });
+  }
+
+  /**
+   * The dot before the run (§6 untouched: this asks for "while in use" only,
+   * and the "always" dialog still waits for the first start).
+   *
+   * `Balanced` and not `BestForNavigation`: this is a map preview on a screen
+   * someone is looking at, not a trace — navigation-grade fixes here would burn
+   * battery before the run has even begun.
+   */
+  async watchWhileVisible(onFix: (fix: LocationFix) => void): Promise<Cancel> {
+    const foreground = await Location.requestForegroundPermissionsAsync();
+    // A refusal is not an error: the screen simply has no dot to show, and the
+    // run can still be started — the "always" dialog comes then.
+    if (foreground.status !== Location.PermissionStatus.GRANTED) return () => undefined;
+
+    const subscription = await Location.watchPositionAsync(
+      { accuracy: Location.Accuracy.Balanced, timeInterval: 2000, distanceInterval: 5 },
+      (location) => {
+        onFix(toFix(location));
+      },
+    );
+
+    return () => {
+      subscription.remove();
+    };
   }
 
   async stop(): Promise<void> {

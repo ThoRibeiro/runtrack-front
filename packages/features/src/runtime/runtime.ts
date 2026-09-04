@@ -4,6 +4,8 @@ import type {
   Clock,
   FeedGateway,
   EngagementGateway,
+  FileUploader,
+  ImagePicker,
   LiveStream,
   LocationTracker,
   NetworkMonitor,
@@ -23,6 +25,7 @@ import {
   ChunkedTrackDecoder,
   SystemRandom,
   SystemScheduler,
+  type DateFieldSurface,
   type MapSurfaceComponent,
 } from '@runtrack/adapters';
 import {
@@ -71,6 +74,12 @@ export interface Runtime {
    * has to *mount* a map — and the hexagon has never heard of a component.
    */
   map: MapSurfaceComponent;
+  /**
+   * Le champ date, pour la même raison que la carte : le calendrier de l'OS et
+   * celui du navigateur s'ouvrent par deux API sans rien de commun, et aucun
+   * des deux ne se dessine à la main sans perdre au change.
+   */
+  dateField: DateFieldSurface;
   trackDecoder: TrackDecoder;
   /** §7: the SSE stream, behind its port — `EventSource` is not an option. */
   live: LiveStream;
@@ -101,6 +110,11 @@ export interface Runtime {
    * that need it only exist on mobile.
    */
   recording: RecordingCapability | undefined;
+  /**
+   * La galerie de l'appareil, pour la photo de profil. `undefined` là où il n'y
+   * en a pas : l'écran propose alors de retirer la photo, pas d'en choisir une.
+   */
+  imagePicker: ImagePicker | undefined;
 }
 
 /** What §6 needs from the platform, and what the web shell cannot provide. */
@@ -114,11 +128,19 @@ export interface RuntimeOptions {
   secureStore: SecureStore;
   clock: Clock;
   map: MapSurfaceComponent;
+  dateField: DateFieldSurface;
   /** Defaults to the sliced decoder; a test hands in its own. */
   trackDecoder?: TrackDecoder | undefined;
   /** Mobile only (§2). */
   recording?: RecordingCapability | undefined;
   network: NetworkMonitor;
+  imagePicker?: ImagePicker | undefined;
+  /**
+   * Mobile : le téléversement natif. Un `FormData` autour d'une URI `file://`
+   * échoue sur iOS sans statut ni corps, donc la coque fournit ce que la
+   * plateforme sait faire.
+   */
+  uploader?: FileUploader | undefined;
   /**
    * Mobile only (§12): a browser has no push token.
    *
@@ -135,10 +157,13 @@ export function createRuntime({
   secureStore,
   clock,
   map,
+  dateField,
   trackDecoder,
   recording,
   push,
   network,
+  imagePicker,
+  uploader,
 }: RuntimeOptions): Runtime {
   const sessions = new SessionHolder(secureStore);
 
@@ -158,7 +183,12 @@ export function createRuntime({
     clock,
   );
 
-  const http = new HttpClient({ baseUrl, clock, session: { holder: sessions, refresh } });
+  const http = new HttpClient({
+    baseUrl,
+    clock,
+    session: { holder: sessions, refresh },
+    uploader,
+  });
   auth = new HttpAuthGateway(http, clock);
 
   // The stream carries the same bearer and renews through the same coordinator
@@ -192,6 +222,7 @@ export function createRuntime({
     refresh,
     clock,
     map,
+    dateField,
     trackDecoder: trackDecoder ?? new ChunkedTrackDecoder(),
     live,
     notifications: new HttpNotificationGateway(http),
@@ -202,5 +233,6 @@ export function createRuntime({
     random: new SystemRandom(),
     network,
     recording,
+    imagePicker,
   };
 }

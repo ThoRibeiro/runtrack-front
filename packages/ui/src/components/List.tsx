@@ -1,7 +1,7 @@
 import type { ReactElement, ReactNode } from 'react';
 import { View } from 'react-native';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
-import { space } from '../tokens';
+import { space, type SpaceToken } from '../tokens';
 import { EmptyState } from './EmptyState';
 import { OfflineState } from './OfflineState';
 import { ErrorState } from './ErrorState';
@@ -24,7 +24,7 @@ export interface ListProps<T> {
   loading?: boolean | undefined;
   loadingLabel?: string | undefined;
   /** Already read from the `problem+json` `code` by the caller. */
-  error?: { title: string; message: string } | undefined;
+  error?: { title: string; message?: string | undefined } | undefined;
   /**
    * §9: shown instead of the spinner when the query is *paused* for want of a
    * network. A paused query and a slow one look identical from inside the list;
@@ -34,7 +34,20 @@ export interface ListProps<T> {
     | { title: string; description?: string | undefined; retryLabel?: string | undefined }
     | undefined;
   onRetry?: (() => void) | undefined;
+  /**
+   * Tirer vers le bas pour recharger. Le geste que tout le monde essaie en
+   * premier quand une liste semble figée — la refuser, c'est laisser croire à
+   * une panne.
+   */
+  onRefresh?: (() => void) | undefined;
+  refreshing?: boolean | undefined;
   onEndReached?: (() => void) | undefined;
+  /**
+   * L'air entre deux éléments. `sm` va aux listes denses — une grille de
+   * vignettes, une liste de noms ; un fil de cartes en demande plus, sans quoi
+   * deux cartes voisines se lisent comme une seule.
+   */
+  gap?: SpaceToken | undefined;
   header?: ReactElement | undefined;
   testID?: string | undefined;
 }
@@ -50,7 +63,10 @@ export function List<T>({
   error,
   offline,
   onRetry,
+  onRefresh,
+  refreshing = false,
   onEndReached,
+  gap = 'sm',
   header,
   testID,
 }: ListProps<T>): ReactNode {
@@ -82,10 +98,11 @@ export function List<T>({
       keyExtractor={keyExtractor}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.6}
+      {...(onRefresh === undefined ? {} : { onRefresh, refreshing })}
       ListHeaderComponent={header}
       ListEmptyComponent={<EmptyState title={emptyTitle} description={emptyDescription} />}
       ListFooterComponent={loading && data !== undefined ? <Spinner label={loadingLabel} /> : null}
-      ItemSeparatorComponent={() => <View style={{ height: space.sm }} />}
+      ItemSeparatorComponent={() => <View style={{ height: space[gap] }} />}
       testID={testID}
     />
   );

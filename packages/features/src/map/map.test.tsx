@@ -99,11 +99,6 @@ describe('la carte d’une course', () => {
       aSplit({ kilometreIndex: 2 }),
     ]);
     await renderWithRuntime(activityScreen(), harness);
-    await waitFor(() => {
-      expect(harness.map.markerLabels).toEqual(['Départ', 'Arrivée']);
-    });
-
-    await userEvent.press(await screen.findByTestId('activity-splits-toggle'));
 
     await waitFor(() => {
       expect(harness.map.markerLabels).toEqual(['Départ', 'Kilomètre 1', 'Kilomètre 2', 'Arrivée']);
@@ -115,8 +110,6 @@ describe('la carte d’une course', () => {
     await renderWithRuntime(activityScreen(), harness);
     await screen.findByTestId('activity-screen');
 
-    await userEvent.press(screen.getByTestId('activity-splits-toggle'));
-
     expect(await screen.findByLabelText('Kilomètre 1, 5:00')).toBeOnTheScreen();
   });
 
@@ -125,7 +118,6 @@ describe('la carte d’une course', () => {
     const harness = harnessWithTrack(aTrack(), [aSplit({ kilometreIndex: 1 })]);
     await renderWithRuntime(activityScreen(), harness);
     await screen.findByTestId('activity-screen');
-    await userEvent.press(screen.getByTestId('activity-splits-toggle'));
     await screen.findByLabelText('Kilomètre 1, 5:00');
     const framesBefore = harness.map.fits;
 
@@ -143,9 +135,10 @@ describe('la carte d’une course', () => {
     ]);
     await renderWithRuntime(activityScreen(), harness);
     await screen.findByTestId('activity-screen');
-    await userEvent.press(screen.getByTestId('activity-splits-toggle'));
 
-    const partial = await screen.findByLabelText('Kilomètre 2, 5:00 (partiel)');
+    // Le reliquat se nomme par ce qu'il vaut : « Kilomètre 2 » au bout d'une
+    // sortie de 1,4 km se lit comme une erreur de calcul.
+    const partial = await screen.findByLabelText('Derniers 380 m, 5:00');
     expect(partial.props['onStartShouldSetResponder']).toBeUndefined();
   });
 

@@ -1,5 +1,6 @@
 import { secureStoreForPlatform } from '@runtrack/adapters';
 import { NativeMapSurface } from '@runtrack/adapters/map/native';
+import { NativeDateField } from '@runtrack/adapters/datetime/native';
 import {
   ExpoLocationTracker,
   ExpoNetworkMonitor,
@@ -8,6 +9,7 @@ import {
   useBufferInBackground,
 } from '@runtrack/adapters/recording/native';
 import { ExpoPushRegistry } from '@runtrack/adapters/notification/native';
+import { ExpoFileUploader, ExpoImagePicker } from '@runtrack/adapters/media';
 import { createRuntime, type Runtime } from '@runtrack/features';
 
 /**
@@ -44,11 +46,16 @@ export const runtime: Runtime = createRuntime({
   secureStore: secureStoreForPlatform(),
   clock: { now: () => Date.now() },
   map: NativeMapSurface,
+  dateField: NativeDateField,
   network: new ExpoNetworkMonitor(),
   recording: {
     buffer,
     tracker: new ExpoLocationTracker(),
   },
+  imagePicker: new ExpoImagePicker(),
+  // Le téléversement passe par le module natif de fichiers : `fetch` avec un
+  // `FormData` autour d'une URI `file://` échoue sur iOS sans rien dire.
+  uploader: new ExpoFileUploader(),
   // Le registre reçoit la passerelle d'appareils que le runtime construit :
   // une seule pile HTTP, et rien à muter après coup.
   push: (devices) => new ExpoPushRegistry(devices),

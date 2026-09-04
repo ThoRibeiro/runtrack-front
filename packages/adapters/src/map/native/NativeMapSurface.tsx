@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import type { MapMarker } from '@runtrack/core';
 import type { MapSurfaceColours, MapSurfaceProps } from '../mapSurface';
@@ -20,6 +20,12 @@ import { NativeMapRenderer, type NativeMapDrawing } from './nativeMapRenderer';
 /** §5: the trace carries meaning, so it is thick enough to be seen. */
 const TRACE_WIDTH = 4;
 
+/** Assez grand pour reconnaître un visage, assez petit pour ne pas cacher la rue. */
+const AVATAR_SIZE = 36;
+/** L'anneau qui détache le visage du fond de carte, quel qu'il soit. */
+const AVATAR_RING = 3;
+const AVATAR_INITIAL_SIZE = 16;
+
 function colourFor(kind: MapMarker['kind'], colours: MapSurfaceColours): string {
   switch (kind) {
     case 'start':
@@ -38,6 +44,8 @@ export function NativeMapSurface({
   accessibilityLabel,
   colours,
   reduceMotion = false,
+  interactive = true,
+  dark = false,
   testID,
 }: MapSurfaceProps): ReactNode {
   const map = useRef<MapView | null>(null);
@@ -85,7 +93,16 @@ export function NativeMapSurface({
   }, []);
 
   return (
-    <View style={styles.fill} testID={testID}>
+    <View
+      style={styles.fill}
+      // La marge de cadrage dépend de la place disponible : une vignette de
+      // liste et une carte plein écran ne se cadrent pas pareil.
+      onLayout={(event) => {
+        const { width, height } = event.nativeEvent.layout;
+        renderer.current?.resize(width, height);
+      }}
+      testID={testID}
+    >
       <MapView
         ref={map}
         style={StyleSheet.absoluteFill}
@@ -98,6 +115,18 @@ export function NativeMapSurface({
         accessibilityRole="image"
         accessibilityLabel={accessibilityLabel}
         toolbarEnabled={false}
+        // Figée dans une vignette : le doigt appartient à la liste qui défile.
+        // `liteMode` n'existe que sur Android — une image rendue une fois au
+        // lieu d'une vue vivante, exactement ce qu'il faut pour un timbre.
+        // iOS applique son propre style sombre ; c'est le seul réglage qui
+        // suive les mises à jour de la carte d'Apple sans style maison.
+        userInterfaceStyle={dark ? 'dark' : 'light'}
+        scrollEnabled={interactive}
+        zoomEnabled={interactive}
+        rotateEnabled={interactive}
+        pitchEnabled={interactive}
+        liteMode={!interactive}
+        cacheEnabled={!interactive}
       >
         {drawing.trace.length > 1 && (
           <Polyline
@@ -110,17 +139,53 @@ export function NativeMapSurface({
           <Marker
             key={marker.id}
             coordinate={marker.position}
-            pinColor={colourFor(marker.kind, colours)}
+            {...(marker.avatar === undefined ? { pinColor: colourFor(marker.kind, colours) } : {})}
             title={marker.accessibilityLabel}
             accessibilityLabel={marker.accessibilityLabel}
             // The runner marker moves every second: re-capturing its bitmap at
             // 1 Hz for three hours is the documented way to cook an Android.
             tracksViewChanges={false}
-          />
+          >
+            {/*
+              Le coureur porte son visage plutôt qu'une épingle : sur sa propre
+              carte, une photo dit « c'est vous » sans un mot. L'initiale prend
+              le relais quand il n'y a pas d'image — un avatar qui ne charge pas
+              ne doit pas laisser un trou sur la carte.
+            */}
+            {marker.avatar !== undefined && (
+              <View
+                style={[
+                  styles.avatar,
+                  { borderColor: colours.runner, backgroundColor: colours.background },
+                ]}
+              >
+                {marker.avatar.uri === undefined ? (
+                  <Text style={[styles.initial, { color: colours.runner }]}>
+                    {marker.avatar.initial}
+                  </Text>
+                ) : (
+                  <Image source={{ uri: marker.avatar.uri }} style={styles.avatarImage} />
+                )}
+              </View>
+            )}
+          </Marker>
         ))}
       </MapView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({ fill: { flex: 1 } });
+const styles = StyleSheet.create({
+  avatar: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    borderWidth: AVATAR_RING,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarImage: { width: '100%', height: '100%' },
+  initial: { fontSize: AVATAR_INITIAL_SIZE, fontWeight: '700' },
+  fill: { flex: 1 },
+});

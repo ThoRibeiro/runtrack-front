@@ -39,14 +39,51 @@ export function useLikes(activityId: ActivityId): UseQueryResult<Likes> {
  * optimistic count would have to be rolled back, and a heart that fills then
  * empties is worse than one that fills a moment late.
  */
-export function useToggleLike(activityId: ActivityId): UseMutationResult<Likes, unknown, boolean> {
+/**
+ * Le cœur, et sa règle : il change **à l'appui**, pas au retour du serveur.
+ *
+ * Un aller-retour réseau entre le geste et le dessin, c'est un bouton qui
+ * semble cassé. On écrit donc le résultat espéré tout de suite, on le remplace
+ * par la réponse du serveur quand elle arrive, et on le remet comme avant s'il
+ * refuse — la seule façon d'être à la fois vif et honnête.
+ */
+export function useToggleLike(
+  activityId: ActivityId,
+): UseMutationResult<Likes, unknown, boolean, { previous: Likes | undefined }> {
   const runtime = useRuntime();
   const client = useQueryClient();
+
   return useMutation({
     mutationFn: (liked: boolean) =>
       liked ? runtime.engagement.unlike(activityId) : runtime.engagement.like(activityId),
+
+    onMutate: async (liked: boolean) => {
+      // Une requête en vol écraserait la valeur qu'on vient de poser.
+      await client.cancelQueries({ queryKey: queryKeys.likes(activityId) });
+      const previous = client.getQueryData<Likes>(queryKeys.likes(activityId));
+
+      if (previous !== undefined) {
+        client.setQueryData<Likes>(queryKeys.likes(activityId), {
+          ...previous,
+          total: Math.max(0, previous.total + (liked ? -1 : 1)),
+          likedByViewer: !liked,
+        });
+      }
+      return { previous };
+    },
+
+    onError: (_error, _liked, context) => {
+      // Le serveur a refusé : le cœur revient où il était, sans rien inventer.
+      if (context?.previous !== undefined) {
+        client.setQueryData(queryKeys.likes(activityId), context.previous);
+      }
+    },
+
     onSuccess: (likes) => {
       client.setQueryData(queryKeys.likes(activityId), likes);
+      // Le compteur du fil vient d'une autre requête : sans cela, la carte
+      // affiche encore l'ancien nombre au retour sur la liste.
+      void client.invalidateQueries({ queryKey: queryKeys.feed });
     },
   });
 }

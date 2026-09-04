@@ -27,6 +27,16 @@ export type {
   Yielder,
 } from './map';
 
+// Le champ date — seulement son contrat. Comme la carte, les deux surfaces
+// vivent derrière `@runtrack/adapters/datetime/{native,web}` : le calendrier de
+// l'OS et celui du navigateur n'ont rien en commun, et chaque coque n'embarque
+// que le sien.
+export type {
+  DateFieldColours,
+  DateFieldProps,
+  DateFieldSurface,
+} from './datetime/dateFieldSurface';
+
 // Le temps et l'aléa de la plateforme, derrière leurs ports.
 export { SystemRandom, SystemScheduler } from './system/systemScheduler';
 export { AlwaysOnlineMonitor, BrowserNetworkMonitor } from './system/browserNetworkMonitor';

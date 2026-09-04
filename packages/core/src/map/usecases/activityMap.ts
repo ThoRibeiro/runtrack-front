@@ -24,6 +24,8 @@ export interface ActivityMapLabels {
   start: string;
   finish: string;
   runner: string;
+  /** Le visage à poser sur le marqueur du coureur, quand la carte est la sienne. */
+  runnerAvatar?: { uri: string | undefined; initial: string } | undefined;
   /** Numbered from 1, as the server numbers splits. */
   kilometre: (index: number) => string;
 }
@@ -31,10 +33,15 @@ export interface ActivityMapLabels {
 /** How much ground a single focused split gets, on each side. */
 const SPLIT_FOCUS_HALF_WIDTH_METRES = 250;
 
+/** Le plus petit cadrage qui ait du sens : une rue, pas une région. */
+const MINIMUM_FRAME_METRES = 400;
+const METRES_PER_DEGREE_LATITUDE = 111_320;
+
 export class ActivityMapPresenter {
   private points: readonly GeoPoint[] = [];
   private splits: readonly Split[] = [];
   private live = false;
+  private markersShown = true;
   private followingRunner = true;
   private unsubscribe: (() => void) | undefined;
   private listeners = new Set<(following: boolean) => void>();
@@ -59,10 +66,17 @@ export class ActivityMapPresenter {
    * A finished track, drawn in one go — §7: "dessine la carte d'un coup, pas
    * point par point".
    */
-  showTrack(points: readonly GeoPoint[], splits: readonly Split[] = []): void {
+  showTrack(
+    points: readonly GeoPoint[],
+    splits: readonly Split[] = [],
+    options: { markers?: boolean } = {},
+  ): void {
     this.points = points;
     this.splits = splits;
     this.live = false;
+    // Sur une vignette de liste, deux épingles de départ et d'arrivée couvrent
+    // le tracé qu'elles sont censées situer : on ne garde que la forme.
+    this.markersShown = options.markers ?? true;
     this.renderer.setTrace(points);
     this.renderer.setMarkers(this.markers());
     this.frameWholeTrack({ animated: false });
@@ -89,6 +103,25 @@ export class ActivityMapPresenter {
     this.renderer.appendToTrace(points);
     this.renderer.setMarkers(this.markers());
     this.followLast();
+  }
+
+  /**
+   * Before the run: the dot and nothing else.
+   *
+   * It does not touch the trace — there is none yet — so the first recorded
+   * point still starts an empty line rather than continuing from a marker.
+   */
+  showCurrentPosition(position: GeoPoint): void {
+    this.renderer.setMarkers([
+      {
+        id: 'runner',
+        position,
+        kind: 'runner',
+        accessibilityLabel: this.labels.runner,
+        avatar: this.labels.runnerAvatar,
+      },
+    ]);
+    if (this.followingRunner) this.renderer.followPosition(position);
   }
 
   /** §8: the offer to re-centre, once the user has taken the view. */
@@ -133,7 +166,7 @@ export class ActivityMapPresenter {
   private markers(): readonly MapMarker[] {
     const first = this.points[0];
     const last = this.points[this.points.length - 1];
-    if (first === undefined) return [];
+    if (first === undefined || !this.markersShown) return [];
 
     const markers: MapMarker[] = [
       { id: 'start', position: first, kind: 'start', accessibilityLabel: this.labels.start },
@@ -156,15 +189,42 @@ export class ActivityMapPresenter {
         position: last,
         kind: this.live ? 'runner' : 'finish',
         accessibilityLabel: this.live ? this.labels.runner : this.labels.finish,
+        ...(this.live ? { avatar: this.labels.runnerAvatar } : {}),
       });
     }
 
     return markers;
   }
 
+  /**
+   * Cadre la trace — avec un plancher.
+   *
+   * Une course qui vient de démarrer tient en un point : sa boîte est
+   * quasiment nulle, et la carte recule alors jusqu'à la région entière pour
+   * la « contenir ». Deux cents mètres de part et d'autre, c'est une rue, et
+   * c'est le minimum qui veut dire quelque chose.
+   */
   private frameWholeTrack(options: { animated: boolean }): void {
     const box = boundingBoxOf(this.points);
-    if (box !== undefined) this.renderer.fitTo(box, options);
+    if (box === undefined) return;
+
+    const spanMetres = Math.max(
+      (box.north - box.south) * METRES_PER_DEGREE_LATITUDE,
+      (box.east - box.west) * METRES_PER_DEGREE_LATITUDE * Math.cos((box.north * Math.PI) / 180),
+    );
+
+    this.renderer.fitTo(
+      spanMetres >= MINIMUM_FRAME_METRES
+        ? box
+        : boundingBoxAround(
+            {
+              latitude: (box.north + box.south) / 2,
+              longitude: (box.east + box.west) / 2,
+            },
+            MINIMUM_FRAME_METRES / 2,
+          ),
+      options,
+    );
   }
 
   private followLast(): void {

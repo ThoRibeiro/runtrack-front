@@ -8,6 +8,20 @@ export type AccountStatus = (typeof ACCOUNT_STATUSES)[number];
 export const BIOLOGICAL_SEXES = ['FEMALE', 'MALE', 'UNSPECIFIED'] as const;
 export type BiologicalSex = (typeof BIOLOGICAL_SEXES)[number];
 
+/**
+ * De quoi nommer et illustrer quelqu'un, et rien de plus.
+ *
+ * Imbriqué dans ce qu'il signe — une ligne de fil, une course — parce qu'aucune
+ * route ne résout un identifiant en profil : un écran qui n'aurait que
+ * l'identifiant n'aurait ni nom ni photo à afficher.
+ */
+export interface Author {
+  id: UserId;
+  handle: string;
+  displayName: string;
+  avatarUrl: string | undefined;
+}
+
 export interface PublicProfile {
   id: UserId;
   handle: string;

@@ -13,6 +13,7 @@ export const queryKeys = {
   feed: ['feed'] as const,
 
   me: ['user', 'me'] as const,
+  physiology: ['user', 'me', 'physiology'] as const,
   myStats: (period: StatsPeriod, zone: string) => ['user', 'me', 'stats', period, zone] as const,
   profile: (handle: string) => ['user', 'profile', handle] as const,
   search: (query: string) => ['user', 'search', query] as const,

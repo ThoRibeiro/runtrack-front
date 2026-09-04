@@ -21,6 +21,22 @@ const ICONS = {
   'chevron-right': ['M9 18l6-6-6-6'],
   'chevron-down': ['M6 9l6 6 6-6'],
   x: ['M18 6L6 18', 'M6 6l12 12'],
+  edit: ['M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z'],
+  send: ['M22 2L11 13', 'M22 2l-7 20-4-9-9-4z'],
+  // Deux roues et un cadre : dessiné ici plutôt qu'emprunté, comme le reste du
+  // jeu — même grille de 24, même graisse de trait.
+  bike: [
+    'M5.5 17.5m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0',
+    'M18.5 17.5m-3.5 0a3.5 3.5 0 1 0 7 0a3.5 3.5 0 1 0 -7 0',
+    'M6 17.5L12 6',
+    'M12 6h4l2.5 11.5',
+    'M9 9h6',
+  ],
+  walk: [
+    'M13 4.5m-1.5 0a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0',
+    'M12 21l1-6-2-4 1-3 2 2 2 1',
+    'M13 15l3 6',
+  ],
   check: ['M20 6L9 17l-5-5'],
   plus: ['M12 5v14', 'M5 12h14'],
   'more-horizontal': ['M5 12h.01', 'M12 12h.01', 'M19 12h.01'],
@@ -94,6 +110,10 @@ const ICONS = {
     'M18.4 18.4a9 9 0 0 0 0-12.8',
   ],
   crosshair: ['M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18', 'M12 2v4', 'M12 18v4', 'M2 12h4', 'M18 12h4'],
+  // Les deux façons de regarder ses courses. Trois colonnes et non deux : c'est
+  // la densité qui fait qu'on reconnaît une sortie à sa forme sans la lire.
+  grid: ['M4 4h16v16H4z', 'M4 9.33h16', 'M4 14.67h16', 'M9.33 4v16', 'M14.67 4v16'],
+  list: ['M8 6h12', 'M8 12h12', 'M8 18h12', 'M4 6h.01', 'M4 12h.01', 'M4 18h.01'],
 } as const;
 
 export type IconName = keyof typeof ICONS;

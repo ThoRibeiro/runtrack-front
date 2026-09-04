@@ -69,6 +69,20 @@ describe('course', () => {
     expect(activity.stats.distanceMetres).toBe(12_400);
   });
 
+  it("garde l'auteur imbriqué, et son absence quand le serveur n'en met pas", () => {
+    expect(
+      toActivity({
+        ...dto,
+        // `exactOptionalPropertyTypes` : une photo absente se tait, elle ne se
+        // passe pas à `undefined`.
+        author: { id: 'u1', handle: 'jean', displayName: 'Jean' },
+      }).author,
+    ).toEqual({ id: 'u1', handle: 'jean', displayName: 'Jean', avatarUrl: undefined });
+    // Les réponses du direct ne portent que des chiffres : pas d'auteur, et
+    // c'est normal — surtout pas une erreur comme sur une ligne de fil.
+    expect(toActivity(dto).author).toBeUndefined();
+  });
+
   it('échoue fermé sur une visibilité inconnue', () => {
     // Montrer la course à tout le monde parce qu'on n'a pas compris la portée
     // serait la pire des sorties.

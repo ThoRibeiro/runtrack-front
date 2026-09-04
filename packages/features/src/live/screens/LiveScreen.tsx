@@ -22,6 +22,7 @@ import {
 } from '../../format';
 import { describeError, translate } from '../../i18n';
 import { ActivityMap } from '../../map';
+import { AuthorLine } from '../../activity/components/AuthorLine';
 import { useActivity } from '../../activity/hooks/useActivity';
 import { useLiveActivity } from '../hooks/useLiveActivity';
 
@@ -85,7 +86,7 @@ export function LiveScreen({ id, onBack, onOpenSummary }: LiveScreenProps): Reac
     const described = describeError(activity.error);
     return (
       <ErrorState
-        title={translate('activity.notFound')}
+        title={described.title}
         message={described.detail}
         correlationId={described.correlationId}
         onRetry={() => {
@@ -126,6 +127,7 @@ export function LiveScreen({ id, onBack, onOpenSummary }: LiveScreenProps): Reac
         }}
         testID="live-panel"
       >
+        <AuthorLine author={activity.data.author} testID="live-author" />
         <View accessible accessibilityRole="header" accessibilityLabel={activity.data.title}>
           <Text variant="title" decorative>
             {activity.data.title}
@@ -162,8 +164,8 @@ export function LiveScreen({ id, onBack, onOpenSummary }: LiveScreenProps): Reac
           />
           <StatTile
             label={translate('activity.duration')}
-            value={formatDuration(stats?.elapsedSeconds ?? 0)}
-            spokenValue={spokenDuration(stats?.elapsedSeconds ?? 0)}
+            value={formatDuration(stats?.movingTimeSeconds ?? 0)}
+            spokenValue={spokenDuration(stats?.movingTimeSeconds ?? 0)}
           />
           <StatTile
             label={translate('activity.pace')}
@@ -177,6 +179,14 @@ export function LiveScreen({ id, onBack, onOpenSummary }: LiveScreenProps): Reac
               value={formatWhole(stats.averageHeartRate)}
               unit={translate('common.bpm')}
               spokenUnit={translate('common.spokenBpm')}
+            />
+          )}
+          {stats?.estimatedCalories !== undefined && (
+            <StatTile
+              label={translate('activity.calories')}
+              value={formatWhole(stats.estimatedCalories)}
+              unit={translate('common.kcal')}
+              spokenUnit={translate('common.spokenKcal')}
             />
           )}
         </View>

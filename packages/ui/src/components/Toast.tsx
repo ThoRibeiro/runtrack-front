@@ -1,6 +1,15 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import {
+  useRef,
+  useEffect,
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 import { View } from 'react-native';
-import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
+import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { useTheme } from '../theme';
 import { iconSize, space } from '../tokens';
 import { Icon, type IconName } from './Icon';
@@ -37,17 +46,50 @@ const ICONS: Record<ToastTone, IconName> = {
   danger: 'alert-circle',
 };
 
+/**
+ * Cinq secondes : le temps de lire une phrase courte sans avoir à la chasser.
+ *
+ * Il n'y en avait aucun : le message restait à l'écran jusqu'au démontage de
+ * l'application, et recouvrait la barre d'onglets.
+ */
+const TOAST_LIFETIME_MILLIS = 5_000;
+
 export function ToastProvider({ children }: { children: ReactNode }): ReactNode {
   const theme = useTheme();
   const [toasts, setToasts] = useState<Toast[]>([]);
-
-  const show = useCallback((message: string, tone: ToastTone = 'info') => {
-    const id = `${String(Date.now())}-${message}`;
-    setToasts((current) => [...current, { id, message, tone }]);
-  }, []);
+  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
 
   const dismiss = useCallback((id: string) => {
+    const timer = timers.current.get(id);
+    if (timer !== undefined) {
+      clearTimeout(timer);
+      timers.current.delete(id);
+    }
     setToasts((current) => current.filter((toast) => toast.id !== id));
+  }, []);
+
+  const show = useCallback(
+    (message: string, tone: ToastTone = 'info') => {
+      const id = `${String(Date.now())}-${message}`;
+      setToasts((current) => [...current, { id, message, tone }]);
+      timers.current.set(
+        id,
+        setTimeout(() => {
+          dismiss(id);
+        }, TOAST_LIFETIME_MILLIS),
+      );
+    },
+    [dismiss],
+  );
+
+  // Une minuterie qui survit à l'écran est une fuite : elle réveille un état
+  // démonté, et fait traîner les tests bien après leur dernière assertion.
+  useEffect(() => {
+    const pending = timers.current;
+    return () => {
+      for (const timer of pending.values()) clearTimeout(timer);
+      pending.clear();
+    };
   }, []);
 
   const value = useMemo(() => ({ show }), [show]);
@@ -69,11 +111,14 @@ export function ToastProvider({ children }: { children: ReactNode }): ReactNode 
       <View
         // `pointerEvents` en style, pas en prop : la prop est dépréciée et le
         // web s'en plaint à chaque montage.
+        // En haut : en bas, le message se posait sur la barre d'onglets et sur
+        // les commandes de course — ce qu'il annonce ne vaut pas de cacher ce
+        // sur quoi on est en train d'appuyer.
         style={{
           position: 'absolute',
           left: space.md,
           right: space.md,
-          bottom: space['3xl'],
+          top: space['3xl'],
           gap: space.xs,
           pointerEvents: 'box-none',
         }}
@@ -81,8 +126,8 @@ export function ToastProvider({ children }: { children: ReactNode }): ReactNode 
         {toasts.map((toast) => (
           <Animated.View
             key={toast.id}
-            entering={FadeInDown}
-            exiting={FadeOutDown}
+            entering={FadeInUp}
+            exiting={FadeOutUp}
             accessibilityLiveRegion="polite"
             accessible
             accessibilityLabel={toast.message}

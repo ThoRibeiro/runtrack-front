@@ -1,5 +1,5 @@
 import { render, type RenderResult } from '@testing-library/react-native';
-import { View } from 'react-native';
+import { TextInput, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, type ReactElement, type ReactNode } from 'react';
 import {
@@ -14,11 +14,16 @@ import {
   type Session,
 } from '@runtrack/core';
 import { FakeLiveStream, FakeLocationTracker, InMemoryPointBuffer } from '@runtrack/core/testing';
-import { ChunkedTrackDecoder, type MapSurfaceComponent } from '@runtrack/adapters';
+import {
+  ChunkedTrackDecoder,
+  type DateFieldSurface,
+  type MapSurfaceComponent,
+} from '@runtrack/adapters';
 import { HttpClient, HttpDeviceGateway, SessionHolder, RefreshCoordinator } from '@runtrack/api';
 import { ThemeProvider } from '@runtrack/ui';
 import {
   FakeActivityGateway,
+  FakeImagePicker,
   FakeEngagementGateway,
   FakeFeedGateway,
   FakeNotificationGateway,
@@ -175,6 +180,7 @@ export interface Harness {
   live: FakeLiveStream;
   scheduler: ManualScheduler;
   tracker: FakeLocationTracker;
+  imagePicker: FakeImagePicker;
   buffer: InMemoryPointBuffer;
   network: TestNetworkMonitor;
   notifications: FakeNotificationGateway;
@@ -225,6 +231,7 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
   const notificationStream = new FakeNotificationStream();
   const scheduler = new ManualScheduler();
   const tracker = new FakeLocationTracker();
+  const imagePicker = new FakeImagePicker();
   const buffer = new InMemoryPointBuffer();
   const network = new TestNetworkMonitor();
   const map = new RecordingMapRenderer();
@@ -236,6 +243,20 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     }, [onReady]);
     return <View accessibilityLabel={accessibilityLabel} testID={testID} />;
   };
+
+  /**
+   * Le calendrier de l'OS n'existe pas ici, et son remplaçant est un champ de
+   * saisie : un test doit pouvoir écrire une date sans piloter une roue native,
+   * qui de toute façon ne se monte pas sous jsdom.
+   */
+  const DateField: DateFieldSurface = ({ value, onChange, accessibilityLabel, testID }) => (
+    <TextInput
+      value={value}
+      onChangeText={onChange}
+      accessibilityLabel={accessibilityLabel}
+      testID={testID}
+    />
+  );
 
   const http = new HttpClient({
     baseUrl: 'https://api.test',
@@ -257,6 +278,7 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     refresh: new RefreshCoordinator(sessions, () => auth.refresh(), clock),
     clock,
     map: MapSurface,
+    dateField: DateField,
     // The real one: a decode is a decode, and slicing it is what §8 asks for.
     trackDecoder: new ChunkedTrackDecoder(),
     live,
@@ -272,6 +294,7 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     random: new FixedRandom(0.5),
     network,
     recording: { buffer, tracker },
+    imagePicker,
   };
 
   return {
@@ -286,6 +309,7 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     live,
     scheduler,
     tracker,
+    imagePicker,
     buffer,
     network,
     notifications,

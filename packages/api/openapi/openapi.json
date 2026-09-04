@@ -241,6 +241,30 @@
         }
       }
     },
+    "/user/v1/me/avatar/file": {
+      "post": {
+        "tags": ["Comptes"],
+        "summary": "Téléverser une photo de profil",
+        "operationId": "uploadAvatar",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": { "file": { "type": "string", "format": "binary" } },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": { "*/*": { "schema": { "$ref": "#/components/schemas/MyProfile" } } }
+          }
+        }
+      }
+    },
     "/race/v1": {
       "post": {
         "tags": ["Courses"],
@@ -1017,6 +1041,22 @@
         }
       }
     },
+    "/media/v1/avatars/{id}": {
+      "get": {
+        "tags": ["Comptes"],
+        "summary": "Lire une photo de profil",
+        "operationId": "avatar",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": { "*/*": { "schema": { "type": "string", "format": "byte" } } }
+          }
+        }
+      }
+    },
     "/feed/v1": {
       "get": {
         "tags": ["Fil"],
@@ -1096,7 +1136,8 @@
           "bio": { "type": "string" },
           "accountScope": { "type": "string" },
           "status": { "type": "string" },
-          "registeredAt": { "type": "string", "format": "date-time" }
+          "registeredAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
         }
       },
       "PhysiologyPayload": {
@@ -1137,6 +1178,7 @@
         "properties": {
           "id": { "type": "string" },
           "ownerId": { "type": "string" },
+          "author": { "$ref": "#/components/schemas/AuthorDto" },
           "type": { "type": "string" },
           "title": { "type": "string" },
           "description": { "type": "string" },
@@ -1144,7 +1186,17 @@
           "status": { "type": "string" },
           "startedAt": { "type": "string", "format": "date-time" },
           "endedAt": { "type": "string", "format": "date-time" },
-          "stats": { "$ref": "#/components/schemas/StatsResponse" }
+          "stats": { "$ref": "#/components/schemas/StatsResponse" },
+          "previewPolyline": { "type": "string" }
+        }
+      },
+      "AuthorDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "handle": { "type": "string" },
+          "displayName": { "type": "string" },
+          "avatarUrl": { "type": "string" }
         }
       },
       "StatsResponse": {
@@ -1251,6 +1303,7 @@
           "id": { "type": "string" },
           "activityId": { "type": "string" },
           "authorId": { "type": "string" },
+          "author": { "$ref": "#/components/schemas/AuthorDto" },
           "parentId": { "type": "string" },
           "body": { "type": "string" },
           "createdAt": { "type": "string", "format": "date-time" },
@@ -1502,15 +1555,6 @@
         "type": "object",
         "properties": { "unread": { "type": "integer", "format": "int64" } }
       },
-      "AuthorDto": {
-        "type": "object",
-        "properties": {
-          "id": { "type": "string" },
-          "handle": { "type": "string" },
-          "displayName": { "type": "string" },
-          "avatarUrl": { "type": "string" }
-        }
-      },
       "FeedItem": {
         "type": "object",
         "properties": {
@@ -1524,7 +1568,8 @@
           "startedAt": { "type": "string", "format": "date-time" },
           "endedAt": { "type": "string", "format": "date-time" },
           "likeCount": { "type": "integer", "format": "int64" },
-          "commentCount": { "type": "integer", "format": "int64" }
+          "commentCount": { "type": "integer", "format": "int64" },
+          "previewPolyline": { "type": "string" }
         }
       },
       "FeedPage": {

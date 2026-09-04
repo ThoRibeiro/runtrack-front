@@ -59,6 +59,7 @@ class FakeMapLibre implements MapLike {
   fits: { bounds: [[number, number], [number, number]]; animate: boolean }[] = [];
   eased: [number, number][] = [];
   jumped: [number, number][] = [];
+  zooms: (number | undefined)[] = [];
   listeners = new Map<string, Set<(event: MapEventLike) => void>>();
   private loadListeners: (() => void)[] = [];
 
@@ -92,12 +93,14 @@ class FakeMapLibre implements MapLike {
     this.fits.push({ bounds, animate: options.animate });
   }
 
-  easeTo(options: { center: [number, number] }): void {
+  easeTo(options: { center: [number, number]; zoom?: number }): void {
     this.eased.push(options.center);
+    this.zooms.push(options.zoom);
   }
 
-  jumpTo(options: { center: [number, number] }): void {
+  jumpTo(options: { center: [number, number]; zoom?: number }): void {
     this.jumped.push(options.center);
+    this.zooms.push(options.zoom);
   }
 
   on(event: string, listener: (event: MapEventLike) => void): void {
@@ -287,6 +290,15 @@ describe('MapLibreRenderer', () => {
     expect(map.eased).toEqual([[lyon.longitude, lyon.latitude]]);
   });
 
+  it('se rapproche au premier suivi, et plus après', () => {
+    const { map, renderer } = makeMapLibre();
+
+    renderer.followPosition(paris);
+    renderer.followPosition(lyon);
+
+    expect(map.zooms).toEqual([15, undefined]);
+  });
+
   it('rend ses nœuds DOM et ses abonnements au démontage, une seule fois', () => {
     const { map, renderer, markers } = makeMapLibre();
     renderer.setMarkers([aMarker()]);
@@ -309,26 +321,38 @@ function makeNative(reduceMotion = false): {
   renderer: NativeMapRenderer;
   handle: NativeMapHandle & {
     fits: { animated: boolean }[];
+    paddings: number[];
     animated: LatLngLike[];
     set: LatLngLike[];
+    cameras: CameraLike[];
   };
   drawings: { trace: readonly GeoPoint[]; markers: readonly MapMarker[] }[];
 } {
   const fits: { animated: boolean }[] = [];
+  const paddings: number[] = [];
   const animated: LatLngLike[] = [];
   const set: LatLngLike[] = [];
+  const cameras: CameraLike[] = [];
   const handle = {
     fits,
+    paddings,
     animated,
     set,
-    fitToCoordinates: (_coordinates: LatLngLike[], options: { animated: boolean }) => {
+    cameras,
+    fitToCoordinates: (
+      _coordinates: LatLngLike[],
+      options: { animated: boolean; edgePadding: { top: number } },
+    ) => {
       fits.push({ animated: options.animated });
+      paddings.push(options.edgePadding.top);
     },
-    animateCamera: (camera: { center: LatLngLike }) => {
+    animateCamera: (camera: CameraLike) => {
       animated.push(camera.center);
+      cameras.push(camera);
     },
-    setCamera: (camera: { center: LatLngLike }) => {
+    setCamera: (camera: CameraLike) => {
       set.push(camera.center);
+      cameras.push(camera);
     },
   };
   const drawings: { trace: readonly GeoPoint[]; markers: readonly MapMarker[] }[] = [];
@@ -341,7 +365,48 @@ interface LatLngLike {
   longitude: number;
 }
 
+interface CameraLike {
+  center: LatLngLike;
+  zoom?: number;
+  altitude?: number;
+}
+
 describe('NativeMapRenderer', () => {
+  it('se rapproche du coureur la première fois, puis lui laisse son échelle', () => {
+    const { renderer, handle } = makeNative();
+
+    renderer.followPosition(paris);
+    renderer.followPosition(lyon);
+
+    // Sans niveau imposé au premier cadrage, la carte reste sur le monde entier
+    // et le coureur est un point au milieu de rien.
+    expect(handle.cameras[0]?.zoom).toBe(15);
+    expect(handle.cameras[0]?.altitude).toBe(1_200);
+    // Ensuite on ne touche plus à l'échelle : elle appartient à l'utilisateur.
+    expect(handle.cameras[1]?.zoom).toBeUndefined();
+  });
+
+  it('resserre sa marge de cadrage sur une petite carte', () => {
+    const { renderer, handle } = makeNative();
+    renderer.resize(320, 148);
+
+    renderer.fitTo({ south: 50.6, west: 3.0, north: 50.65, east: 3.08 });
+
+    // 72 points fixes sur 148 de haut ne laissent rien à la trace : la carte
+    // s'éloignerait jusqu'à la région pour « faire tenir » le cadrage.
+    expect(handle.paddings[0]).toBeLessThan(30);
+    expect(handle.paddings[0]).toBeGreaterThanOrEqual(8);
+  });
+
+  it('ne réimpose pas d’échelle après un cadrage sur la trace', () => {
+    const { renderer, handle } = makeNative();
+
+    renderer.fitTo({ south: 45, west: 2, north: 49, east: 5 });
+    renderer.followPosition(lyon);
+
+    expect(handle.cameras[0]?.zoom).toBeUndefined();
+  });
+
   it('publie la trace accumulée, sans jamais la faire passer par l’écran', () => {
     const { renderer, drawings } = makeNative();
 

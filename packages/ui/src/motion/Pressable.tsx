@@ -87,48 +87,58 @@ export function Pressable({
   }, [scale]);
 
   return (
-    <Animated.View style={animatedStyle}>
-      <RNPressable
-        onPress={press}
-        onLongPress={onLongPress ?? undefined}
-        onPressIn={shrink}
-        onPressOut={grow}
-        onFocus={() => {
-          setFocused(true);
-        }}
-        onBlur={() => {
-          setFocused(false);
-        }}
-        disabled={disabled}
-        accessible={accessible}
-        accessibilityLabel={accessibilityLabel}
-        accessibilityHint={accessibilityHint}
-        accessibilityRole={accessibilityRole}
-        accessibilityState={{ disabled, ...accessibilityState }}
-        testID={testID}
-        style={[
-          enforceTouchTarget && styles.target,
-          style,
-          // §5: the focus indicator is never removed, it is replaced. On web an
-          // invisible focus is a keyboard trap you cannot see your way out of.
-          //
-          // Two strokes, not one: the inner border and the outer outline. A
-          // single colour cannot contrast with both the page and the accent
-          // card, and the control can be on either.
-          focused && {
-            borderColor: theme.colours.focusRingInner,
-            borderWidth: theme.stroke.thick,
-            outlineColor: theme.colours.focusRing,
-            outlineStyle: 'solid',
-            outlineWidth: theme.stroke.thick,
-          },
-        ]}
-      >
-        {children}
-      </RNPressable>
-    </Animated.View>
+    <AnimatedPressable
+      onPress={press}
+      onLongPress={onLongPress ?? undefined}
+      onPressIn={shrink}
+      onPressOut={grow}
+      onFocus={() => {
+        setFocused(true);
+      }}
+      onBlur={() => {
+        setFocused(false);
+      }}
+      disabled={disabled}
+      accessible={accessible}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole={accessibilityRole}
+      accessibilityState={{ disabled, ...accessibilityState }}
+      testID={testID}
+      style={[
+        enforceTouchTarget && styles.target,
+        style,
+        animatedStyle,
+        // §5: the focus indicator is never removed, it is replaced. On web an
+        // invisible focus is a keyboard trap you cannot see your way out of.
+        //
+        // Two strokes, not one: the inner border and the outer outline. A
+        // single colour cannot contrast with both the page and the accent
+        // card, and the control can be on either.
+        focused && {
+          borderColor: theme.colours.focusRingInner,
+          borderWidth: theme.stroke.thick,
+          outlineColor: theme.colours.focusRing,
+          outlineStyle: 'solid',
+          outlineWidth: theme.stroke.thick,
+        },
+      ]}
+    >
+      {children}
+    </AnimatedPressable>
   );
 }
+
+/**
+ * Animated *on* the pressable, not around it.
+ *
+ * A wrapping `Animated.View` was the obvious way to carry the press scale, and
+ * it quietly broke every caller that styled its layout: `style={{ flex: 1 }}`
+ * landed on the inner pressable, inside a wrapper that had no flex of its own
+ * and shrank to its content. Two buttons meant to share a row sat at their
+ * natural widths, and a row of tabs bunched up on the left.
+ */
+const AnimatedPressable = Animated.createAnimatedComponent(RNPressable);
 
 const styles = StyleSheet.create({
   target: {

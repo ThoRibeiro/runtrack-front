@@ -16,7 +16,8 @@
         "UIBackgroundModes": ["location", "fetch"],
         "NSLocationWhenInUseUsageDescription": "RunTrack enregistre votre trajet pendant que vous courez.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "RunTrack continue d’enregistrer votre course quand l’écran est verrouillé ou que le téléphone est dans une poche.",
-        "NSMotionUsageDescription": "La détection de mouvement affine la distance quand le signal GPS faiblit."
+        "NSMotionUsageDescription": "La détection de mouvement affine la distance quand le signal GPS faiblit.",
+        "NSPhotoLibraryUsageDescription": "RunTrack utilise vos photos pour votre photo de profil, et rien d'autre."
       }
     },
     "android": {
@@ -43,6 +44,12 @@
           "locationWhenInUsePermission": "RunTrack enregistre votre trajet pendant que vous courez.",
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "RunTrack utilise vos photos pour votre photo de profil, et rien d'autre."
         }
       ],
       [

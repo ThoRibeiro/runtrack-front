@@ -2,6 +2,7 @@ import { TabBar, type TabItem } from '@runtrack/ui';
 import { translate, useSessionStatus } from '@runtrack/features';
 import { Redirect, Tabs, router, usePathname } from 'expo-router';
 import type { ReactNode } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
  * The four-tab bar of §3, drawn by the design system rather than by the router.
@@ -18,7 +19,9 @@ import type { ReactNode } from 'react';
 /** The keys are routes, so `typedRoutes` checks them at compile time. */
 const TABS = [
   { key: '/', icon: 'home', label: 'Accueil' },
-  { key: '/feed', icon: 'users', label: 'Fil' },
+  { key: '/social', icon: 'search', label: 'Social' },
+  // Au centre : c'est le geste que l'application existe pour rendre facile, et
+  // c'est là que le pouce tombe sans viser.
   { key: '/record', icon: 'play', label: 'Courir' },
   { key: '/profile', icon: 'user', label: 'Profil' },
   { key: '/settings', icon: 'sliders', label: 'Réglages' },
@@ -34,6 +37,7 @@ function activeTab(pathname: string): TabRoute {
 export default function TabsLayout(): ReactNode {
   const status = useSessionStatus();
   const pathname = usePathname();
+  const insets = useSafeAreaInsets();
 
   // "Not signed in" and "we have not looked yet" are different: redirecting
   // during the first is how a cold start flashes the sign-in screen.
@@ -47,6 +51,7 @@ export default function TabsLayout(): ReactNode {
         <TabBar
           items={TABS}
           activeKey={activeTab(pathname)}
+          bottomInset={insets.bottom}
           onSelect={(key) => {
             router.navigate(activeTab(key));
           }}
@@ -55,8 +60,8 @@ export default function TabsLayout(): ReactNode {
       )}
     >
       <Tabs.Screen name="index" options={{ title: translate('home.ready') }} />
-      <Tabs.Screen name="feed" options={{ title: translate('feed.title') }} />
       <Tabs.Screen name="record" options={{ title: translate('record.prepareTitle') }} />
+      <Tabs.Screen name="social" options={{ title: translate('social.title') }} />
       <Tabs.Screen name="profile" options={{ title: translate('profile.activities') }} />
       <Tabs.Screen name="settings" options={{ title: translate('settings.title') }} />
     </Tabs>

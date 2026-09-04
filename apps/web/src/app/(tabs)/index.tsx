@@ -11,9 +11,6 @@ export default function HomeRoute(): ReactNode {
       onOpenProfile={() => {
         router.navigate('/profile');
       }}
-      onOpenFeed={() => {
-        router.navigate('/feed');
-      }}
       onOpenActivity={(id) => {
         router.push(`/activity/${id}`);
       }}

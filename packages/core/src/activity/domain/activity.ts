@@ -1,5 +1,6 @@
 import type { ActivityId, UserId } from '../../shared/identity/ids';
 import type { Instant } from '../../shared/time/clock';
+import type { Author } from '../../user/domain/profile';
 
 /** The four kinds the server knows. Anything else is a server the client has outgrown. */
 export const ACTIVITY_TYPES = ['RUN', 'TRAIL', 'BIKE', 'WALK'] as const;
@@ -33,11 +34,22 @@ export interface ActivityStats {
   elevationLoss: number;
   averageHeartRate: number | undefined;
   maxHeartRate: number | undefined;
+  /**
+   * Absente tant que le coureur n'a pas renseigné sa masse : le serveur
+   * n'invente pas de chiffre par défaut, qui serait indiscernable d'une mesure.
+   */
+  estimatedCalories: number | undefined;
 }
 
 export interface Activity {
   id: ActivityId;
   ownerId: UserId;
+  /**
+   * Le coureur, tel que le serveur l'imbrique. Absent des réponses du direct,
+   * qui ne rediffusent que des chiffres : l'auteur d'une course ne change pas
+   * en cours de route, et l'écran garde celui de sa lecture initiale.
+   */
+  author: Author | undefined;
   type: ActivityType;
   title: string;
   description: string | undefined;
@@ -46,6 +58,8 @@ export interface Activity {
   startedAt: Instant;
   endedAt: Instant | undefined;
   stats: ActivityStats;
+  /** La forme du parcours, simplifiée : de quoi dessiner une vignette de liste. */
+  previewPolyline: string | undefined;
 }
 
 /** The only state that accepts points. The recorder asks before it sends. */

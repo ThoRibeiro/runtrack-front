@@ -30,11 +30,13 @@
   "devDependencies": {
     "@testing-library/react-native": "^14.0.1",
     "@types/jest": "^30.0.0",
+    "@types/node": "^22.10.2",
     "@types/react": "~19.2.2",
     "jest": "^30.5.0",
     "jest-expo": "~57.0.5",
     "react": "19.2.3",
     "react-native": "0.86.3",
+    "react-native-gesture-handler": "~2.32.0",
     "react-test-renderer": "19.2.3",
     "typescript": "6.0.3"
   },

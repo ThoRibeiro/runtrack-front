@@ -178,6 +178,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/user/v1/me/avatar/file': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Téléverser une photo de profil */
+    post: operations['uploadAvatar'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/race/v1': {
     parameters: {
       query?: never;
@@ -783,6 +800,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/media/v1/avatars/{id}': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Lire une photo de profil */
+    get: operations['avatar'];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/feed/v1': {
     parameters: {
       query?: never;
@@ -869,6 +903,8 @@ export interface components {
       status?: string;
       /** Format: date-time */
       registeredAt?: string;
+      /** Format: date-time */
+      updatedAt?: string;
     };
     PhysiologyPayload: {
       /** Format: date */
@@ -891,6 +927,7 @@ export interface components {
     ActivityResponse: {
       id?: string;
       ownerId?: string;
+      author?: components['schemas']['AuthorDto'];
       type?: string;
       title?: string;
       description?: string;
@@ -901,6 +938,13 @@ export interface components {
       /** Format: date-time */
       endedAt?: string;
       stats?: components['schemas']['StatsResponse'];
+      previewPolyline?: string;
+    };
+    AuthorDto: {
+      id?: string;
+      handle?: string;
+      displayName?: string;
+      avatarUrl?: string;
     };
     StatsResponse: {
       /** Format: double */
@@ -996,6 +1040,7 @@ export interface components {
       id?: string;
       activityId?: string;
       authorId?: string;
+      author?: components['schemas']['AuthorDto'];
       parentId?: string;
       body?: string;
       /** Format: date-time */
@@ -1188,12 +1233,6 @@ export interface components {
       /** Format: int64 */
       unread?: number;
     };
-    AuthorDto: {
-      id?: string;
-      handle?: string;
-      displayName?: string;
-      avatarUrl?: string;
-    };
     FeedItem: {
       activityId?: string;
       author?: components['schemas']['AuthorDto'];
@@ -1212,6 +1251,7 @@ export interface components {
       likeCount?: number;
       /** Format: int64 */
       commentCount?: number;
+      previewPolyline?: string;
     };
     FeedPage: {
       items?: components['schemas']['FeedItem'][];
@@ -1232,6 +1272,7 @@ export type SchemaChangeHandleRequest = components['schemas']['ChangeHandleReque
 export type SchemaChangeAvatarRequest = components['schemas']['ChangeAvatarRequest'];
 export type SchemaChangeVisibilityRequest = components['schemas']['ChangeVisibilityRequest'];
 export type SchemaActivityResponse = components['schemas']['ActivityResponse'];
+export type SchemaAuthorDto = components['schemas']['AuthorDto'];
 export type SchemaStatsResponse = components['schemas']['StatsResponse'];
 export type SchemaFollowResponse = components['schemas']['FollowResponse'];
 export type SchemaRegisterDeviceRequest = components['schemas']['RegisterDeviceRequest'];
@@ -1274,7 +1315,6 @@ export type SchemaCommentPage = components['schemas']['CommentPage'];
 export type SchemaNotificationPage = components['schemas']['NotificationPage'];
 export type SchemaNotificationResponse = components['schemas']['NotificationResponse'];
 export type SchemaUnreadCountResponse = components['schemas']['UnreadCountResponse'];
-export type SchemaAuthorDto = components['schemas']['AuthorDto'];
 export type SchemaFeedItem = components['schemas']['FeedItem'];
 export type SchemaFeedPage = components['schemas']['FeedPage'];
 export type $defs = Record<string, never>;
@@ -1583,6 +1623,33 @@ export interface operations {
         };
         content: {
           '*/*': components['schemas']['DeviceResponse'];
+        };
+      };
+    };
+  };
+  uploadAvatar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: {
+      content: {
+        'multipart/form-data': {
+          /** Format: binary */
+          file: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': components['schemas']['MyProfile'];
         };
       };
     };
@@ -2584,6 +2651,28 @@ export interface operations {
         };
         content: {
           'text/event-stream': components['schemas']['SseEmitter'];
+        };
+      };
+    };
+  };
+  avatar: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description OK */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          '*/*': string;
         };
       };
     };

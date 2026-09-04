@@ -126,38 +126,48 @@ describe('les réglages', () => {
   const settings = () => (
     <SettingsScreen
       version="0.1.0"
+      onOpenProfile={noop}
       onOpenNotifications={noop}
       onSignedOut={noop}
       onReplayWelcome={noop}
     />
   );
 
+  it('montre ce à quoi chaque réglage est fixé, sans qu’on l’ouvre', async () => {
+    await renderWithRuntime(settings(), aRuntime({ session: aSession() }));
+
+    // Un réglage se lit bien plus souvent qu'il ne se change : la ligne dit sa
+    // valeur, le choix n'occupe l'écran que quand on le demande.
+    expect(await screen.findByLabelText(/Thème.*Selon le système/)).toBeOnTheScreen();
+    expect(screen.getByLabelText(/Visibilité par défaut.*Mes abonnés/)).toBeOnTheScreen();
+  });
+
   it('propose les trois thèmes, « selon le système » compris', async () => {
     await renderWithRuntime(settings(), aRuntime({ session: aSession() }));
 
-    expect(await screen.findByLabelText(/Selon le système/)).toBeOnTheScreen();
-    expect(screen.getByLabelText(/Clair/)).toBeOnTheScreen();
-    expect(screen.getByLabelText(/Sombre/)).toBeOnTheScreen();
-  });
+    await userEvent.press(await screen.findByLabelText(/Thème/));
 
-  it('dit que l’écran d’enregistrement garde son thème', async () => {
-    await renderWithRuntime(settings(), aRuntime({ session: aSession() }));
-
-    expect(await screen.findByText(/se lit en plein soleil/)).toBeOnTheScreen();
+    expect(await screen.findByRole('radio', { name: /Selon le système/ })).toBeOnTheScreen();
+    expect(screen.getByRole('radio', { name: /Clair/ })).toBeOnTheScreen();
+    expect(screen.getByRole('radio', { name: /Sombre/ })).toBeOnTheScreen();
+    // §3 : l'écran d'enregistrement garde son thème quoi qu'il arrive.
+    expect(screen.getByText(/se lit en plein soleil/)).toBeOnTheScreen();
   });
 
   it('propose la visibilité par défaut d’une course', async () => {
     await renderWithRuntime(settings(), aRuntime({ session: aSession() }));
 
-    expect(await screen.findByLabelText(/Mes abonnés/)).toBeOnTheScreen();
-    expect(screen.getByLabelText(/Moi seul/)).toBeOnTheScreen();
+    await userEvent.press(await screen.findByLabelText(/Visibilité par défaut/));
+
+    expect(await screen.findByRole('radio', { name: /Mes abonnés/ })).toBeOnTheScreen();
+    expect(screen.getByRole('radio', { name: /Moi seul/ })).toBeOnTheScreen();
   });
 
   it('demande confirmation avant de déconnecter, et dit ce qu’il advient d’une course', async () => {
     const harness = aRuntime({ session: aSession() });
     await renderWithRuntime(settings(), harness);
 
-    await userEvent.press(await screen.findByTestId('settings-sign-out'));
+    await userEvent.press(await screen.findByLabelText(/Se déconnecter/));
 
     expect(await screen.findByText('Se déconnecter ?')).toBeOnTheScreen();
     expect(screen.getByText(/reste enregistrée sur ce téléphone/)).toBeOnTheScreen();
@@ -169,13 +179,14 @@ describe('les réglages', () => {
     await renderWithRuntime(
       <SettingsScreen
         version="0.1.0"
+        onOpenProfile={noop}
         onOpenNotifications={noop}
         onSignedOut={signedOut}
         onReplayWelcome={noop}
       />,
       harness,
     );
-    await userEvent.press(await screen.findByTestId('settings-sign-out'));
+    await userEvent.press(await screen.findByLabelText(/Se déconnecter/));
 
     await userEvent.press(await screen.findByTestId('settings-sign-out-confirm-confirm'));
 

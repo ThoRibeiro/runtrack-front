@@ -4,16 +4,16 @@ import { aProfile } from '../../testing/fakes';
 import { aRuntime, renderWithRuntime } from '../../testing/harness';
 import { FollowListScreen } from './FollowListScreen';
 import { FollowRequestsScreen } from './FollowRequestsScreen';
-import { SearchScreen } from './SearchScreen';
+import { SocialScreen } from './SocialScreen';
 
 const noop = (): void => undefined;
 
-describe('SearchScreen', () => {
+describe('SocialScreen', () => {
   it('n’interroge pas le serveur sur un caractère', async () => {
     // Deux caractères correspondent à la moitié des comptes : la requête ne
     // vaut pas la peine d'être envoyée.
     const harness = aRuntime();
-    await renderWithRuntime(<SearchScreen onOpenProfile={noop} />, harness);
+    await renderWithRuntime(<SocialScreen onOpenProfile={noop} onOpenRequests={noop} />, harness);
 
     await userEvent.type(screen.getByTestId('search-input'), 'c');
 
@@ -25,7 +25,7 @@ describe('SearchScreen', () => {
   it('cherche dès deux caractères et montre les résultats', async () => {
     const harness = aRuntime();
     harness.social.results = [aProfile({ handle: 'camille', displayName: 'Camille' })];
-    await renderWithRuntime(<SearchScreen onOpenProfile={noop} />, harness);
+    await renderWithRuntime(<SocialScreen onOpenProfile={noop} onOpenRequests={noop} />, harness);
 
     await userEvent.type(screen.getByTestId('search-input'), 'ca');
 
@@ -36,7 +36,10 @@ describe('SearchScreen', () => {
     const harness = aRuntime();
     harness.social.results = [aProfile({ handle: 'camille' })];
     const onOpenProfile = jest.fn();
-    await renderWithRuntime(<SearchScreen onOpenProfile={onOpenProfile} />, harness);
+    await renderWithRuntime(
+      <SocialScreen onOpenProfile={onOpenProfile} onOpenRequests={noop} />,
+      harness,
+    );
 
     await userEvent.type(screen.getByTestId('search-input'), 'ca');
     await userEvent.press(await screen.findByTestId('search-result-camille'));
@@ -47,7 +50,7 @@ describe('SearchScreen', () => {
   it('dit qu’il n’y a rien plutôt que de laisser une page blanche', async () => {
     const harness = aRuntime();
     harness.social.results = [];
-    await renderWithRuntime(<SearchScreen onOpenProfile={noop} />, harness);
+    await renderWithRuntime(<SocialScreen onOpenProfile={noop} onOpenRequests={noop} />, harness);
 
     await userEvent.type(screen.getByTestId('search-input'), 'zzz');
 
@@ -110,6 +113,6 @@ describe('FollowListScreen', () => {
     harness.social.followingList = { userIds: [], count: 42 };
     await renderWithRuntime(<FollowListScreen userId={userId('u-7')} kind="following" />, harness);
 
-    expect(await screen.findByText('42 abonnements')).toBeOnTheScreen();
+    expect(await screen.findByText('42 suivis')).toBeOnTheScreen();
   });
 });

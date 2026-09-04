@@ -1,4 +1,4 @@
-import { FixedClock, type SecureStore, type Session } from '@runtrack/core';
+import { FixedClock, type FileUploader, type SecureStore, type Session } from '@runtrack/core';
 import { userId } from '@runtrack/core';
 import { RefreshCoordinator } from '../auth/refreshCoordinator';
 import { SessionHolder } from '../auth/sessionHolder';
@@ -88,7 +88,9 @@ export class FakeTransport {
       url: input,
       method: init?.method ?? 'GET',
       headers,
-      body: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined,
+      // Un corps multipart n'est pas du JSON : on le garde tel quel, pour que
+      // le test d'un téléversement puisse vérifier ce qui est réellement parti.
+      body: typeof init?.body === 'string' ? JSON.parse(init.body) : (init?.body ?? undefined),
     };
     this.sent.push(request);
 
@@ -120,6 +122,8 @@ export function aHarness(
     session?: Session | undefined;
     refresher?: (token: string) => Promise<Session>;
     now?: number;
+    /** Le téléversement de la plateforme, quand le test en simule un. */
+    uploader?: FileUploader | undefined;
   } = {},
 ): Harness {
   const clock = new FixedClock(options.now ?? NOW);
@@ -153,6 +157,7 @@ export function aHarness(
     fetch: transport.fetch,
     newCorrelationId: () => 'correlation-1',
     session: { holder, refresh: coordinator },
+    uploader: options.uploader,
   });
 
   return { client, transport, holder, store, coordinator, clock, refreshCount: () => renewals };

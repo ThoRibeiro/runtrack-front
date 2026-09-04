@@ -82,7 +82,9 @@ export class HttpAuthGateway implements AuthGateway {
     await this.http.requestVoid('/auth/v1/password/reset', {
       method: 'POST',
       anonymous: true,
-      body: { token, newPassword },
+      // `password`, not `newPassword`: the field is named by the server's
+      // contract, not by the argument that carries it here.
+      body: { token, password: newPassword },
     });
   }
 

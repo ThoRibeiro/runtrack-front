@@ -42,15 +42,48 @@ describe('message d’erreur', () => {
     );
 
     expect(described.title).toBe('Adresse ou mot de passe incorrect');
-    expect(described.correlationId).toBe('c-1');
   });
 
-  it('garde le détail du serveur, qui en dit souvent plus', () => {
+  it('ne montre pas la référence sur une erreur que l’utilisateur peut corriger', () => {
+    // Un mot de passe mal tapé n'a pas d'incident à signaler : la référence
+    // n'expliquerait rien et donnerait à l'écran un air de fuite technique.
+    const described = describeError(
+      new RunTrackError({
+        code: 'BAD_CREDENTIALS',
+        message: 'refusé',
+        correlationId: 'c-1',
+        status: 403,
+      }),
+    );
+
+    expect(described.correlationId).toBeUndefined();
+  });
+
+  it('garde la référence quand l’utilisateur ne peut rien faire', () => {
+    const inconnu = describeError(
+      new RunTrackError({ code: 'CODE_DU_FUTUR', message: 'x', correlationId: 'c-2' }),
+    );
+    const panne = describeError(
+      new RunTrackError({
+        code: 'ACTIVITY_NOT_FOUND',
+        message: 'x',
+        correlationId: 'c-3',
+        status: 503,
+      }),
+    );
+
+    expect(inconnu.correlationId).toBe('c-2');
+    expect(panne.correlationId).toBe('c-3');
+  });
+
+  it('n’affiche pas la phrase du serveur, qui redit le titre', () => {
+    // Le serveur écrit pour un journal ; la phrase montrée appartient au front.
     const described = describeError(
       new RunTrackError({ code: 'HANDLE_TAKEN', message: 'thomas est déjà pris' }),
     );
 
-    expect(described.detail).toBe('thomas est déjà pris');
+    expect(described.title).toBe('Ce pseudonyme est déjà pris');
+    expect(described.detail).toBeUndefined();
   });
 
   it('replie un code inconnu sans prétendre le comprendre', () => {

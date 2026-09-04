@@ -6,6 +6,7 @@ import {
   Card,
   FormField,
   GroupedRows,
+  ScreenHeader,
   Skeleton,
   Slider,
   Switch,
@@ -37,6 +38,7 @@ import { usePushRegistration } from '../hooks/usePush';
 export interface NotificationPreferencesScreenProps {
   /** The runner's own zone, read by the shell — `Intl` is not in the hexagon. */
   timeZone: string;
+  onBack?: (() => void) | undefined;
 }
 
 const MINUTES_PER_HOUR = 60;
@@ -57,6 +59,7 @@ function kindLabel(type: string): string {
 
 export function NotificationPreferencesScreen({
   timeZone,
+  onBack,
 }: NotificationPreferencesScreenProps): ReactNode {
   const theme = useTheme();
   const preferences = useNotificationPreferences();
@@ -95,163 +98,168 @@ export function NotificationPreferencesScreen({
   const quietOn = current.quietHours !== undefined;
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: theme.colours.canvas }}
-      contentContainerStyle={{ padding: space.md, gap: space.lg }}
-      testID="preferences-screen"
-    >
-      <Text variant="title">{translate('preferences.title')}</Text>
-
-      {/*
+    <View style={{ flex: 1, backgroundColor: theme.colours.canvas }}>
+      <ScreenHeader
+        title={translate('preferences.title')}
+        onBack={onBack}
+        backLabel={translate('common.back')}
+        testID="preferences-header"
+      />
+      <ScrollView
+        contentContainerStyle={{ padding: space.md, paddingBottom: space['3xl'], gap: space.lg }}
+        testID="preferences-screen"
+      >
+        {/*
         §12: the permission is asked **after** showing what it buys. This card
         is that explanation, and the button is the only thing that opens the
         system dialog. On the web it is absent entirely — a browser has no push
         token, and §2 says the web does not mention what it cannot do.
       */}
-      {push.state !== 'unsupported' && push.state !== 'registered' && (
-        <Card tone="brand" testID="preferences-push">
-          <View style={{ gap: space.sm }}>
-            <Text>{translate('preferences.pushWhy')}</Text>
-            {push.state === 'refused' ? (
-              <Text tone="danger">{translate('preferences.pushRefused')}</Text>
-            ) : (
-              <Button
-                label={translate('preferences.enablePush')}
-                icon="bell"
-                onPress={() => {
-                  void push.enable();
-                }}
-                testID="preferences-enable-push"
-              />
-            )}
-          </View>
-        </Card>
-      )}
+        {push.state !== 'unsupported' && push.state !== 'registered' && (
+          <Card tone="brand" testID="preferences-push">
+            <View style={{ gap: space.sm }}>
+              <Text>{translate('preferences.pushWhy')}</Text>
+              {push.state === 'refused' ? (
+                <Text tone="danger">{translate('preferences.pushRefused')}</Text>
+              ) : (
+                <Button
+                  label={translate('preferences.enablePush')}
+                  icon="bell"
+                  onPress={() => {
+                    void push.enable();
+                  }}
+                  testID="preferences-enable-push"
+                />
+              )}
+            </View>
+          </Card>
+        )}
 
-      <View style={{ gap: space.sm }}>
-        <Text variant="section">{translate('preferences.kinds')}</Text>
-        {current.availableTypes.map((type) => (
-          <FormField key={type} label={kindLabel(type)}>
+        <View style={{ gap: space.sm }}>
+          <Text variant="section">{translate('preferences.kinds')}</Text>
+          {current.availableTypes.map((type) => (
+            <FormField key={type} label={kindLabel(type)}>
+              {(field) => (
+                <Switch
+                  field={field}
+                  // Muted is stored; the switch shows the opposite, because
+                  // "recevoir" is what a person is deciding, not "couper".
+                  value={!current.mutedTypes.includes(type)}
+                  onValueChange={(wanted) => {
+                    toggleMuted(type, !wanted);
+                  }}
+                  testID={`preferences-kind-${type}`}
+                />
+              )}
+            </FormField>
+          ))}
+        </View>
+
+        <View style={{ gap: space.sm }}>
+          <Text variant="section">{translate('preferences.quietHours')}</Text>
+          <Text tone="muted" variant="caption">
+            {translate('preferences.quietHoursZone', { zone: timeZone })}
+          </Text>
+
+          <FormField label={translate('preferences.quietHoursOn')}>
             {(field) => (
               <Switch
                 field={field}
-                // Muted is stored; the switch shows the opposite, because
-                // "recevoir" is what a person is deciding, not "couper".
-                value={!current.mutedTypes.includes(type)}
+                value={quietOn}
                 onValueChange={(wanted) => {
-                  toggleMuted(type, !wanted);
+                  save({
+                    ...current,
+                    quietHours: wanted
+                      ? quietHours(fromHour * MINUTES_PER_HOUR, toHour * MINUTES_PER_HOUR, timeZone)
+                      : undefined,
+                  });
                 }}
-                testID={`preferences-kind-${type}`}
+                testID="preferences-quiet-on"
               />
             )}
           </FormField>
-        ))}
-      </View>
 
-      <View style={{ gap: space.sm }}>
-        <Text variant="section">{translate('preferences.quietHours')}</Text>
-        <Text tone="muted" variant="caption">
-          {translate('preferences.quietHoursZone', { zone: timeZone })}
-        </Text>
+          {quietOn && (
+            <>
+              <FormField label={translate('preferences.from')}>
+                {(field) => (
+                  <Slider
+                    field={field}
+                    minimum={0}
+                    maximum={23}
+                    step={1}
+                    defaultValue={22}
+                    value={fromHour}
+                    onValueChange={setFromHour}
+                    formatValue={(value: number) => hourLabel(value * MINUTES_PER_HOUR)}
+                    testID="preferences-from"
+                  />
+                )}
+              </FormField>
+              <FormField label={translate('preferences.to')}>
+                {(field) => (
+                  <Slider
+                    field={field}
+                    minimum={0}
+                    maximum={23}
+                    step={1}
+                    defaultValue={7}
+                    value={toHour}
+                    onValueChange={setToHour}
+                    formatValue={(value: number) => hourLabel(value * MINUTES_PER_HOUR)}
+                    testID="preferences-to"
+                  />
+                )}
+              </FormField>
+              <Button
+                label={translate('preferences.saveQuietHours')}
+                loading={update.isPending}
+                disabled={fromHour === toHour}
+                onPress={() => {
+                  save({
+                    ...current,
+                    quietHours: quietHours(
+                      fromHour * MINUTES_PER_HOUR,
+                      toHour * MINUTES_PER_HOUR,
+                      timeZone,
+                    ),
+                  });
+                }}
+                testID="preferences-save-quiet"
+              />
+              {fromHour === toHour && (
+                <Text tone="danger" variant="caption">
+                  {/* Une plage nulle et une plage de 24 h s'écriraient pareil. */}
+                  {translate('preferences.quietHoursEqual')}
+                </Text>
+              )}
+            </>
+          )}
+        </View>
 
-        <FormField label={translate('preferences.quietHoursOn')}>
-          {(field) => (
-            <Switch
-              field={field}
-              value={quietOn}
-              onValueChange={(wanted) => {
-                save({
-                  ...current,
-                  quietHours: wanted
-                    ? quietHours(fromHour * MINUTES_PER_HOUR, toHour * MINUTES_PER_HOUR, timeZone)
-                    : undefined,
-                });
-              }}
-              testID="preferences-quiet-on"
+        <View style={{ gap: space.sm }}>
+          <Text variant="section">{translate('preferences.devices')}</Text>
+          {devices.isError ? (
+            <Card tone="alt">
+              <Text tone="muted">{translate('preferences.devicesUnavailable')}</Text>
+            </Card>
+          ) : (
+            <GroupedRows
+              testID="preferences-devices"
+              rows={(devices.data ?? []).map((device) => ({
+                key: device.token,
+                label: translate(
+                  `preferences.platform.${device.platform === 'IOS' ? 'IOS' : 'ANDROID'}`,
+                ),
+                value: translate('preferences.removeDevice'),
+                onPress: () => {
+                  removeDevice.mutate(device.token);
+                },
+              }))}
             />
           )}
-        </FormField>
-
-        {quietOn && (
-          <>
-            <FormField label={translate('preferences.from')}>
-              {(field) => (
-                <Slider
-                  field={field}
-                  minimum={0}
-                  maximum={23}
-                  step={1}
-                  defaultValue={22}
-                  value={fromHour}
-                  onValueChange={setFromHour}
-                  formatValue={(value: number) => hourLabel(value * MINUTES_PER_HOUR)}
-                  testID="preferences-from"
-                />
-              )}
-            </FormField>
-            <FormField label={translate('preferences.to')}>
-              {(field) => (
-                <Slider
-                  field={field}
-                  minimum={0}
-                  maximum={23}
-                  step={1}
-                  defaultValue={7}
-                  value={toHour}
-                  onValueChange={setToHour}
-                  formatValue={(value: number) => hourLabel(value * MINUTES_PER_HOUR)}
-                  testID="preferences-to"
-                />
-              )}
-            </FormField>
-            <Button
-              label={translate('preferences.saveQuietHours')}
-              loading={update.isPending}
-              disabled={fromHour === toHour}
-              onPress={() => {
-                save({
-                  ...current,
-                  quietHours: quietHours(
-                    fromHour * MINUTES_PER_HOUR,
-                    toHour * MINUTES_PER_HOUR,
-                    timeZone,
-                  ),
-                });
-              }}
-              testID="preferences-save-quiet"
-            />
-            {fromHour === toHour && (
-              <Text tone="danger" variant="caption">
-                {/* Une plage nulle et une plage de 24 h s'écriraient pareil. */}
-                {translate('preferences.quietHoursEqual')}
-              </Text>
-            )}
-          </>
-        )}
-      </View>
-
-      <View style={{ gap: space.sm }}>
-        <Text variant="section">{translate('preferences.devices')}</Text>
-        {devices.isError ? (
-          <Card tone="alt">
-            <Text tone="muted">{translate('preferences.devicesUnavailable')}</Text>
-          </Card>
-        ) : (
-          <GroupedRows
-            testID="preferences-devices"
-            rows={(devices.data ?? []).map((device) => ({
-              key: device.token,
-              label: translate(
-                `preferences.platform.${device.platform === 'IOS' ? 'IOS' : 'ANDROID'}`,
-              ),
-              value: translate('preferences.removeDevice'),
-              onPress: () => {
-                removeDevice.mutate(device.token);
-              },
-            }))}
-          />
-        )}
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   );
 }

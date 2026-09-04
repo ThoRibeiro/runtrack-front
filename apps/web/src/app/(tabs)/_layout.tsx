@@ -18,7 +18,7 @@ import type { ReactNode } from 'react';
 /** The keys are routes, so `typedRoutes` checks them at compile time. */
 const TABS = [
   { key: '/', icon: 'home', label: 'Accueil' },
-  { key: '/feed', icon: 'users', label: 'Fil' },
+  { key: '/social', icon: 'search', label: 'Social' },
   { key: '/profile', icon: 'user', label: 'Profil' },
   { key: '/settings', icon: 'sliders', label: 'Réglages' },
 ] as const satisfies readonly TabItem[];
@@ -54,7 +54,7 @@ export default function TabsLayout(): ReactNode {
       )}
     >
       <Tabs.Screen name="index" options={{ title: translate('home.ready') }} />
-      <Tabs.Screen name="feed" options={{ title: translate('feed.title') }} />
+      <Tabs.Screen name="social" options={{ title: translate('social.title') }} />
       <Tabs.Screen name="profile" options={{ title: translate('profile.activities') }} />
       <Tabs.Screen name="settings" options={{ title: translate('settings.title') }} />
     </Tabs>

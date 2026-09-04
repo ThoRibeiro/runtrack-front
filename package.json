@@ -2,10 +2,10 @@
   "name": "runtrack-front",
   "private": true,
   "version": "0.1.0",
-  "packageManager": "pnpm@10.29.2",
+  "packageManager": "pnpm@11.25.0",
   "volta": {
     "node": "22.21.1",
-    "pnpm": "10.29.2"
+    "pnpm": "11.25.0"
   },
   "engines": {
     "node": ">=22.12.0 <23"
@@ -22,7 +22,9 @@
     "budget": "node scripts/check-web-budget.mjs --export",
     "lcp": "node perf/measure-lcp.mjs",
     "e2e": "pnpm --filter @runtrack/web e2e",
-    "logo": "node scripts/build-logo-assets.mjs"
+    "logo": "node scripts/build-logo-assets.mjs",
+    "simulate-run": "node scripts/simulate-run.mjs",
+    "simulate-hills": "node scripts/simulate-hills.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -34,12 +36,6 @@
     "typescript": "6.0.3",
     "typescript-eslint": "^8.68.0",
     "vitest": "^4.1.11"
-  },
-  "pnpm": {
-    "//": "Expo SDK 57 pins Reanimated 4.5.1, which asserts the Worklets version at import. Left to resolve on its own, pnpm hoists 0.12.1 and every test fails on a version assertion rather than on anything real.",
-    "overrides": {
-      "react-native-worklets": "0.10.1"
-    }
   },
   "dependencies": {
     "expo": "~57.0.18",

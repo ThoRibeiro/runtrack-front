@@ -44,6 +44,7 @@ const CALLED: [method: string, path: string][] = [
   ['post', '/race/v1/{id}/resume'],
   ['post', '/race/v1/{id}/finish'],
   ['post', '/race/v1/{id}/discard'],
+  ['delete', '/race/v1/{id}'],
   ['put', '/race/v1/{id}/visibility'],
   ['get', '/race/v1/{id}/track'],
   ['get', '/race/v1/{id}/splits'],
@@ -54,6 +55,7 @@ const CALLED: [method: string, path: string][] = [
   ['delete', '/user/v1/me'],
   ['put', '/user/v1/me/handle'],
   ['put', '/user/v1/me/avatar'],
+  ['post', '/user/v1/me/avatar/file'],
   ['put', '/user/v1/me/physiology'],
   ['put', '/user/v1/me/visibility'],
   ['get', '/user/v1/me/stats'],
@@ -139,7 +141,7 @@ describe('le contrat n’a pas bougé', () => {
     expect(schema?.type).toBe('string');
   });
 
-  it('les 63 endpoints du serveur sont bien là', () => {
+  it('les 65 endpoints du serveur sont bien là', () => {
     const count = Object.values(document.paths).reduce(
       (total, verbs) =>
         total +
@@ -149,6 +151,6 @@ describe('le contrat n’a pas bougé', () => {
       0,
     );
 
-    expect(count).toBe(63);
+    expect(count).toBe(65);
   });
 });
