@@ -40,7 +40,7 @@ export function FollowListScreen({ userId, kind, onBack }: FollowListScreenProps
       />
       <View style={{ flex: 1, padding: space.md, gap: space.md }}>
         {list.isPending ? (
-        <Spinner label={translate('common.loading')} />
+          <Spinner label={translate('common.loading')} />
         ) : (
           <>
             <View accessible accessibilityRole="header">

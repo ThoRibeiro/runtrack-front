@@ -34,7 +34,6 @@ export function FeedCard({ item, onPress }: FeedCardProps): ReactNode {
   const theme = useTheme();
   const live = isLive(item);
 
-
   const spoken = [
     item.author.displayName,
     item.title,
@@ -75,10 +74,7 @@ export function FeedCard({ item, onPress }: FeedCardProps): ReactNode {
           </View>
 
           {/* Le parcours d'abord : c'est ce qu'on reconnaît avant de lire un chiffre. */}
-          <TrackPreview
-            polyline={item.previewPolyline}
-            testID={`feed-track-${item.activityId}`}
-          />
+          <TrackPreview polyline={item.previewPolyline} testID={`feed-track-${item.activityId}`} />
 
           <View style={{ flexDirection: 'row', gap: space.xl }}>
             <StatTile

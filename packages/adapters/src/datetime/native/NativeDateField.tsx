@@ -95,11 +95,19 @@ export function NativeDateField({
       </Pressable>
 
       {visible && (
-        <Modal transparent animationType="slide" onRequestClose={() => { setVisible(false); }}>
+        <Modal
+          transparent
+          animationType="slide"
+          onRequestClose={() => {
+            setVisible(false);
+          }}
+        >
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={accessibilityLabel}
-            onPress={() => { setVisible(false); }}
+            onPress={() => {
+              setVisible(false);
+            }}
             style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: colours.scrim }}
           >
             <View

@@ -1,16 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { destinationOf, type DeepLink, type Notification } from '@runtrack/core';
-import {
-  Avatar,
-  Button,
-  List,
-  Pressable,
-  ScreenHeader,
-  Text,
-  space,
-  useTheme,
-} from '@runtrack/ui';
+import { Avatar, Button, List, Pressable, ScreenHeader, Text, space, useTheme } from '@runtrack/ui';
 import { describeError, translate } from '../../i18n';
 import { useRuntime } from '../../runtime/RuntimeProvider';
 import { notificationsOf, useInbox, useMarkAllRead, useMarkRead } from '../hooks/useNotifications';

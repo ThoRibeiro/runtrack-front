@@ -348,11 +348,7 @@ function ProfileForm({
           )}
         </FormField>
 
-        <FormField
-          label={translate('profile.handle')}
-          error={messageFor('handle')}
-          required
-        >
+        <FormField label={translate('profile.handle')} error={messageFor('handle')} required>
           {(field) => (
             <Input
               field={field}

@@ -48,7 +48,9 @@ const password = flags.get('password');
 const givenToken = flags.get('token');
 
 if (givenToken === undefined && (email === undefined || password === undefined)) {
-  console.error('Missing --email and --password (or --token) — the run is recorded on a real account.');
+  console.error(
+    'Missing --email and --password (or --token) — the run is recorded on a real account.',
+  );
   process.exit(1);
 }
 
@@ -70,7 +72,9 @@ const place = PLACES[at] ?? at.split(',').map(Number);
 const [START_LATITUDE, START_LONGITUDE] = place;
 
 if (!Number.isFinite(START_LATITUDE) || !Number.isFinite(START_LONGITUDE)) {
-  console.error(`--at=${at} n'est ni un lieu connu (${Object.keys(PLACES).join(', ')}) ni un couple 'lat,lon'.`);
+  console.error(
+    `--at=${at} n'est ni un lieu connu (${Object.keys(PLACES).join(', ')}) ni un couple 'lat,lon'.`,
+  );
   process.exit(1);
 }
 
@@ -89,7 +93,9 @@ if (!flags.has('noise') && stepMetres < THRESHOLD_METRES) {
   // A climb in 1 m steps is still a climb, and the smoother counts it — in
   // 3 m chunks, so the total lands just under the real one. Expecting an exact
   // figure from it would test the rounding, not the rule.
-  console.error(`--step=${stepMetres} is below the ${THRESHOLD_METRES} m threshold: use --noise for the negative control.`);
+  console.error(
+    `--step=${stepMetres} is below the ${THRESHOLD_METRES} m threshold: use --noise for the negative control.`,
+  );
   process.exit(1);
 }
 /**
@@ -182,10 +188,8 @@ const points = profile.map((elevation, index) => ({
   sequenceNumber: index,
   // Translated so the first fix is the place that was asked for, rather than
   // the centre of the loop: a run starts where you say it starts.
-  latitude:
-    START_LATITUDE + ((shape[index].y - shape[0].y) * scale) / METRES_PER_DEGREE_LATITUDE,
-  longitude:
-    START_LONGITUDE + ((shape[index].x - shape[0].x) * scale) / metresPerDegreeLongitude,
+  latitude: START_LATITUDE + ((shape[index].y - shape[0].y) * scale) / METRES_PER_DEGREE_LATITUDE,
+  longitude: START_LONGITUDE + ((shape[index].x - shape[0].x) * scale) / metresPerDegreeLongitude,
   elevation,
   recordedAt: new Date(startedAt + index * SECONDS_BETWEEN_FIXES * 1000).toISOString(),
   accuracyMeters: 5,

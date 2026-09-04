@@ -307,7 +307,10 @@ export class FakeUserGateway implements UserGateway {
   uploadAvatar(image: PickedImage): Promise<MyProfile> {
     this.uploaded.push(image);
     // Ce que le serveur rend : l'adresse qu'il a fabriquée, pas l'URI locale.
-    this.profile = { ...this.profile, avatarUrl: `https://runtrack.test/media/v1/avatars/${image.name}` };
+    this.profile = {
+      ...this.profile,
+      avatarUrl: `https://runtrack.test/media/v1/avatars/${image.name}`,
+    };
     return this.onUploadAvatar === undefined
       ? Promise.resolve(this.profile)
       : this.onUploadAvatar(this.profile);

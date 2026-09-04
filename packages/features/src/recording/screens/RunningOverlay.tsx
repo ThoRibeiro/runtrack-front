@@ -2,7 +2,13 @@ import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import type { ActivityId, RecordingWarning } from '@runtrack/core';
 import { Card, Chip, IconAction, Modal, Text, space, useTheme } from '@runtrack/ui';
-import { effortOf, formatDuration, formatKilometres, spokenDuration, usesSpeed } from '../../format';
+import {
+  effortOf,
+  formatDuration,
+  formatKilometres,
+  spokenDuration,
+  usesSpeed,
+} from '../../format';
 import { translate } from '../../i18n';
 import { useRecording, useRecordingActions } from '../RecordingProvider';
 import { useElapsedSeconds } from '../hooks/useElapsed';

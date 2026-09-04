@@ -47,12 +47,9 @@ export function useLikes(activityId: ActivityId): UseQueryResult<Likes> {
  * par la réponse du serveur quand elle arrive, et on le remet comme avant s'il
  * refuse — la seule façon d'être à la fois vif et honnête.
  */
-export function useToggleLike(activityId: ActivityId): UseMutationResult<
-  Likes,
-  unknown,
-  boolean,
-  { previous: Likes | undefined }
-> {
+export function useToggleLike(
+  activityId: ActivityId,
+): UseMutationResult<Likes, unknown, boolean, { previous: Likes | undefined }> {
   const runtime = useRuntime();
   const client = useQueryClient();
 

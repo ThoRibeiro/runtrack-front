@@ -90,10 +90,7 @@ export class FakeTransport {
       headers,
       // Un corps multipart n'est pas du JSON : on le garde tel quel, pour que
       // le test d'un téléversement puisse vérifier ce qui est réellement parti.
-      body:
-        typeof init?.body === 'string'
-          ? JSON.parse(init.body)
-          : (init?.body ?? undefined),
+      body: typeof init?.body === 'string' ? JSON.parse(init.body) : (init?.body ?? undefined),
     };
     this.sent.push(request);
 

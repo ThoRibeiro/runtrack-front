@@ -156,8 +156,7 @@ export function ActivityScreen({
   // Pendant la course, les chiffres viennent du flux : la requête initiale les
   // a figés au moment de l'ouverture, et une sortie qui avance sous les yeux du
   // lecteur avec 0,0 km affiché se lit comme une panne.
-  const data =
-    view.stats === undefined ? activityData : { ...activityData, stats: view.stats };
+  const data = view.stats === undefined ? activityData : { ...activityData, stats: view.stats };
   const live = !isTerminal(data.status);
   const mine = me.data?.id === data.ownerId;
   // §0: raw points are purged 90 days after archiving, and only the summary
@@ -355,36 +354,36 @@ export function ActivityScreen({
           {splits.isPending ? (
             <Spinner label={translate('common.loading')} />
           ) : (
-              <GroupedRows
-                testID="activity-splits"
-                rows={(splits.data ?? []).map((split) => ({
-                  key: String(split.kilometreIndex),
-                  // The server numbers splits from 1 — `SplitCalculator` refuses
-                  // anything below. Adding one here numbered every kilometre
-                  // one too high, which is what this row used to do.
-                  //
-                  // Le reliquat, lui, se nomme par ce qu'il vaut. « Kilomètre 5 »
-                  // sur une sortie de 4,0 km se lit comme une erreur de calcul,
-                  // alors que ce sont les quarante derniers mètres.
-                  label: split.complete
-                    ? translate('activity.splitLabel', { index: split.kilometreIndex })
-                    : translate('activity.splitPartialLabel', {
-                        distance: formatWhole(split.distanceMetres),
-                      }),
-                  // Le temps du tronçon, et non son allure. Sur un kilomètre
-                  // entier les deux valent le même nombre ; sur un reliquat de
-                  // seize mètres, l'allure affichait « 2:10 » — un temps que
-                  // personne n'a passé, pour une distance que personne n'a
-                  // mise deux minutes à couvrir.
-                  value: formatDuration(split.timeSeconds),
-                  // A partial kilometre has no mark on the trace, so it has
-                  // nothing to show: leaving it inert beats a row that looks
-                  // pressable and does nothing.
-                  onPress: split.complete
-                    ? () => {
-                        focusKilometre(split.kilometreIndex);
-                      }
-                    : undefined,
+            <GroupedRows
+              testID="activity-splits"
+              rows={(splits.data ?? []).map((split) => ({
+                key: String(split.kilometreIndex),
+                // The server numbers splits from 1 — `SplitCalculator` refuses
+                // anything below. Adding one here numbered every kilometre
+                // one too high, which is what this row used to do.
+                //
+                // Le reliquat, lui, se nomme par ce qu'il vaut. « Kilomètre 5 »
+                // sur une sortie de 4,0 km se lit comme une erreur de calcul,
+                // alors que ce sont les quarante derniers mètres.
+                label: split.complete
+                  ? translate('activity.splitLabel', { index: split.kilometreIndex })
+                  : translate('activity.splitPartialLabel', {
+                      distance: formatWhole(split.distanceMetres),
+                    }),
+                // Le temps du tronçon, et non son allure. Sur un kilomètre
+                // entier les deux valent le même nombre ; sur un reliquat de
+                // seize mètres, l'allure affichait « 2:10 » — un temps que
+                // personne n'a passé, pour une distance que personne n'a
+                // mise deux minutes à couvrir.
+                value: formatDuration(split.timeSeconds),
+                // A partial kilometre has no mark on the trace, so it has
+                // nothing to show: leaving it inert beats a row that looks
+                // pressable and does nothing.
+                onPress: split.complete
+                  ? () => {
+                      focusKilometre(split.kilometreIndex);
+                    }
+                  : undefined,
               }))}
             />
           )}

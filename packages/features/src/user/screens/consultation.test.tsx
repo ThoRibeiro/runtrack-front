@@ -9,12 +9,7 @@ import { ProfileScreen } from './ProfileScreen';
 const noop = (): void => undefined;
 
 const home = (props: Partial<Parameters<typeof HomeScreen>[0]> = {}) => (
-  <HomeScreen
-    onOpenNotifications={noop}
-    onOpenProfile={noop}
-    onOpenActivity={noop}
-    {...props}
-  />
+  <HomeScreen onOpenNotifications={noop} onOpenProfile={noop} onOpenActivity={noop} {...props} />
 );
 
 describe('HomeScreen', () => {
@@ -276,7 +271,9 @@ describe('ActivityScreen', () => {
     await renderWithRuntime(activity(), harness);
 
     const alert = await screen.findByRole('alert');
-    expect(alert.props['accessibilityLabel']).toContain('Cette course n’est pas partagée avec vous');
+    expect(alert.props['accessibilityLabel']).toContain(
+      'Cette course n’est pas partagée avec vous',
+    );
     expect(screen.queryByText(/Référence/, { includeHiddenElements: true })).not.toBeOnTheScreen();
   });
 });

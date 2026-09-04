@@ -161,7 +161,12 @@ export type {
   SocialGateway,
   UserIdList,
 } from './social/ports/socialGateway';
-export type { CommentAuthor, Comment, EngagementGateway, Likes } from './engagement/ports/engagementGateway';
+export type {
+  CommentAuthor,
+  Comment,
+  EngagementGateway,
+  Likes,
+} from './engagement/ports/engagementGateway';
 export type { ShareLink, SharingGateway } from './sharing/ports/sharingGateway';
 
 // Notifications.

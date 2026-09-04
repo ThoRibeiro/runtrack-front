@@ -1,7 +1,13 @@
 import { effortOf, usesSpeed } from './effort';
 import {
   formatDay,
-  formatSpeed, formatDuration, formatKilometres, formatPace, spokenDuration, spokenPace } from './units';
+  formatSpeed,
+  formatDuration,
+  formatKilometres,
+  formatPace,
+  spokenDuration,
+  spokenPace,
+} from './units';
 
 describe('distances', () => {
   it('rend des kilomètres avec la virgule décimale', () => {

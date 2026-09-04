@@ -29,13 +29,7 @@ export interface InputProps {
    * one, `new-password`. React Native maps both onto its own vocabulary.
    */
   autoComplete?:
-    | 'email'
-    | 'username'
-    | 'current-password'
-    | 'new-password'
-    | 'name'
-    | 'off'
-    | undefined;
+    'email' | 'username' | 'current-password' | 'new-password' | 'name' | 'off' | undefined;
   editable?: boolean | undefined;
   /**
    * `bare` retire le fond et le cadre : le champ vit alors dans un conteneur
@@ -99,9 +93,7 @@ export function Input({
               // §5: a field outline carries meaning, so it meets 3:1 — and the
               // error state changes more than the colour, it changes the width.
               borderWidth: field.invalid ? theme.stroke.thick : theme.stroke.hairline,
-              borderColor: field.invalid
-                ? theme.colours.danger.text
-                : theme.colours.borderStrong,
+              borderColor: field.invalid ? theme.colours.danger.text : theme.colours.borderStrong,
             }),
       }}
     >

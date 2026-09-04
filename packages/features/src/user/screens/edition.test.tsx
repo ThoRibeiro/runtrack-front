@@ -159,7 +159,9 @@ describe('EditProfileScreen', () => {
   it('dit ce que le serveur a refusé, et garde ce qui a été tapé', async () => {
     const harness = aRuntime();
     harness.users.onChangeHandle = () =>
-      Promise.reject(new RunTrackError({ code: 'HANDLE_TAKEN', message: 'déjà pris', status: 409 }));
+      Promise.reject(
+        new RunTrackError({ code: 'HANDLE_TAKEN', message: 'déjà pris', status: 409 }),
+      );
     await openEdition(harness);
 
     await userEvent.clear(screen.getByTestId('edit-handle'));

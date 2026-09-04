@@ -88,7 +88,8 @@ for (let index = 0; index < unitPoints.length; index += 1) {
 }
 
 const scale = distanceMetres / laps / perimeter;
-const metresPerDegreeLongitude = METRES_PER_DEGREE_LATITUDE * Math.cos((startLatitude * Math.PI) / 180);
+const metresPerDegreeLongitude =
+  METRES_PER_DEGREE_LATITUDE * Math.cos((startLatitude * Math.PI) / 180);
 
 // Translated so the first waypoint is the point that was asked for, rather than
 // the centre of the loop: a run starts where you say it starts.
@@ -105,8 +106,7 @@ waypoints.push(waypoints[0]);
 
 const durationSeconds = Math.round(distanceMetres / speed);
 const paceSeconds = Math.round(1000 / speed);
-const asClock = (total) =>
-  `${Math.floor(total / 60)}'${String(total % 60).padStart(2, '0')}`;
+const asClock = (total) => `${Math.floor(total / 60)}'${String(total % 60).padStart(2, '0')}`;
 
 console.log(
   `${(distanceMetres / 1000).toFixed(2)} km · ${asClock(paceSeconds)}/km · ` +

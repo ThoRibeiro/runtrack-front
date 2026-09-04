@@ -1,16 +1,7 @@
 import { useCallback, type ReactNode } from 'react';
 import { View } from 'react-native';
 import type { ActivityId, FeedItem } from '@runtrack/core';
-import {
-  Avatar,
-  Badge,
-  List,
-  Pressable,
-  Skeleton,
-  Text,
-  space,
-  useTheme,
-} from '@runtrack/ui';
+import { Avatar, Badge, List, Pressable, Skeleton, Text, space, useTheme } from '@runtrack/ui';
 import { describeError, translate } from '../../i18n';
 import { useUnreadCount } from '../../notification';
 import { itemsOf, useFeed } from '../../feed/hooks/useFeed';

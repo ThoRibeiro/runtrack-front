@@ -60,9 +60,7 @@ export function GroupedRows({ rows, testID }: GroupedRowsProps): ReactNode {
               paddingVertical: space.sm,
             }}
           >
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flex: 1 }}
-            >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flex: 1 }}>
               {row.icon !== undefined && (
                 <View
                   style={{

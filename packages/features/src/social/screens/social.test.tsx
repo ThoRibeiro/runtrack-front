@@ -36,7 +36,10 @@ describe('SocialScreen', () => {
     const harness = aRuntime();
     harness.social.results = [aProfile({ handle: 'camille' })];
     const onOpenProfile = jest.fn();
-    await renderWithRuntime(<SocialScreen onOpenProfile={onOpenProfile} onOpenRequests={noop} />, harness);
+    await renderWithRuntime(
+      <SocialScreen onOpenProfile={onOpenProfile} onOpenRequests={noop} />,
+      harness,
+    );
 
     await userEvent.type(screen.getByTestId('search-input'), 'ca');
     await userEvent.press(await screen.findByTestId('search-result-camille'));

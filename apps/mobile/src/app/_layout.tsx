@@ -67,7 +67,6 @@ function SafeArea({ children }: { children: ReactNode }): ReactNode {
   );
 }
 
-
 const queryClient = createQueryClient();
 
 export default function RootLayout() {

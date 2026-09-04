@@ -66,24 +66,24 @@ export function FollowRequestsScreen({ onBack }: FollowRequestsScreenProps = {})
         testID="follow-requests-header"
       />
       <View style={{ flex: 1, padding: space.md }}>
-      <List
-        data={requests.isPending ? undefined : (requests.data ?? [])}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.requestId}
-        emptyTitle={translate('social.requestsEmpty')}
-        emptyDescription={translate('social.requestsEmptyDetail')}
-        loading={requests.isPending}
-        loadingLabel={translate('common.loading')}
-        error={
-          described === undefined
-            ? undefined
-            : { title: described.title, message: described.detail }
-        }
-        onRetry={() => {
-          void requests.refetch();
-        }}
-        testID="follow-requests-list"
-      />
+        <List
+          data={requests.isPending ? undefined : (requests.data ?? [])}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.requestId}
+          emptyTitle={translate('social.requestsEmpty')}
+          emptyDescription={translate('social.requestsEmptyDetail')}
+          loading={requests.isPending}
+          loadingLabel={translate('common.loading')}
+          error={
+            described === undefined
+              ? undefined
+              : { title: described.title, message: described.detail }
+          }
+          onRetry={() => {
+            void requests.refetch();
+          }}
+          testID="follow-requests-list"
+        />
       </View>
     </View>
   );

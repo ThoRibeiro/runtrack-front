@@ -139,9 +139,7 @@ export function NativeMapSurface({
           <Marker
             key={marker.id}
             coordinate={marker.position}
-            {...(marker.avatar === undefined
-              ? { pinColor: colourFor(marker.kind, colours) }
-              : {})}
+            {...(marker.avatar === undefined ? { pinColor: colourFor(marker.kind, colours) } : {})}
             title={marker.accessibilityLabel}
             accessibilityLabel={marker.accessibilityLabel}
             // The runner marker moves every second: re-capturing its bitmap at
@@ -189,4 +187,5 @@ const styles = StyleSheet.create({
   },
   avatarImage: { width: '100%', height: '100%' },
   initial: { fontSize: AVATAR_INITIAL_SIZE, fontWeight: '700' },
- fill: { flex: 1 } });
+  fill: { flex: 1 },
+});

@@ -110,7 +110,6 @@ describe('la carte d’une course', () => {
     await renderWithRuntime(activityScreen(), harness);
     await screen.findByTestId('activity-screen');
 
-
     expect(await screen.findByLabelText('Kilomètre 1, 5:00')).toBeOnTheScreen();
   });
 

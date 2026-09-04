@@ -64,7 +64,9 @@ export class HttpUserGateway implements UserGateway {
     // qu'un `FormData` autour d'une URI `file://` y échoue avec « Network
     // request failed » — sans statut ni corps, indiscernable d'une coupure.
     if (this.http.canUploadFiles) {
-      return toMyProfile(await this.http.upload<MyProfileDto>('/user/v1/me/avatar/file', 'file', image));
+      return toMyProfile(
+        await this.http.upload<MyProfileDto>('/user/v1/me/avatar/file', 'file', image),
+      );
     }
 
     const form = new FormData();

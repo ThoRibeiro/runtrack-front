@@ -334,9 +334,7 @@ export function CommentThread({
               <Icon
                 name="send"
                 size={iconSize.sm}
-                colour={
-                  draft.trim() === '' ? theme.colours.textMuted : theme.colours.brand.onFill
-                }
+                colour={draft.trim() === '' ? theme.colours.textMuted : theme.colours.brand.onFill}
               />
             </View>
           </Pressable>

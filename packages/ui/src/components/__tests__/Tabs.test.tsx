@@ -29,7 +29,10 @@ describe('Tabs', () => {
     const selected = screen.getAllByRole('tab').filter((tab) => {
       const state: unknown = tab.props['accessibilityState'];
       return (
-        typeof state === 'object' && state !== null && 'selected' in state && state.selected === true
+        typeof state === 'object' &&
+        state !== null &&
+        'selected' in state &&
+        state.selected === true
       );
     });
 
@@ -65,7 +68,10 @@ describe('Tabs', () => {
       const state: unknown = tab.props['accessibilityState'];
       const named: unknown = tab.props['accessibilityLabel'];
       const selected =
-        typeof state === 'object' && state !== null && 'selected' in state && state.selected === true;
+        typeof state === 'object' &&
+        state !== null &&
+        'selected' in state &&
+        state.selected === true;
       return `${typeof named === 'string' ? named : '?'} ${selected ? 'sélectionné' : 'non'}`;
     });
 
