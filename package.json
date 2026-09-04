@@ -22,7 +22,9 @@
     "budget": "node scripts/check-web-budget.mjs --export",
     "lcp": "node perf/measure-lcp.mjs",
     "e2e": "pnpm --filter @runtrack/web e2e",
-    "logo": "node scripts/build-logo-assets.mjs"
+    "logo": "node scripts/build-logo-assets.mjs",
+    "simulate-run": "node scripts/simulate-run.mjs",
+    "simulate-hills": "node scripts/simulate-hills.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
