@@ -50,7 +50,10 @@ export function createSessionStore(runtime: Runtime): SessionStore {
       // device is concerned.
       if (current !== undefined) {
         try {
-          await runtime.auth.logOut(current.refreshToken);
+          // Le fournisseur d'identité d'abord : sans cela sa propre session
+          // resterait debout, et la connexion suivante reviendrait sans rien
+          // demander — ce qui se lit comme une déconnexion qui n'a pas marché.
+          await (runtime.identity ?? runtime.auth).logOut(current.refreshToken);
         } catch {
           // Deliberately swallowed — and the local session is cleared below,
           // which is the part that matters. Not an empty catch: the recovery

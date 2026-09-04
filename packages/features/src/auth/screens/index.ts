@@ -1,6 +1,8 @@
 export { AuthLayout } from './AuthLayout';
 export type { AuthLayoutProps } from './AuthLayout';
 export { AuthError } from './AuthError';
+export { ChooseHandleScreen } from './ChooseHandleScreen';
+export type { ChooseHandleScreenProps } from './ChooseHandleScreen';
 export { SignInScreen } from './SignInScreen';
 export type { SignInScreenProps } from './SignInScreen';
 export { SignUpScreen } from './SignUpScreen';

@@ -3,6 +3,7 @@ export {
   useRequestPasswordReset,
   useResetPassword,
   useSignIn,
+  useSignInWithProvider,
   useSignUp,
 } from './hooks/useAuthMutations';
 export { useVerifyEmail } from './hooks/useVerifyEmail';

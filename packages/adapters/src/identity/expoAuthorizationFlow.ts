@@ -13,6 +13,18 @@ import type { AuthorizationFlow } from './expoIdentityGateway';
  */
 maybeCompleteAuthSession();
 
+/**
+ * L'adresse de retour de la plateforme.
+ *
+ * Elle doit être **la même** pour la demande d'autorisation et pour l'échange du
+ * code : le fournisseur les compare, et deux valeurs différentes se soldent par
+ * un `invalid_grant` qui ne dit pas pourquoi. La coque la calcule une fois et la
+ * donne aux deux.
+ */
+export function defaultRedirectUri(): string {
+  return makeRedirectUri({ scheme: 'runtrack' });
+}
+
 export interface AuthorizationFlowOptions {
   authorizationEndpoint: string;
   clientId: string;
@@ -40,7 +52,7 @@ export interface AuthorizationFlowOptions {
  * and Apple's review — treat as phishing.
  */
 export function createExpoAuthorizationFlow(options: AuthorizationFlowOptions): AuthorizationFlow {
-  const redirectUri = options.redirectUri ?? makeRedirectUri({ scheme: 'runtrack' });
+  const redirectUri = options.redirectUri ?? defaultRedirectUri();
 
   return {
     async authorize() {

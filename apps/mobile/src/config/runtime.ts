@@ -10,6 +10,7 @@ import {
 } from '@runtrack/adapters/recording/native';
 import { ExpoPushRegistry } from '@runtrack/adapters/notification/native';
 import { ExpoFileUploader, ExpoImagePicker } from '@runtrack/adapters/media';
+import { identityFromEnvironment } from './identity';
 import { createRuntime, type Runtime } from '@runtrack/features';
 
 /**
@@ -41,10 +42,15 @@ void opening.then((opened) => {
   useBufferInBackground(opened);
 });
 
+const CLOCK = { now: () => Date.now() };
+
 export const runtime: Runtime = createRuntime({
   baseUrl,
   secureStore: secureStoreForPlatform(),
-  clock: { now: () => Date.now() },
+  clock: CLOCK,
+  // Absente tant qu'aucun realm n'est configuré : l'application garde alors son
+  // formulaire de connexion. Voir `identity.ts`.
+  identity: identityFromEnvironment(CLOCK),
   map: NativeMapSurface,
   dateField: NativeDateField,
   network: new ExpoNetworkMonitor(),

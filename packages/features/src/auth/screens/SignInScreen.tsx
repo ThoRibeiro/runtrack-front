@@ -2,7 +2,8 @@ import { useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { Button, FormField, Input, Pressable, Text, space } from '@runtrack/ui';
 import { translate } from '../../i18n';
-import { useSignIn } from '../hooks/useAuthMutations';
+import { useRuntime } from '../../runtime/RuntimeProvider';
+import { useSignIn, useSignInWithProvider } from '../hooks/useAuthMutations';
 import { validateEmail, validatePasswordPresence } from '../validation';
 import { AuthLayout } from './AuthLayout';
 
@@ -20,6 +21,61 @@ export interface SignInScreenProps {
 }
 
 export function SignInScreen({
+  onSignedIn,
+  onForgotPassword,
+  onSignUp,
+}: SignInScreenProps): ReactNode {
+  // La présence d'une passerelle d'identité est la bascule : quand les comptes
+  // sont tenus ailleurs, il n'y a plus de mot de passe à saisir ici — et un
+  // formulaire qui en demanderait un serait exactement ce qu'un gestionnaire de
+  // mots de passe apprend à se méfier.
+  const delegated = useRuntime().identity !== undefined;
+  if (delegated) {
+    return <ProviderSignIn onSignedIn={onSignedIn} />;
+  }
+  return (
+    <PasswordSignIn
+      onSignedIn={onSignedIn}
+      onForgotPassword={onForgotPassword}
+      onSignUp={onSignUp}
+    />
+  );
+}
+
+/**
+ * La connexion déléguée : un bouton, et le navigateur du système fait le reste.
+ *
+ * Refermer ce navigateur ne mène nulle part ailleurs qu'ici, sans bannière : la
+ * mutation rend `undefined`, et l'écran reste tel quel.
+ */
+function ProviderSignIn({ onSignedIn }: { onSignedIn: () => void }): ReactNode {
+  const signIn = useSignInWithProvider();
+
+  return (
+    <AuthLayout
+      title={translate('auth.provider.title')}
+      subtitle={translate('auth.provider.subtitle')}
+      error={signIn.error}
+      testID="sign-in"
+    >
+      <Button
+        label={translate('auth.provider.submit')}
+        onPress={() => {
+          signIn.mutate(undefined, {
+            onSuccess: (session) => {
+              if (session !== undefined) onSignedIn();
+            },
+          });
+        }}
+        loading={signIn.isPending}
+        fullWidth
+        testID="sign-in-submit"
+      />
+    </AuthLayout>
+  );
+}
+
+function PasswordSignIn({
   onSignedIn,
   onForgotPassword,
   onSignUp,

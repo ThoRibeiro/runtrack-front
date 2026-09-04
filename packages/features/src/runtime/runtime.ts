@@ -2,6 +2,7 @@ import type {
   ActivityGateway,
   AuthGateway,
   Clock,
+  IdentityGateway,
   FeedGateway,
   EngagementGateway,
   FileUploader,
@@ -57,6 +58,15 @@ export interface Runtime {
   /** The base URL, kept so a share page can build its own paths (§10, web). */
   baseUrl: string;
   auth: AuthGateway;
+  /**
+   * Le fournisseur d'identité, quand c'est lui qui tient les comptes.
+   *
+   * **Sa présence est la bascule.** Une seconde variable qui dirait « on est en
+   * OIDC » à côté d'une adresse de realm finirait par la contredire ; ici la
+   * coque construit la passerelle quand elle a de quoi, et les écrans n'ont
+   * qu'une question à poser : y en a-t-il une.
+   */
+  identity: IdentityGateway | undefined;
   activities: ActivityGateway;
   users: UserGateway;
   feed: FeedGateway;
@@ -150,6 +160,12 @@ export interface RuntimeOptions {
    * endpoints.
    */
   push?: ((devices: HttpDeviceGateway) => PushRegistry) | undefined;
+  /**
+   * Construite par la coque à partir de `EXPO_PUBLIC_KEYCLOAK_ISSUER` : elle
+   * ne dépend pas du client HTTP — les échanges avec le realm sont des `fetch`
+   * qui ne portent pas de bearer — donc rien n'oblige à la bâtir ici.
+   */
+  identity?: IdentityGateway | undefined;
 }
 
 export function createRuntime({
@@ -164,6 +180,7 @@ export function createRuntime({
   network,
   imagePicker,
   uploader,
+  identity,
 }: RuntimeOptions): Runtime {
   const sessions = new SessionHolder(secureStore);
 
@@ -176,6 +193,9 @@ export function createRuntime({
   const refresh = new RefreshCoordinator(
     sessions,
     (refreshToken) => {
+      // Le fournisseur d'identité l'emporte : c'est lui qui a émis le jeton, et
+      // lui seul sait le renouveler. `auth` reste le chemin du mode local.
+      if (identity !== undefined) return identity.refresh(refreshToken);
       if (auth === undefined)
         throw new Error('Runtime incomplet : passerelle d’authentification absente');
       return auth.refresh(refreshToken);
@@ -211,6 +231,7 @@ export function createRuntime({
   return {
     baseUrl,
     auth,
+    identity,
     activities: new HttpActivityGateway(http),
     users: new HttpUserGateway(http),
     feed: new HttpFeedGateway(http),

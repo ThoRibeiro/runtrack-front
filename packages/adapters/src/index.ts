@@ -51,5 +51,5 @@ export { AlwaysOnlineMonitor, BrowserNetworkMonitor } from './system/browserNetw
 // cibles, et il n'a pas de raison de vivre derrière un sous-chemin natif.
 export { ExpoIdentityGateway } from './identity/expoIdentityGateway';
 export type { AuthorizationFlow, TokenExchanges } from './identity/expoIdentityGateway';
-export { createExpoAuthorizationFlow } from './identity/expoAuthorizationFlow';
+export { createExpoAuthorizationFlow, defaultRedirectUri } from './identity/expoAuthorizationFlow';
 export type { AuthorizationFlowOptions } from './identity/expoAuthorizationFlow';

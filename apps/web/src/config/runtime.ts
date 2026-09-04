@@ -2,6 +2,7 @@ import { BrowserNetworkMonitor, secureStoreForPlatform } from '@runtrack/adapter
 import { WebMapSurface } from '@runtrack/adapters/map/web';
 import { WebDateField } from '@runtrack/adapters/datetime/web';
 import { ExpoImagePicker } from '@runtrack/adapters/media';
+import { identityFromEnvironment } from './identity';
 import { createRuntime, type Runtime } from '@runtrack/features';
 
 /**
@@ -20,10 +21,15 @@ const configured: unknown = process.env['EXPO_PUBLIC_API_URL'];
 const baseUrl =
   typeof configured === 'string' && configured !== '' ? configured : 'http://localhost:8080';
 
+const CLOCK = { now: () => Date.now() };
+
 export const runtime: Runtime = createRuntime({
   baseUrl,
   secureStore: secureStoreForPlatform(),
-  clock: { now: () => Date.now() },
+  clock: CLOCK,
+  // Absente tant qu'aucun realm n'est configuré : l'application garde alors son
+  // formulaire de connexion. Voir `identity.ts`.
+  identity: identityFromEnvironment(CLOCK),
   map: WebMapSurface,
   dateField: WebDateField,
   // §9 : `navigator.onLine` est faible, mais il a raison sur le cas qui compte

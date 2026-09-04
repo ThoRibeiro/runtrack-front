@@ -28,6 +28,23 @@ export const fr = {
   'auth.signIn.noAccount': 'Pas encore de compte ? Créer un compte',
   'auth.signIn.emailPlaceholder': 'vous@exemple.fr',
 
+  // Connexion déléguée à un fournisseur d'identité : un bouton, puis le
+  // navigateur du système prend la main.
+  'auth.provider.title': 'Content de vous revoir',
+  'auth.provider.subtitle':
+    'La connexion se fait sur une page sécurisée, dans votre navigateur.',
+  'auth.provider.submit': 'Se connecter',
+  'auth.provider.cancelled': 'Connexion abandonnée. Vous pouvez réessayer.',
+
+  // Le pseudo d'attente, à remplacer une fois le compte ouvert.
+  'auth.handle.title': 'Choisissez votre pseudo',
+  'auth.handle.subtitle':
+    'Il apparaît sur votre profil et dans le lien que vous partagez. Vous pourrez le changer plus tard.',
+  'auth.handle.submit': 'Continuer',
+  'auth.handle.later': 'Plus tard',
+  'auth.handle.label': 'Pseudo',
+  'auth.handle.placeholder': 'marie',
+
   'auth.signUp.title': 'Créer un compte',
   'auth.signUp.handle': 'Pseudonyme',
   'auth.signUp.handleHint': 'Entre 3 et 30 caractères, visible par les autres coureurs',

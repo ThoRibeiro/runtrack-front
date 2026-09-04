@@ -11,6 +11,7 @@ import {
   type MapRenderer,
   type NetworkMonitor,
   type SecureStore,
+  type IdentityGateway,
   type Session,
 } from '@runtrack/core';
 import { FakeLiveStream, FakeLocationTracker, InMemoryPointBuffer } from '@runtrack/core/testing';
@@ -187,6 +188,32 @@ export interface Harness {
   notificationStream: FakeNotificationStream;
   engagement: FakeEngagementGateway;
   sharing: FakeSharingGateway;
+  /** Posée seulement quand le test demande le monde délégué. */
+  identity: FakeIdentityGateway | undefined;
+}
+
+/**
+ * Un fournisseur d'identité qui ne parle à personne.
+ *
+ * `session` vaut `undefined` pour rejouer le navigateur refermé sans connexion,
+ * qui est une réponse et non une panne.
+ */
+export class FakeIdentityGateway implements IdentityGateway {
+  session: Session | undefined = aSession();
+  signedOut: string[] = [];
+
+  logIn(): Promise<Session | undefined> {
+    return Promise.resolve(this.session);
+  }
+
+  refresh(): Promise<Session> {
+    return Promise.resolve(aSession());
+  }
+
+  logOut(refreshToken: string): Promise<void> {
+    this.signedOut.push(refreshToken);
+    return Promise.resolve();
+  }
 }
 
 /** A network a test switches on and off by hand. */
@@ -210,7 +237,12 @@ export class TestNetworkMonitor implements NetworkMonitor {
   }
 }
 
-export function aRuntime(options: { session?: Session } = {}): Harness {
+export function aRuntime(
+  options: { session?: Session; delegatedIdentity?: boolean } = {},
+): Harness {
+  // Le monde délégué ne s'invite pas : un test le demande, sinon les écrans
+  // gardent le formulaire de connexion qu'ils ont toujours eu.
+  const identity = options.delegatedIdentity === true ? new FakeIdentityGateway() : undefined;
   const clock = new FixedClock(NOW);
   const store =
     options.session === undefined
@@ -267,6 +299,7 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
   const runtime: Runtime = {
     baseUrl: 'https://api.test',
     auth,
+    identity,
     activities,
     users,
     feed,
@@ -316,6 +349,7 @@ export function aRuntime(options: { session?: Session } = {}): Harness {
     notificationStream,
     engagement,
     sharing,
+    identity,
   };
 }
 

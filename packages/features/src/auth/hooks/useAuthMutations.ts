@@ -21,6 +21,34 @@ export function useSignIn(): UseMutationResult<Session, unknown, Credentials> {
   });
 }
 
+/**
+ * La connexion déléguée : un navigateur s'ouvre sur le fournisseur, et la
+ * session arrive au retour.
+ *
+ * Rend `undefined` quand la personne referme le navigateur sans se connecter.
+ * Ce n'est pas un échec, donc `onSuccess` n'adopte rien et l'écran ne bouge
+ * pas — une bannière d'erreur pour « j'ai changé d'avis » serait du bruit.
+ */
+export function useSignInWithProvider(): UseMutationResult<Session | undefined, unknown, void> {
+  const runtime = useRuntime();
+  const { adopt } = useSessionActions();
+
+  return useMutation({
+    mutationFn: () => {
+      const identity = runtime.identity;
+      if (identity === undefined) {
+        return Promise.reject(
+          new Error('Aucun fournisseur d’identité configuré sur cette application'),
+        );
+      }
+      return identity.logIn();
+    },
+    onSuccess: async (session) => {
+      if (session !== undefined) await adopt(session);
+    },
+  });
+}
+
 export function useSignUp(): UseMutationResult<void, unknown, SignUpCommand> {
   const runtime = useRuntime();
   return useMutation({ mutationFn: (command: SignUpCommand) => runtime.auth.signUp(command) });
