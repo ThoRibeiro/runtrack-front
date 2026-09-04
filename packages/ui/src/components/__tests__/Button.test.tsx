@@ -54,4 +54,16 @@ describe('Button', () => {
 
     expect(screen.getByRole('button', { name: 'Partager' })).toBeOnTheScreen();
   });
+
+  it('porte la mise en page qu’on lui donne, et pas seulement le geste', async () => {
+    await renderInTheme(<Button label="Suivre" onPress={() => undefined} style={{ flex: 1 }} />);
+
+    const button = screen.getByRole('button', { name: 'Suivre' });
+    // Les deux sur le *même* nœud, et c'est tout l'objet du test : l'animation
+    // de pression a longtemps vécu sur une vue enveloppante sans flex, qui
+    // ramenait chaque bouton à sa largeur naturelle. Deux boutons censés se
+    // partager une ligne se tassaient à gauche, et une rangée d'onglets aussi.
+    expect(button).toHaveStyle({ flex: 1 });
+    expect(button).toHaveStyle({ transform: [{ scale: 1 }] });
+  });
 });

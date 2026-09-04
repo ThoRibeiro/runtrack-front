@@ -1,13 +1,7 @@
-import type { ActivityId, UserId } from '../../shared/identity/ids';
+import type { ActivityId } from '../../shared/identity/ids';
 import type { Instant } from '../../shared/time/clock';
 import type { ActivityStatus, ActivityType } from '../../activity/domain/activity';
-
-export interface FeedAuthor {
-  id: UserId;
-  handle: string;
-  displayName: string;
-  avatarUrl: string | undefined;
-}
+import type { Author } from '../../user/domain/profile';
 
 /**
  * One card in the feed.
@@ -20,7 +14,7 @@ export interface FeedAuthor {
  */
 export interface FeedItem {
   activityId: ActivityId;
-  author: FeedAuthor;
+  author: Author;
   type: ActivityType;
   title: string;
   status: ActivityStatus;

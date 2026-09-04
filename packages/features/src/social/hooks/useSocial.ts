@@ -94,6 +94,26 @@ export function useBlock(): UseMutationResult<void, unknown, UserId> {
   });
 }
 
+/**
+ * Le retour en arrière, et il est plus rare qu'il n'y paraît.
+ *
+ * Rien côté serveur ne dit *qu'un compte est bloqué* : ni le profil public, ni
+ * une liste de blocages. L'écran ne peut donc proposer le déblocage qu'à la
+ * suite du blocage qu'il vient de faire — sortir de la page perd l'information.
+ * C'est un manque de l'API, noté ici parce que c'est ici qu'il se voit.
+ */
+export function useUnblock(): UseMutationResult<void, unknown, UserId> {
+  const runtime = useRuntime();
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: UserId) => runtime.social.unblock(id),
+    onSuccess: async () => {
+      await client.invalidateQueries();
+    },
+  });
+}
+
 export function useAnswerFollowRequest(): UseMutationResult<
   void,
   unknown,

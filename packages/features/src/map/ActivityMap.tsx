@@ -36,7 +36,11 @@ export interface ActivityMapProps {
   accessibilityLabel?: string | undefined;
   /** Faux pour une vignette de liste : la carte se regarde, la liste défile. */
   interactive?: boolean | undefined;
-  /** §3 : sombre pendant une course, comme les panneaux posés dessus. */
+  /**
+   * Sombre. Par défaut celui du thème : une carte en plein jour au milieu d'un
+   * fil sombre est la seule chose lumineuse de l'écran, et c'est elle qu'on
+   * voit avant la course qu'elle dessine.
+   */
   dark?: boolean | undefined;
   testID?: string | undefined;
 }
@@ -49,7 +53,7 @@ export function ActivityMap({
   onPresenter,
   accessibilityLabel,
   interactive = true,
-  dark = false,
+  dark,
   testID,
 }: ActivityMapProps): ReactNode {
   const { map: MapSurface } = useRuntime();
@@ -145,7 +149,7 @@ export function ActivityMap({
     <View style={{ flex: 1, backgroundColor: theme.colours.surfaceAlt }} testID={testID}>
       <MapSurface
         interactive={interactive}
-        dark={dark}
+        dark={dark ?? theme.isDark}
         onReady={handleReady}
         accessibilityLabel={accessibilityLabel ?? translate(live ? 'map.labelLive' : 'map.label')}
         colours={colours}

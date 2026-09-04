@@ -25,6 +25,7 @@ import {
   ChunkedTrackDecoder,
   SystemRandom,
   SystemScheduler,
+  type DateFieldSurface,
   type MapSurfaceComponent,
 } from '@runtrack/adapters';
 import {
@@ -73,6 +74,12 @@ export interface Runtime {
    * has to *mount* a map — and the hexagon has never heard of a component.
    */
   map: MapSurfaceComponent;
+  /**
+   * Le champ date, pour la même raison que la carte : le calendrier de l'OS et
+   * celui du navigateur s'ouvrent par deux API sans rien de commun, et aucun
+   * des deux ne se dessine à la main sans perdre au change.
+   */
+  dateField: DateFieldSurface;
   trackDecoder: TrackDecoder;
   /** §7: the SSE stream, behind its port — `EventSource` is not an option. */
   live: LiveStream;
@@ -121,6 +128,7 @@ export interface RuntimeOptions {
   secureStore: SecureStore;
   clock: Clock;
   map: MapSurfaceComponent;
+  dateField: DateFieldSurface;
   /** Defaults to the sliced decoder; a test hands in its own. */
   trackDecoder?: TrackDecoder | undefined;
   /** Mobile only (§2). */
@@ -149,6 +157,7 @@ export function createRuntime({
   secureStore,
   clock,
   map,
+  dateField,
   trackDecoder,
   recording,
   push,
@@ -213,6 +222,7 @@ export function createRuntime({
     refresh,
     clock,
     map,
+    dateField,
     trackDecoder: trackDecoder ?? new ChunkedTrackDecoder(),
     live,
     notifications: new HttpNotificationGateway(http),

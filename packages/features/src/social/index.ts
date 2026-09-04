@@ -1,5 +1,5 @@
-export { SearchScreen } from './screens/SearchScreen';
-export type { SearchScreenProps } from './screens/SearchScreen';
+export { SocialScreen } from './screens/SocialScreen';
+export type { SocialScreenProps } from './screens/SocialScreen';
 export { FollowRequestsScreen } from './screens/FollowRequestsScreen';
 export { FollowListScreen } from './screens/FollowListScreen';
 export type { FollowListScreenProps } from './screens/FollowListScreen';
@@ -11,5 +11,6 @@ export {
   useFollowers,
   useFollowing,
   useSearchRunners,
+  useUnblock,
   useUnfollow,
 } from './hooks/useSocial';

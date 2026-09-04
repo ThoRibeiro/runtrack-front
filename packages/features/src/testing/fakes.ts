@@ -62,12 +62,19 @@ export const NO_STATS: ActivityStats = {
   elevationLoss: 0,
   averageHeartRate: undefined,
   maxHeartRate: undefined,
+  estimatedCalories: undefined,
 };
 
 export function anActivity(overrides: Partial<Activity> = {}): Activity {
   return {
     id: activityId('a1'),
     ownerId: userId('u-42'),
+    author: {
+      id: userId('u-42'),
+      handle: 'thomas',
+      displayName: 'Thomas',
+      avatarUrl: undefined,
+    },
     type: 'RUN',
     title: 'Sortie du matin',
     description: undefined,

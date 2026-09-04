@@ -11,6 +11,12 @@ export interface StatTileProps {
   spokenUnit?: string | undefined;
   /** Same reason as `MetricCard`: "1:04:22" is not a sentence. */
   spokenValue?: string | undefined;
+  /**
+   * Centré quand plusieurs tuiles se partagent une ligne à parts égales : à
+   * gauche, chaque valeur commence là où finit le mot au-dessus, et cinq
+   * colonnes de largeurs différentes n'alignent plus rien.
+   */
+  align?: 'left' | 'center' | undefined;
   testID?: string | undefined;
 }
 
@@ -20,19 +26,33 @@ export function StatTile({
   unit,
   spokenUnit,
   spokenValue,
+  align = 'left',
   testID,
 }: StatTileProps): ReactNode {
+  const centred = align === 'center';
+
   return (
     <View
       accessible
       accessibilityLabel={`${label}, ${spokenValue ?? `${value} ${spokenUnit ?? unit ?? ''}`}`.trim()}
       testID={testID}
-      style={{ gap: space.xxs, minWidth: space['4xl'] }}
+      style={{
+        gap: space.xxs,
+        minWidth: space['4xl'],
+        ...(centred ? { alignItems: 'center' } : {}),
+      }}
     >
       <Text variant="caption" tone="muted" decorative>
         {label}
       </Text>
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.xxs }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          gap: space.xxs,
+          ...(centred ? { justifyContent: 'center' } : {}),
+        }}
+      >
         <Text variant="section" decorative>
           {value}
         </Text>

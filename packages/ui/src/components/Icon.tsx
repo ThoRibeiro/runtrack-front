@@ -106,6 +106,10 @@ const ICONS = {
     'M18.4 18.4a9 9 0 0 0 0-12.8',
   ],
   crosshair: ['M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18', 'M12 2v4', 'M12 18v4', 'M2 12h4', 'M18 12h4'],
+  // Les deux façons de regarder ses courses. Trois colonnes et non deux : c'est
+  // la densité qui fait qu'on reconnaît une sortie à sa forme sans la lire.
+  grid: ['M4 4h16v16H4z', 'M4 9.33h16', 'M4 14.67h16', 'M9.33 4v16', 'M14.67 4v16'],
+  list: ['M8 6h12', 'M8 12h12', 'M8 18h12', 'M4 6h.01', 'M4 12h.01', 'M4 18h.01'],
 } as const;
 
 export type IconName = keyof typeof ICONS;

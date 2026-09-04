@@ -1,5 +1,6 @@
 import { secureStoreForPlatform } from '@runtrack/adapters';
 import { NativeMapSurface } from '@runtrack/adapters/map/native';
+import { NativeDateField } from '@runtrack/adapters/datetime/native';
 import {
   ExpoLocationTracker,
   ExpoNetworkMonitor,
@@ -45,6 +46,7 @@ export const runtime: Runtime = createRuntime({
   secureStore: secureStoreForPlatform(),
   clock: { now: () => Date.now() },
   map: NativeMapSurface,
+  dateField: NativeDateField,
   network: new ExpoNetworkMonitor(),
   recording: {
     buffer,

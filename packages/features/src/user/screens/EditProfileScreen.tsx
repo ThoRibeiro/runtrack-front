@@ -17,8 +17,10 @@ import {
   Input,
   Pressable,
   ScreenHeader,
+  SectionHeader,
   Select,
   Skeleton,
+  Slider,
   Text,
   TextArea,
   iconSize,
@@ -27,6 +29,7 @@ import {
   useToast,
 } from '@runtrack/ui';
 import { validateDisplayName, validateHandle } from '../../auth/validation';
+import { DateField } from '../components/DateField';
 import { describeError, translate } from '../../i18n';
 import { useMe } from '../hooks/useProfile';
 import {
@@ -50,11 +53,16 @@ import {
 /**
  * Editing one's own profile — the photo, then who one is, then the body.
  *
- * The form asks its questions **inside** the fields rather than above them, so
- * the screen reads as a list of questions instead of a wall of labels. The
- * labels are still there for a screen reader (`labelHidden`), because a
- * placeholder disappears the moment someone starts typing and cannot be the
- * only thing that says what a field is.
+ * Every field is labelled, above it and in plain sight. The form used to ask
+ * its questions *inside* the fields instead, which reads well while they are
+ * empty and not at all once they are filled: three rounded boxes holding
+ * « Jean », « jean » and « Hello moi c'est jean » say nothing about which one is
+ * the name. A placeholder disappears the moment someone types, so it can never
+ * be the only thing that says what a field is.
+ *
+ * The sections above them — who I am, my body, who can see me — group what is
+ * saved together, which is also what is *sent* together: three endpoints, three
+ * groups.
  *
  * Three groups, three endpoints, and only what changed is sent: renaming a
  * handle is a uniqueness check on the server, and firing it on every save
@@ -99,12 +107,7 @@ export function EditProfileScreen({ onSaved, onBack }: EditProfileScreenProps): 
   // Mounted with the loaded values: a form whose initial state is filled in by
   // an effect flickers, and loses whatever was typed while it was loading.
   return (
-    <ProfileForm
-      profile={me.data}
-      physiology={physiology.data}
-      onSaved={onSaved}
-      onBack={onBack}
-    />
+    <ProfileForm profile={me.data} physiology={physiology.data} onSaved={onSaved} onBack={onBack} />
   );
 }
 
@@ -327,10 +330,11 @@ function ProfileForm({
           )}
         </View>
 
+        <SectionHeader title={translate('profile.identity')} />
+
         <FormField
           label={translate('profile.displayName')}
           error={messageFor('displayName')}
-          labelHidden
           required
         >
           {(field) => (
@@ -338,27 +342,29 @@ function ProfileForm({
               field={field}
               value={displayName}
               onChangeText={setDisplayName}
-              placeholder={translate('profile.displayNameAsk')}
               autoComplete="name"
               testID="edit-display-name"
             />
           )}
         </FormField>
 
-        <FormField label={translate('profile.handle')} error={messageFor('handle')} labelHidden required>
+        <FormField
+          label={translate('profile.handle')}
+          error={messageFor('handle')}
+          required
+        >
           {(field) => (
             <Input
               field={field}
               value={handle}
               onChangeText={setHandle}
-              placeholder={translate('profile.handleAsk')}
               autoComplete="username"
               testID="edit-handle"
             />
           )}
         </FormField>
 
-        <FormField label={translate('profile.bio')} error={messageFor('bio')} labelHidden>
+        <FormField label={translate('profile.bio')} error={messageFor('bio')}>
           {(field) => (
             <TextArea
               field={field}
@@ -371,14 +377,20 @@ function ProfileForm({
           )}
         </FormField>
 
-        <FormField label={translate('profile.biologicalSex')} labelHidden>
+        <SectionHeader title={translate('profile.body')} />
+        {/* §11: health data. Saying what it is for is part of asking for it. */}
+        <Text variant="caption" tone="muted">
+          {translate('profile.physiologyWhy')}
+        </Text>
+
+        <FormField label={translate('profile.biologicalSex')}>
           {(field) => (
             <Select
               field={field}
               defaultValue="UNSPECIFIED"
               value={sex}
               onValueChange={setSex}
-              placeholder={translate('profile.biologicalSexAsk')}
+              placeholder={translate('profile.notSet')}
               options={BIOLOGICAL_SEXES.map((candidate) => ({
                 value: candidate,
                 label: translate(`sex.${candidate}`),
@@ -388,66 +400,58 @@ function ProfileForm({
           )}
         </FormField>
 
-        <FormField label={translate('profile.birthDate')} error={messageFor('birthDate')} labelHidden>
-          {(field) => (
-            <Input
-              field={field}
-              value={birthDate}
-              onChangeText={setBirthDate}
-              placeholder={translate('profile.birthDateAsk')}
-              icon="calendar"
-              testID="edit-birth-date"
-            />
-          )}
-        </FormField>
+        <DateField
+          label={translate('profile.birthDate')}
+          value={birthDate}
+          onChange={setBirthDate}
+          placeholder={translate('profile.birthDatePick')}
+          error={messageFor('birthDate')}
+          testID="edit-birth-date"
+        />
 
-        <FormField label={translate('profile.weight')} error={messageFor('weight')} labelHidden>
-          {(field) => (
-            <Input
-              field={field}
-              value={weight}
-              onChangeText={setWeight}
-              placeholder={translate('profile.weightAsk')}
-              keyboardType="decimal-pad"
-              testID="edit-weight"
-            />
-          )}
-        </FormField>
+        <Measure
+          label={translate('profile.weight')}
+          value={weight}
+          onChange={setWeight}
+          minimum={WEIGHT_RANGE.minimum}
+          maximum={WEIGHT_RANGE.maximum}
+          fallback={WEIGHT_RANGE.fallback}
+          unit="profile.weightValue"
+          error={messageFor('weight')}
+          testID="edit-weight"
+        />
 
-        <FormField label={translate('profile.height')} error={messageFor('height')} labelHidden>
-          {(field) => (
-            <Input
-              field={field}
-              value={height}
-              onChangeText={setHeight}
-              placeholder={translate('profile.heightAsk')}
-              keyboardType="decimal-pad"
-              testID="edit-height"
-            />
-          )}
-        </FormField>
+        <Measure
+          label={translate('profile.height')}
+          value={height}
+          onChange={setHeight}
+          minimum={HEIGHT_RANGE.minimum}
+          maximum={HEIGHT_RANGE.maximum}
+          fallback={HEIGHT_RANGE.fallback}
+          unit="profile.heightValue"
+          error={messageFor('height')}
+          testID="edit-height"
+        />
 
-        <FormField label={translate('profile.accountScope')} labelHidden>
+        <SectionHeader title={translate('profile.privacy')} />
+
+        <FormField label={translate('profile.accountScope')}>
           {(field) => (
             <Select
               field={field}
               defaultValue="FOLLOWERS"
               value={scope}
               onValueChange={setScope}
-              placeholder={translate('profile.accountScope')}
+              // La feuille porte déjà la question en titre : la reprendre sur
+              // chacune des trois réponses la faisait lire quatre fois.
               options={VISIBILITIES.map((candidate) => ({
                 value: candidate,
-                label: `${translate('profile.accountScope')} — ${translate(`visibility.${candidate}`)}`,
+                label: translate(`visibility.${candidate}`),
               }))}
               testID="edit-scope"
             />
           )}
         </FormField>
-
-        {/* §11: health data. Saying what it is for is part of asking for it. */}
-        <Text variant="caption" tone="muted">
-          {translate('profile.physiologyWhy')}
-        </Text>
 
         {failure !== undefined && (
           <Card tone="alt" testID="edit-profile-failure">
@@ -465,7 +469,6 @@ function ProfileForm({
           testID="edit-profile-save"
         />
       </ScrollView>
-
     </View>
   );
 }
@@ -473,4 +476,92 @@ function ProfileForm({
 /** A number the runner can edit as text — and an absent one as an empty field. */
 function numberField(value: number | undefined): string {
   return value === undefined ? '' : String(value);
+}
+
+/**
+ * Les bornes, et la valeur d'où part quelqu'un qui n'a rien renseigné.
+ *
+ * Elles sont plus larges que les plages plausibles parce qu'elles ne valident
+ * rien : `validateWeight` reste seul juge, et une borne de curseur qui refuse
+ * ce que le formulaire accepte est une impasse silencieuse.
+ */
+const WEIGHT_RANGE = { minimum: 30, maximum: 200, fallback: 70 } as const;
+const HEIGHT_RANGE = { minimum: 100, maximum: 230, fallback: 175 } as const;
+
+/**
+ * Un poids, une taille : une valeur qu'on fait glisser plutôt qu'on ne tape.
+ *
+ * Le clavier numérique demandait de savoir son poids au dixième près pour un
+ * champ dont personne ne connaît la précision attendue. Un curseur donne
+ * l'ordre de grandeur d'un geste, et laisse la valeur exacte lisible à côté.
+ *
+ * « Non renseigné » est un état, pas un zéro : la physiologie est facultative
+ * (§11), et un curseur posé à 70 kg sur un profil vide aurait déclaré un poids
+ * que personne n'a donné. Il faut y toucher pour que la valeur existe, et
+ * « Effacer » la fait repartir.
+ */
+function Measure({
+  label,
+  value,
+  onChange,
+  minimum,
+  maximum,
+  fallback,
+  unit,
+  error,
+  testID,
+}: {
+  label: string;
+  value: string;
+  onChange: (next: string) => void;
+  minimum: number;
+  maximum: number;
+  fallback: number;
+  unit: 'profile.weightValue' | 'profile.heightValue';
+  error: string | undefined;
+  testID: string;
+}): ReactNode {
+  const numeric = Number(value.replace(',', '.'));
+  const set = value.trim() !== '' && Number.isFinite(numeric);
+  const shown = set ? translate(unit, { value: numeric }) : translate('profile.notSet');
+
+  return (
+    <FormField label={label} error={error} labelHidden>
+      {(field) => (
+        <View style={{ gap: space.xs }}>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: space.sm }}>
+            <Text variant="caption" tone="muted" decorative style={{ flex: 1 }}>
+              {label}
+            </Text>
+            <Text variant="bodyStrong" decorative testID={`${testID}-value`}>
+              {shown}
+            </Text>
+            {set && (
+              <Button
+                label={translate('profile.clear')}
+                variant="ghost"
+                size="sm"
+                onPress={() => {
+                  onChange('');
+                }}
+                testID={`${testID}-clear`}
+              />
+            )}
+          </View>
+          <Slider
+            field={field}
+            minimum={minimum}
+            maximum={maximum}
+            value={set ? numeric : fallback}
+            defaultValue={fallback}
+            onValueChange={(next) => {
+              onChange(String(next));
+            }}
+            formatValue={(current) => translate(unit, { value: current })}
+            testID={testID}
+          />
+        </View>
+      )}
+    </FormField>
+  );
 }

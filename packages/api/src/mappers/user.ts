@@ -5,7 +5,7 @@ import {
   STATS_PERIODS,
   VISIBILITIES,
   userId,
-  type FeedAuthor,
+  type Author,
   type MyProfile,
   type Physiology,
   type PublicProfile,
@@ -73,11 +73,22 @@ export function toRunnerTotals(dto: TotalsDto): RunnerTotals {
   };
 }
 
-export function toAuthor(dto: AuthorDto | undefined): FeedAuthor {
+export function toAuthor(dto: AuthorDto | undefined): Author {
   return {
     id: userId(required(dto?.id, 'auteur')),
     handle: dto?.handle ?? '',
     displayName: dto?.displayName ?? '',
     avatarUrl: toOptionalString(dto?.avatarUrl),
   };
+}
+
+/**
+ * L'auteur quand le serveur en met un.
+ *
+ * Une ligne de fil en a toujours un — sans lui elle n'a rien à annoncer, et
+ * `toAuthor` échoue. Une course, non : les réponses du direct ne portent que
+ * des chiffres, et l'absence y est normale plutôt qu'une réponse tronquée.
+ */
+export function toOptionalAuthor(dto: AuthorDto | undefined): Author | undefined {
+  return dto?.id === undefined ? undefined : toAuthor(dto);
 }

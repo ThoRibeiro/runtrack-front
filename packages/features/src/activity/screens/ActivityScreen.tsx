@@ -3,7 +3,6 @@ import { AccessibilityInfo, ScrollView, View, useWindowDimensions } from 'react-
 import type { ActivityId, ActivityMapPresenter } from '@runtrack/core';
 import { isTerminal } from '@runtrack/core';
 import {
-  Button,
   Chip,
   ErrorState,
   FloatingIconButton,
@@ -12,7 +11,6 @@ import {
   Modal,
   SectionHeader,
   OfflineState,
-  Sheet,
   Skeleton,
   Spinner,
   StatTile,
@@ -24,7 +22,6 @@ import {
   effortOf,
   formatDuration,
   formatKilometres,
-  formatPace,
   formatWhole,
   spokenDuration,
   usesSpeed,
@@ -34,6 +31,7 @@ import { CommentThread, LikeButton, ShareSheet } from '../../engagement';
 import { ActivityMap, useDecodedTrack, useTrack } from '../../map';
 import { useRuntime } from '../../runtime/RuntimeProvider';
 import { iconForActivityType } from '../activityIcon';
+import { AuthorLine } from '../components/AuthorLine';
 import { useActivity, useDeleteActivity, useSplits } from '../hooks/useActivity';
 import { useLiveActivity } from '../../live/hooks/useLiveActivity';
 import { useMe } from '../../user/hooks/useProfile';
@@ -57,6 +55,11 @@ export interface ActivityScreenProps {
   onDeleted?: (() => void) | undefined;
 }
 
+/** Une colonne du bloc de chiffres : même part de la ligne pour chacune. */
+function Stat({ children }: { children: ReactNode }): ReactNode {
+  return <View style={{ flexGrow: 1, flexBasis: '30%' }}>{children}</View>;
+}
+
 export function ActivityScreen({
   id,
   onBack,
@@ -69,7 +72,6 @@ export function ActivityScreen({
   const [sharing, setSharing] = useState(false);
   const { height } = useWindowDimensions();
   const activity = useActivity(id);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const me = useMe();
   const remove = useDeleteActivity();
@@ -175,37 +177,13 @@ export function ActivityScreen({
           onPresenter={handlePresenter}
           testID="activity-map"
         />
-        <View
-          style={{
-            position: 'absolute',
-            top: space.lg,
-            left: space.md,
-            right: space.md,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}
-        >
+        <View style={{ position: 'absolute', top: space.lg, left: space.md }}>
           <FloatingIconButton
             icon="arrow-left"
             accessibilityLabel={translate('activity.back')}
             onPress={onBack}
             testID="activity-back"
           />
-          {/*
-            Le menu n'apparaît que sur ses propres courses : sur celle d'un
-            autre, il n'aurait rien à proposer — un bouton qui ouvre un panneau
-            vide est pire que pas de bouton.
-          */}
-          {mine && (
-            <FloatingIconButton
-              icon="more-horizontal"
-              accessibilityLabel={translate('activity.menu')}
-              onPress={() => {
-                setMenuOpen(true);
-              }}
-              testID="activity-menu"
-            />
-          )}
         </View>
       </View>
 
@@ -220,6 +198,8 @@ export function ActivityScreen({
         contentContainerStyle={{ padding: space.md, gap: space.lg }}
       >
         <View style={{ gap: space.xs }}>
+          {/* Qui a couru, avant ce qu'il a couru : c'est la première chose qu'on cherche. */}
+          <AuthorLine author={data.author} testID="activity-author" />
           <View accessible accessibilityRole="header" accessibilityLabel={data.title}>
             <Text variant="title" decorative>
               {data.title}
@@ -264,40 +244,103 @@ export function ActivityScreen({
             }}
             testID="activity-share"
           />
+          {/* Sur ses propres courses seulement : ailleurs elle n'aurait rien à supprimer. */}
+          {mine && (
+            <IconAction
+              icon="x"
+              label={translate('activity.delete')}
+              onPress={() => {
+                setConfirmingDelete(true);
+              }}
+              testID="activity-delete"
+            />
+          )}
         </View>
 
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.lg }}>
-          <StatTile
-            label={translate('activity.distance')}
-            value={formatKilometres(data.stats.distanceMetres)}
-            unit={translate('common.km')}
-            spokenUnit={translate('common.spokenKilometres')}
-          />
-          <StatTile
-            label={translate('activity.duration')}
-            value={formatDuration(data.stats.elapsedSeconds)}
-            spokenValue={spokenDuration(data.stats.elapsedSeconds)}
-          />
-          <StatTile
-            // Le vélo se lit en km/h, la course à pied en min/km.
-            label={translate(usesSpeed(data.type) ? 'activity.speed' : 'activity.pace')}
-            value={effortOf(data.type, data.stats.averagePaceSecondsPerKm).value}
-            unit={effortOf(data.type, data.stats.averagePaceSecondsPerKm).unit}
-            spokenValue={effortOf(data.type, data.stats.averagePaceSecondsPerKm).spoken}
-          />
-          <StatTile
-            label={translate('activity.elevationGain')}
-            value={formatWhole(data.stats.elevationGain)}
-            unit={translate('common.metres')}
-            spokenUnit={translate('common.spokenMetres')}
-          />
-          {data.stats.averageHeartRate !== undefined && (
+        {/*
+          Des colonnes de même largeur, chacune centrée sur elle-même.
+
+          Alignées à gauche et dimensionnées par leur contenu, les cinq tuiles
+          ne tombaient jamais en face les unes des autres : « D+ » occupait le
+          quart de « Calories », et l'œil ne trouvait plus de colonne à suivre.
+          `flexBasis` à 30 % laisse trois par ligne sur un téléphone étroit,
+          sans jamais couper un nombre.
+        */}
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            rowGap: space.lg,
+            columnGap: space.sm,
+          }}
+        >
+          <Stat>
             <StatTile
-              label={translate('activity.heartRate')}
-              value={formatWhole(data.stats.averageHeartRate)}
-              unit={translate('common.bpm')}
-              spokenUnit={translate('common.spokenBpm')}
+              align="center"
+              label={translate('activity.distance')}
+              value={formatKilometres(data.stats.distanceMetres)}
+              unit={translate('common.km')}
+              spokenUnit={translate('common.spokenKilometres')}
             />
+          </Stat>
+          {/*
+            « Durée », c'est le temps en mouvement — le même nombre que sur la
+            carte du fil, sous le même mot. L'écoulé ne s'affiche plus : sur une
+            sortie sans arrêt il répétait cette tuile à cinq secondes près.
+          */}
+          <Stat>
+            <StatTile
+              align="center"
+              label={translate('activity.duration')}
+              value={formatDuration(data.stats.movingTimeSeconds)}
+              spokenValue={spokenDuration(data.stats.movingTimeSeconds)}
+            />
+          </Stat>
+          <Stat>
+            <StatTile
+              align="center"
+              // Le vélo se lit en km/h, la course à pied en min/km.
+              label={translate(usesSpeed(data.type) ? 'activity.speed' : 'activity.pace')}
+              value={effortOf(data.type, data.stats.averagePaceSecondsPerKm).value}
+              unit={effortOf(data.type, data.stats.averagePaceSecondsPerKm).unit}
+              spokenValue={effortOf(data.type, data.stats.averagePaceSecondsPerKm).spoken}
+            />
+          </Stat>
+          <Stat>
+            <StatTile
+              align="center"
+              label={translate('activity.elevationGain')}
+              value={formatWhole(data.stats.elevationGain)}
+              unit={translate('common.metres')}
+              spokenUnit={translate('common.spokenMetres')}
+            />
+          </Stat>
+          {data.stats.averageHeartRate !== undefined && (
+            <Stat>
+              <StatTile
+                align="center"
+                label={translate('activity.heartRate')}
+                value={formatWhole(data.stats.averageHeartRate)}
+                unit={translate('common.bpm')}
+                spokenUnit={translate('common.spokenBpm')}
+              />
+            </Stat>
+          )}
+          {/*
+            Absente tant que la masse du coureur n'est pas renseignée : le
+            serveur laisse le champ vide plutôt que d'inventer, et une tuile à
+            « — » ferait croire à une panne au lieu d'un réglage à remplir.
+          */}
+          {data.stats.estimatedCalories !== undefined && (
+            <Stat>
+              <StatTile
+                align="center"
+                label={translate('activity.calories')}
+                value={formatWhole(data.stats.estimatedCalories)}
+                unit={translate('common.kcal')}
+                spokenUnit={translate('common.spokenKcal')}
+              />
+            </Stat>
           )}
         </View>
 
@@ -319,8 +362,21 @@ export function ActivityScreen({
                   // The server numbers splits from 1 — `SplitCalculator` refuses
                   // anything below. Adding one here numbered every kilometre
                   // one too high, which is what this row used to do.
-                  label: translate('activity.splitLabel', { index: split.kilometreIndex }),
-                  value: `${formatPace(split.paceSecondsPerKm)}${split.complete ? '' : ` (${translate('activity.splitPartial')})`}`,
+                  //
+                  // Le reliquat, lui, se nomme par ce qu'il vaut. « Kilomètre 5 »
+                  // sur une sortie de 4,0 km se lit comme une erreur de calcul,
+                  // alors que ce sont les quarante derniers mètres.
+                  label: split.complete
+                    ? translate('activity.splitLabel', { index: split.kilometreIndex })
+                    : translate('activity.splitPartialLabel', {
+                        distance: formatWhole(split.distanceMetres),
+                      }),
+                  // Le temps du tronçon, et non son allure. Sur un kilomètre
+                  // entier les deux valent le même nombre ; sur un reliquat de
+                  // seize mètres, l'allure affichait « 2:10 » — un temps que
+                  // personne n'a passé, pour une distance que personne n'a
+                  // mise deux minutes à couvrir.
+                  value: formatDuration(split.timeSeconds),
                   // A partial kilometre has no mark on the trace, so it has
                   // nothing to show: leaving it inert beats a row that looks
                   // pressable and does nothing.
@@ -349,28 +405,6 @@ export function ActivityScreen({
           setSharing(false);
         }}
       />
-
-      <Sheet
-        visible={menuOpen}
-        onClose={() => {
-          setMenuOpen(false);
-        }}
-        title={data.title}
-        detents={[0.35]}
-        testID="activity-menu-sheet"
-      >
-        <Button
-          variant="danger"
-          label={translate('activity.delete')}
-          icon="x"
-          fullWidth
-          onPress={() => {
-            setMenuOpen(false);
-            setConfirmingDelete(true);
-          }}
-          testID="activity-delete"
-        />
-      </Sheet>
 
       <Modal
         visible={confirmingDelete}

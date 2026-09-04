@@ -137,7 +137,9 @@ describe('la carte d’une course', () => {
     await renderWithRuntime(activityScreen(), harness);
     await screen.findByTestId('activity-screen');
 
-    const partial = await screen.findByLabelText('Kilomètre 2, 5:00 (partiel)');
+    // Le reliquat se nomme par ce qu'il vaut : « Kilomètre 2 » au bout d'une
+    // sortie de 1,4 km se lit comme une erreur de calcul.
+    const partial = await screen.findByLabelText('Derniers 380 m, 5:00');
     expect(partial.props['onStartShouldSetResponder']).toBeUndefined();
   });
 

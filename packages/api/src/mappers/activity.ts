@@ -20,6 +20,7 @@ import {
   toOptionalInstant,
   toOptionalString,
 } from './primitives';
+import { toOptionalAuthor } from './user';
 
 type ActivityResponse = components['schemas']['ActivityResponse'];
 type StatsResponse = components['schemas']['StatsResponse'];
@@ -37,6 +38,7 @@ export function toStats(dto: StatsResponse | undefined): ActivityStats {
     elevationLoss: dto?.elevationLoss ?? 0,
     averageHeartRate: dto?.averageHeartRate,
     maxHeartRate: dto?.maxHeartRate,
+    estimatedCalories: dto?.estimatedCalories,
   };
 }
 
@@ -75,6 +77,7 @@ export function toActivity(dto: ActivityResponse): Activity {
   return {
     id: activityId(required(dto.id, 'id de course')),
     ownerId: userId(required(dto.ownerId, 'propriétaire de la course')),
+    author: toOptionalAuthor(dto.author),
     type: narrow(dto.type, ACTIVITY_TYPES, 'RUN'),
     title: dto.title ?? '',
     description: toOptionalString(dto.description),

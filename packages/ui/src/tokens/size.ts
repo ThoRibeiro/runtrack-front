@@ -20,6 +20,8 @@ export const avatarSize = {
   md: 40,
   lg: 56,
   xl: 72,
+  /** La photo d'un profil, qui est ce qu'on regarde en arrivant dessus. */
+  '2xl': 96,
 } as const;
 
 export const iconSize = {

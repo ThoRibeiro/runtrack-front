@@ -25,7 +25,12 @@ function deliverStats(harness: Harness, distanceMeters: number): void {
   harness.live.deliver({
     id: `s-${String(distanceMeters)}`,
     event: 'stats',
-    data: { distanceMeters, elapsedSeconds: 600, averagePaceSecondsPerKm: 300 },
+    data: {
+      distanceMeters,
+      elapsedSeconds: 600,
+      movingTimeSeconds: 540,
+      averagePaceSecondsPerKm: 300,
+    },
   });
 }
 
@@ -137,7 +142,7 @@ describe('LiveScreen', () => {
     await tick(harness);
 
     expect(await screen.findByLabelText('Distance, 5,0 kilomètres')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Durée, 10 minutes')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Durée, 9 minutes')).toBeOnTheScreen();
     expect(screen.getByLabelText('Allure, 5 minutes 0 par kilomètre')).toBeOnTheScreen();
   });
 

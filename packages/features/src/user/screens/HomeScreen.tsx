@@ -113,6 +113,9 @@ export function HomeScreen({
       testID="home-screen"
     >
       <List
+        // Un fil de cartes : douze points les faisaient se toucher, et deux
+        // sorties voisines se lisaient comme une seule.
+        gap="lg"
         data={feed.isPending ? undefined : items}
         renderItem={renderItem}
         keyExtractor={(item) => item.activityId}

@@ -26,6 +26,19 @@ const MAP_STYLE_URL =
     ? configuredStyle
     : 'https://demotiles.maplibre.org/style.json';
 
+/**
+ * Le fond sombre, quand il y en a un.
+ *
+ * Là où le mobile a un `userInterfaceStyle` que le système traduit tout seul,
+ * une carte MapLibre sombre est un *autre jeu de tuiles* : sans seconde URL
+ * configurée, la carte reste claire — mieux vaut ça qu'un fond noir sans rues.
+ */
+const configuredDarkStyle: unknown = process.env['EXPO_PUBLIC_MAP_STYLE_URL_DARK'];
+const DARK_MAP_STYLE_URL =
+  typeof configuredDarkStyle === 'string' && configuredDarkStyle !== ''
+    ? configuredDarkStyle
+    : undefined;
+
 /** Somewhere to look at before a track arrives. Paris, and zoomed out. */
 const INITIAL_CENTRE: [number, number] = [2.3522, 48.8566];
 const INITIAL_ZOOM = 11;
@@ -64,11 +77,12 @@ export function WebMapSurface({
   colours,
   reduceMotion = false,
   interactive = true,
+  dark = false,
   testID,
 }: MapSurfaceProps): ReactNode {
   const container = useRef<unknown>(null);
-  const keep = useRef({ onReady, colours, reduceMotion, interactive });
-  keep.current = { onReady, colours, reduceMotion, interactive };
+  const keep = useRef({ onReady, colours, reduceMotion, interactive, dark });
+  keep.current = { onReady, colours, reduceMotion, interactive, dark };
 
   const attach = useCallback((node: unknown) => {
     container.current = node;
@@ -95,7 +109,7 @@ export function WebMapSurface({
 
       map = new maplibre.Map({
         container: node,
-        style: MAP_STYLE_URL,
+        style: (keep.current.dark ? DARK_MAP_STYLE_URL : undefined) ?? MAP_STYLE_URL,
         center: INITIAL_CENTRE,
         zoom: INITIAL_ZOOM,
         attributionControl: { compact: true },

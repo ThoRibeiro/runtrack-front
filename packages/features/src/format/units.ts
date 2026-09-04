@@ -79,6 +79,24 @@ export function formatDay(instant: number, now: number = Date.now()): string {
 }
 
 /**
+ * Une date de naissance, telle qu'on la dit : « 12 mars 1999 ».
+ *
+ * Construite à midi et non à minuit : `new Date('1999-03-12')` est lue en UTC,
+ * et un appareil à l'ouest de Greenwich l'affiche la veille — un anniversaire
+ * qui recule d'un jour selon l'endroit où l'on est.
+ */
+export function formatBirthDate(iso: string): string {
+  const [year, month, day] = iso.split('-').map(Number);
+  if (year === undefined || month === undefined || day === undefined) return iso;
+
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(year, month - 1, day, 12));
+}
+
+/**
  * Une vitesse en kilomètres par heure, à partir d'une allure.
  *
  * À vélo, personne ne pense en minutes par kilomètre : on roule à 24 km/h, on ne

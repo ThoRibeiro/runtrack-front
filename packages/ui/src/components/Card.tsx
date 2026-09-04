@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import { useTheme } from '../theme';
-import { space } from '../tokens';
+import { space, stroke } from '../tokens';
 
 /**
  * §3: separation comes from the radius and the background, never from a strong
@@ -22,7 +22,15 @@ import { space } from '../tokens';
  * Confusing the two is how white text ends up on a near-white ground, so the
  * names say which text they expect.
  */
-export type CardTone = 'plain' | 'surface' | 'alt' | 'brand' | 'accent';
+/**
+ * `outlined` sépare par un trait, là où `surface` sépare par une ombre. Une
+ * carte de fil se détache mal d'un fond presque blanc : l'ombre y est trop
+ * discrète pour dire où la carte s'arrête, et le fond ne suffit pas non plus.
+ *
+ * Trait **ou** ombre, jamais les deux — le contour se lirait en double, ce que
+ * la note ci-dessous interdit pour les autres tons.
+ */
+export type CardTone = 'plain' | 'surface' | 'outlined' | 'alt' | 'brand' | 'accent';
 
 export interface CardProps {
   children: ReactNode;
@@ -47,6 +55,7 @@ export function Card({
   const background = {
     plain: 'transparent',
     surface: theme.colours.surface,
+    outlined: theme.colours.surface,
     alt: theme.colours.surfaceAlt,
     brand: theme.colours.brand.surface,
     accent: theme.colours.brand.solid,
@@ -63,12 +72,17 @@ export function Card({
           borderRadius: tone === 'plain' ? 0 : theme.radius.xl,
           // No border under the shadow: the references lift a card off the
           // ground rather than drawing its edge, and doing both makes the
-          // outline read twice.
+          // outline read twice. `outlined` makes the opposite choice, and gets
+          // no shadow in exchange.
           padding: padded && tone !== 'plain' ? space.md : 0,
+        },
+        tone === 'outlined' && {
+          borderWidth: stroke.hairline,
+          borderColor: theme.colours.border,
         },
         // A coloured surface gets a tinted shadow: a grey one under it reads
         // as dirt.
-        tone === 'plain'
+        tone === 'plain' || tone === 'outlined'
           ? theme.elevation.none
           : tone === 'accent'
             ? theme.elevation.raised

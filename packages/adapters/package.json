@@ -10,7 +10,9 @@
     "./map/web": "./src/map/web/index.ts",
     "./recording/native": "./src/recording/native.ts",
     "./notification/native": "./src/notification/native.ts",
-    "./media": "./src/media/index.ts"
+    "./media": "./src/media/index.ts",
+    "./datetime/native": "./src/datetime/native/index.ts",
+    "./datetime/web": "./src/datetime/web/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -27,7 +29,8 @@
     "maplibre-gl": "*",
     "react": "*",
     "react-native": "*",
-    "react-native-maps": "*"
+    "react-native-maps": "*",
+    "@react-native-community/datetimepicker": "*"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
@@ -50,7 +53,8 @@
     "react-native": "0.86.3",
     "react-native-maps": "1.27.2",
     "sql.js": "^1.14.2",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "@react-native-community/datetimepicker": "9.1.0"
   },
   "volta": {
     "extends": "../../package.json"

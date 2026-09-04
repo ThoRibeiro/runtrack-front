@@ -53,10 +53,10 @@ export function FeedCard({ item, onPress }: FeedCardProps): ReactNode {
       enforceTouchTarget={false}
       testID={`feed-card-${item.activityId}`}
     >
-      <Card tone="plain">
+      <Card tone="outlined">
         <View style={{ gap: space.sm }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
-            <Avatar name={item.author.displayName} uri={item.author.avatarUrl} size="sm" />
+            <Avatar name={item.author.displayName} uri={item.author.avatarUrl} size="md" />
             <View style={{ flex: 1 }}>
               <Text variant="bodyStrong" decorative numberOfLines={1}>
                 {item.author.displayName}
@@ -88,7 +88,7 @@ export function FeedCard({ item, onPress }: FeedCardProps): ReactNode {
               spokenUnit={translate('common.spokenKilometres')}
             />
             <StatTile
-              label={translate('activity.movingTime')}
+              label={translate('activity.duration')}
               value={formatDuration(item.movingTimeSeconds)}
             />
           </View>

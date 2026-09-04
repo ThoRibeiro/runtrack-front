@@ -139,6 +139,7 @@ export {
 } from './user/domain/profile';
 export type {
   AccountStatus,
+  Author,
   BiologicalSex,
   MyProfile,
   Physiology,
@@ -151,7 +152,7 @@ export type { UserGateway } from './user/ports/userGateway';
 
 // Fil, social, engagement, partage.
 export { isLive } from './feed/domain/feedItem';
-export type { FeedAuthor, FeedItem } from './feed/domain/feedItem';
+export type { FeedItem } from './feed/domain/feedItem';
 export type { FeedGateway } from './feed/ports/feedGateway';
 export { FOLLOW_STATUSES } from './social/ports/socialGateway';
 export type {

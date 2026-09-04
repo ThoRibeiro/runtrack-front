@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import type { ActivityId, Comment, CommentId } from '@runtrack/core';
 import {
   Avatar,
-  Button,
   FormField,
   Icon,
   Input,
@@ -223,18 +222,6 @@ export function CommentThread({
         <Text tone="muted" variant="caption">
           {translate('engagement.noComments')}
         </Text>
-      )}
-
-      {thread.hasNextPage && (
-        <Button
-          variant="ghost"
-          label={translate('engagement.moreComments')}
-          loading={thread.isFetchingNextPage}
-          onPress={() => {
-            void thread.fetchNextPage();
-          }}
-          testID="comments-more"
-        />
       )}
 
       {/*

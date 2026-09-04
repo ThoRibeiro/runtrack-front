@@ -68,7 +68,7 @@ export function MetricCard({
       : theme.colours.accent[accent];
 
   return (
-    <Card accessibilityLabel={spoken} testID={testID}>
+    <Card tone="outlined" accessibilityLabel={spoken} testID={testID}>
       <View style={{ gap: space.sm }}>
         <View
           style={{

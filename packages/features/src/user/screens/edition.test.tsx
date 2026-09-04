@@ -1,10 +1,23 @@
 import { RunTrackError } from '@runtrack/core';
-import { screen, userEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, userEvent, waitFor } from '@testing-library/react-native';
 import { myProfile } from '../../testing/fakes';
 import { aRuntime, renderWithRuntime, type Harness } from '../../testing/harness';
 import { EditProfileScreen } from './EditProfileScreen';
 
 const noop = (): void => undefined;
+
+/**
+ * Le poids et la taille se règlent au curseur : il n'y a plus de texte à taper.
+ *
+ * L'action d'accessibilité est la seule prise qu'un test ait dessus, et c'est
+ * heureux — c'est aussi celle dont se sert un lecteur d'écran, donc l'éprouver
+ * ici vérifie les deux d'un coup.
+ */
+async function nudge(testID: string, direction: 'increment' | 'decrement'): Promise<void> {
+  await fireEvent(screen.getByTestId(testID), 'accessibilityAction', {
+    nativeEvent: { actionName: direction },
+  });
+}
 
 async function openEdition(harness: Harness): Promise<void> {
   await renderWithRuntime(<EditProfileScreen onSaved={noop} onBack={noop} />, harness);
@@ -25,8 +38,10 @@ describe('EditProfileScreen', () => {
     await openEdition(harness);
 
     expect(screen.getByTestId('edit-bio').props['value']).toBe('Coureur du dimanche');
-    expect(screen.getByTestId('edit-weight').props['value']).toBe('72');
-    expect(screen.getByTestId('edit-height').props['value']).toBe('178');
+    // La valeur se lit à côté du curseur, en toutes lettres : un curseur seul
+    // ne dit pas ce qu'il vaut.
+    expect(screen.getByText('72 kg', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(screen.getByText('178 cm', { includeHiddenElements: true })).toBeOnTheScreen();
   });
 
   it('n’envoie que ce qui a changé', async () => {
@@ -37,12 +52,11 @@ describe('EditProfileScreen', () => {
     harness.users.onChangeHandle = changeHandle;
     await openEdition(harness);
 
-    await userEvent.clear(screen.getByTestId('edit-weight'));
-    await userEvent.type(screen.getByTestId('edit-weight'), '68');
+    await nudge('edit-weight', 'decrement');
     await userEvent.press(screen.getByTestId('edit-profile-save'));
 
     await waitFor(() => {
-      expect(harness.users.body.weightKilograms).toBe(68);
+      expect(harness.users.body.weightKilograms).toBe(69);
     });
     // Le pseudonyme n'a pas bougé : le renommer le ferait vérifier contre
     // lui-même, et le serveur refuserait un nom déjà pris — le sien.
@@ -58,15 +72,14 @@ describe('EditProfileScreen', () => {
 
     await userEvent.clear(screen.getByTestId('edit-bio'));
     await userEvent.type(screen.getByTestId('edit-bio'), 'Marathon en octobre');
-    await userEvent.clear(screen.getByTestId('edit-height'));
-    await userEvent.type(screen.getByTestId('edit-height'), '181');
+    await nudge('edit-height', 'increment');
     await userEvent.press(screen.getByTestId('edit-profile-save'));
 
     await waitFor(() => {
       expect(saved).toHaveBeenCalled();
     });
     expect(harness.users.profile.bio).toBe('Marathon en octobre');
-    expect(harness.users.body.heightCentimetres).toBe(181);
+    expect(harness.users.body.heightCentimetres).toBe(176);
   });
 
   it('envoie la photo choisie dès qu’elle est choisie', async () => {
@@ -126,23 +139,21 @@ describe('EditProfileScreen', () => {
     });
   });
 
-  it('refuse un poids que le serveur rejetterait, sans faire l’aller-retour', async () => {
+  it('ne laisse plus produire un poids que le serveur rejetterait', async () => {
     const harness = aRuntime();
-    const updatePhysiology = jest.fn(() => Promise.resolve(harness.users.body));
-    harness.users.onUpdatePhysiology = updatePhysiology;
     await openEdition(harness);
 
-    await userEvent.type(screen.getByTestId('edit-weight'), '900');
-    await userEvent.press(screen.getByTestId('edit-profile-save'));
-
-    // Le message est rattaché au champ pour le lecteur d'écran, donc masqué en
-    // tant que texte : c'est le champ qui l'annonce, pas une phrase de plus.
-    expect(
-      await screen.findByText('Un poids compris entre 20 et 400 kg', {
-        includeHiddenElements: true,
-      }),
-    ).toBeOnTheScreen();
-    expect(updatePhysiology).not.toHaveBeenCalled();
+    // Le champ de saisie d'avant acceptait « 900 » et se faisait refuser à
+    // l'envoi. Un curseur borné rend l'erreur impossible à produire, et ce sont
+    // ces bornes-là qu'un lecteur d'écran annonce aussi.
+    expect(screen.getByTestId('edit-weight').props['accessibilityValue']).toMatchObject({
+      min: 30,
+      max: 200,
+    });
+    expect(screen.getByTestId('edit-height').props['accessibilityValue']).toMatchObject({
+      min: 100,
+      max: 230,
+    });
   });
 
   it('dit ce que le serveur a refusé, et garde ce qui a été tapé', async () => {

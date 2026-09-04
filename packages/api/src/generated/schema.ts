@@ -927,6 +927,7 @@ export interface components {
         ActivityResponse: {
             id?: string;
             ownerId?: string;
+            author?: components["schemas"]["AuthorDto"];
             type?: string;
             title?: string;
             description?: string;
@@ -938,6 +939,12 @@ export interface components {
             endedAt?: string;
             stats?: components["schemas"]["StatsResponse"];
             previewPolyline?: string;
+        };
+        AuthorDto: {
+            id?: string;
+            handle?: string;
+            displayName?: string;
+            avatarUrl?: string;
         };
         StatsResponse: {
             /** Format: double */
@@ -1028,12 +1035,6 @@ export interface components {
         PostCommentRequest: {
             body: string;
             parentId?: string;
-        };
-        AuthorDto: {
-            id?: string;
-            handle?: string;
-            displayName?: string;
-            avatarUrl?: string;
         };
         CommentResponse: {
             id?: string;
@@ -1271,6 +1272,7 @@ export type SchemaChangeHandleRequest = components['schemas']['ChangeHandleReque
 export type SchemaChangeAvatarRequest = components['schemas']['ChangeAvatarRequest'];
 export type SchemaChangeVisibilityRequest = components['schemas']['ChangeVisibilityRequest'];
 export type SchemaActivityResponse = components['schemas']['ActivityResponse'];
+export type SchemaAuthorDto = components['schemas']['AuthorDto'];
 export type SchemaStatsResponse = components['schemas']['StatsResponse'];
 export type SchemaFollowResponse = components['schemas']['FollowResponse'];
 export type SchemaRegisterDeviceRequest = components['schemas']['RegisterDeviceRequest'];
@@ -1281,7 +1283,6 @@ export type SchemaShareLinkResponse = components['schemas']['ShareLinkResponse']
 export type SchemaIngestPointsRequest = components['schemas']['IngestPointsRequest'];
 export type SchemaPointDto = components['schemas']['PointDto'];
 export type SchemaPostCommentRequest = components['schemas']['PostCommentRequest'];
-export type SchemaAuthorDto = components['schemas']['AuthorDto'];
 export type SchemaCommentResponse = components['schemas']['CommentResponse'];
 export type SchemaMarkAllReadResponse = components['schemas']['MarkAllReadResponse'];
 export type SchemaSignUpRequest = components['schemas']['SignUpRequest'];

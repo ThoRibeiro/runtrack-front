@@ -61,7 +61,9 @@ export function ScreenHeader({
       )}
 
       <View accessible accessibilityRole="header" style={{ flex: 1 }}>
-        <Text variant="bodyStrong" align="center" decorative numberOfLines={1}>
+        {/* `section` et non `bodyStrong` : 17 pt au lieu de 15, assez pour que le
+            titre ne se lise plus comme une ligne de contenu parmi d'autres. */}
+        <Text variant="section" align="center" decorative numberOfLines={1}>
           {title}
         </Text>
       </View>
