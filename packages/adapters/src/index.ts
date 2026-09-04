@@ -45,3 +45,11 @@ export { AlwaysOnlineMonitor, BrowserNetworkMonitor } from './system/browserNetw
 // cet index exporte finit dans le bundle web — un tampon SQLite compris.
 // Il vit derrière `@runtrack/adapters/recording/native`, qui de surcroît
 // enregistre une tâche système au chargement : rien à faire dans un navigateur.
+
+// L'identité : le flux d'autorisation ouvre le navigateur du système, donc il
+// existe aussi sur le web — c'est le même écran de connexion pour les trois
+// cibles, et il n'a pas de raison de vivre derrière un sous-chemin natif.
+export { ExpoIdentityGateway } from './identity/expoIdentityGateway';
+export type { AuthorizationFlow, TokenExchanges } from './identity/expoIdentityGateway';
+export { createExpoAuthorizationFlow } from './identity/expoAuthorizationFlow';
+export type { AuthorizationFlowOptions } from './identity/expoAuthorizationFlow';

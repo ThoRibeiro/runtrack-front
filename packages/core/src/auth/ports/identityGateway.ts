@@ -17,10 +17,12 @@ export interface IdentityGateway {
   /**
    * Opens the provider's flow and settles once a session exists.
    *
-   * Rejects if the person closes the browser instead of authenticating, which
-   * is a cancellation and not an error: the screen must not shout about it.
+   * Resolves with `undefined` when the person closes the browser instead of
+   * signing in. That is an answer, not a failure: modelled as an error it would
+   * travel through the same path as a broken network and end up on screen as a
+   * banner saying something went wrong, when nothing did.
    */
-  logIn(): Promise<Session>;
+  logIn(): Promise<Session | undefined>;
 
   /**
    * Exchanges a refresh token for a new session.
@@ -40,6 +42,3 @@ export interface IdentityGateway {
    */
   logOut(refreshToken: string): Promise<void>;
 }
-
-/** Raised when the person closed the provider's browser without signing in. */
-export const AUTHORIZATION_CANCELLED = 'AUTHORIZATION_CANCELLED';
