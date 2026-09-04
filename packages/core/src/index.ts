@@ -129,6 +129,9 @@ export { REFRESH_MARGIN, isAccessTokenUsable, needsRefresh } from './auth/domain
 export type { Session } from './auth/domain/session';
 export type { SecureStore } from './auth/ports/secureStore';
 export type { AuthGateway, Credentials, SignUpCommand } from './auth/ports/authGateway';
+export { AUTHORIZATION_CANCELLED } from './auth/ports/identityGateway';
+export type { IdentityGateway } from './auth/ports/identityGateway';
+export { hasProvisionalHandle, provisionalHandleFor } from './auth/domain/provisionalHandle';
 
 // Comptes.
 export {

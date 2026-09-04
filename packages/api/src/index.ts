@@ -8,6 +8,8 @@ export type { CorrelationIdFactory } from './http/correlationId';
 export { SessionHolder } from './auth/sessionHolder';
 export { decodeBase64Url, subjectOf } from './auth/jwt';
 export { RefreshCoordinator } from './auth/refreshCoordinator';
+export { OidcTokens } from './auth/oidcTokens';
+export type { OidcConfiguration } from './auth/oidcTokens';
 export type { Refresher } from './auth/refreshCoordinator';
 
 export { HttpAuthGateway, toSession } from './gateways/httpAuthGateway';
