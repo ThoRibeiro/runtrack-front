@@ -1,4 +1,4 @@
-import { useQuery, type UseQueryResult } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query';
 import type { MyProfile, PublicProfile, RunnerTotals, StatsPeriod } from '@runtrack/core';
 import { useRuntime } from '../../runtime/RuntimeProvider';
 import { queryKeys } from '../../query/keys';
@@ -15,6 +15,11 @@ export function useMe(): UseQueryResult<MyProfile> {
  * `enabled` exists because this endpoint answers for the signed-in runner and
  * for nobody else: asked from someone else's profile it returns *my* totals,
  * which is a request for data the screen must then remember not to show.
+ *
+ * The previous period's numbers are kept while the next ones load. Each period
+ * is its own cache key, so without this the data is `undefined` for as long as
+ * the request takes — the four tiles unmount, everything below them jumps up
+ * under the finger that just tapped, and drops back a moment later.
  */
 export function useMyStats(
   period: StatsPeriod,
@@ -25,6 +30,7 @@ export function useMyStats(
   return useQuery({
     queryKey: queryKeys.myStats(period, zone),
     queryFn: () => runtime.users.stats(period, zone),
+    placeholderData: keepPreviousData,
     enabled,
   });
 }

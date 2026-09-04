@@ -1,6 +1,8 @@
 import { RunTrackError, activityId, userId } from '@runtrack/core';
+import type { RunnerTotals } from '@runtrack/core';
 import { screen, userEvent, waitFor } from '@testing-library/react-native';
 import { aFeedItem, aProfile, anActivity, totals } from '../../testing/fakes';
+import { formatKilometres } from '../../format';
 import { aRuntime, renderWithRuntime } from '../../testing/harness';
 import { ActivityScreen } from '../../activity/screens/ActivityScreen';
 import { HomeScreen } from './HomeScreen';
@@ -121,6 +123,48 @@ describe('HomeScreen', () => {
     // de quelqu'un d'autre.
     expect(await screen.findByTestId('profile-menu')).toBeOnTheScreen();
     expect(screen.queryByTestId('profile-settings')).toBeNull();
+  });
+
+  it('garde les chiffres à l’écran pendant qu’une autre période charge', async () => {
+    const harness = aRuntime();
+    await renderWithRuntime(
+      <ProfileScreen
+        handle="thomas"
+        isMe
+        onOpenActivity={noop}
+        onOpenFollowers={noop}
+        onOpenFollowing={noop}
+      />,
+      harness,
+    );
+
+    await screen.findByTestId('profile-metric-distance');
+
+    // La période suivante mettra le temps qu'on voudra à répondre.
+    let answer: (value: RunnerTotals) => void = () => undefined;
+    harness.users.onStats = () =>
+      new Promise<RunnerTotals>((resolve) => {
+        answer = resolve;
+      });
+
+    // « Mois » et pas « Total » : l'objectif hebdomadaire et le compteur de
+    // l'en-tête ont déjà chargé « Semaine » et « Total », qui sortiraient du
+    // cache sans jamais passer par un chargement.
+    await userEvent.press(screen.getByRole('tab', { name: 'Mois' }));
+
+    // Le défaut d'avant : chaque période étant sa propre clé de cache, les
+    // quatre cartes se démontaient le temps de la requête et la grille des
+    // courses remontait sous le doigt avant de retomber.
+    expect(screen.getByTestId('profile-metric-distance')).toBeOnTheScreen();
+    expect(screen.getByTestId('profile-period')).toBeOnTheScreen();
+
+    expect(screen.getByRole('header', { name: 'Ce mois-ci' })).toBeOnTheScreen();
+
+    // Et quand ils arrivent, ce sont eux qu'on lit.
+    answer(totals({ distanceMetres: 120_000 }));
+    expect(
+      await screen.findByLabelText(`Distance, ${formatKilometres(120_000)} kilomètres`),
+    ).toBeOnTheScreen();
   });
 
   it('borne un objectif dépassé plutôt que de dessiner deux tours', async () => {

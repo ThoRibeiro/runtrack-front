@@ -485,7 +485,7 @@ function ProfileBody({
       */}
       {isMe && weekly.data !== undefined && <WeeklyGoal totals={weekly.data} />}
 
-      {totals !== undefined && (
+      {isMe && (
         <View style={{ gap: space.sm }}>
           {/*
             La période se choisit : un bilan figé sur la semaine ne dit rien en
@@ -506,10 +506,17 @@ function ProfileBody({
             `entering` rejoue. Sans elle, React réutilise les mêmes nœuds et les
             chiffres se substituent d'une image à l'autre, sans rien annoncer.
             §4 : le mouvement se réduit à un fondu quand le système le demande.
+
+            Les chiffres de la période précédente restent tant que les suivants
+            n'arrivent pas — estompés, parce qu'ils ne sont plus ceux du titre
+            au-dessus. Le vide, lui, faisait remonter toute la grille sous le
+            doigt avant de la laisser retomber.
           */}
-          <Animated.View key={period} entering={motion.listItemIn}>
-            <Totals totals={totals} period={period} />
-          </Animated.View>
+          {totals !== undefined && (
+            <Animated.View key={period} entering={motion.listItemIn}>
+              <Totals totals={totals} period={period} stale={stats.isPlaceholderData} />
+            </Animated.View>
+          )}
         </View>
       )}
 
@@ -793,9 +800,18 @@ function WeeklyGoal({ totals }: { totals: RunnerTotals }): ReactNode {
 }
 
 /** Le bilan de la période choisie, et rien d'autre : quatre cartes, toujours. */
-function Totals({ totals, period }: { totals: RunnerTotals; period: StatsPeriod }): ReactNode {
+function Totals({
+  totals,
+  period,
+  stale,
+}: {
+  totals: RunnerTotals;
+  period: StatsPeriod;
+  /** Ceux de la période d'avant, le temps que les bons arrivent. */
+  stale: boolean;
+}): ReactNode {
   return (
-    <View style={{ gap: space.sm }}>
+    <View style={{ gap: space.sm, opacity: stale ? 0.45 : 1 }} aria-busy={stale}>
       <SectionHeader title={translate(`profile.totals${period}`)} />
       <View
         style={{
