@@ -48,7 +48,6 @@ export const lightTheme: Theme = {
       text: palette.blue600,
       surface: palette.blue50,
       track: palette.slate100,
-      gradientEnd: palette.blue400,
       onFillTrack: palette.onAccentTrack,
     },
 

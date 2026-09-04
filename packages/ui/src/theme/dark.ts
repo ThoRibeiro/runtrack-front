@@ -39,7 +39,6 @@ export const darkTheme: Theme = {
       text: palette.blue400,
       surface: palette.blue900,
       track: palette.ink600,
-      gradientEnd: palette.blue500,
       onFillTrack: palette.onAccentTrack,
     },
 

@@ -59,8 +59,6 @@ export interface ThemeColours {
     surface: string;
     /** The unfilled part of a progress ring. */
     track: string;
-    /** The far end of the authentication gradient. Nothing is written on it. */
-    gradientEnd: string;
     /** The unfilled part of a ring drawn ON the accent fill. */
     onFillTrack: string;
   };

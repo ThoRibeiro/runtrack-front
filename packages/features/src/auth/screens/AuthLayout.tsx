@@ -1,23 +1,27 @@
 import type { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
-import { GradientBackground, Logo, Text, space, useTheme } from '@runtrack/ui';
+import { Logo, Text, space, useTheme } from '@runtrack/ui';
 import { describeError } from '../../i18n';
 import { AuthError } from './AuthError';
 
 /**
  * The frame every authentication screen sits in.
  *
- * A white card on a tinted gradient, which is the shape the reference gives
+ * A white card on a flat brand ground, which is the shape the reference gives
  * these five screens. It makes signing in read as a place rather than as a
  * step, and it is the only part of the application that uses the accent as a
  * full-bleed ground — everywhere else the accent is an action.
+ *
+ * The ground is one colour and not a gradient: a wash that shifts behind a
+ * card draws the eye to the corner it is darkest in, and there is nothing
+ * there to look at.
  *
  * It exists so the five screens cannot drift: the same heading order, the same
  * spacing, the same place for the error. §5 asks for a screen whose title is
  * announced on arrival — `accessibilityRole="header"` on the title is what does
  * that, and having it here means no screen can forget it.
  *
- * Nothing readable sits on the gradient: every word is on the card, where the
+ * Nothing readable sits on the ground: every word is on the card, where the
  * measured ratios hold.
  */
 export interface AuthLayoutProps {
@@ -41,13 +45,13 @@ export function AuthLayout({
   const theme = useTheme();
 
   return (
-    <GradientBackground>
+    <View style={{ flex: 1, backgroundColor: theme.colours.brand.solid }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          // Centré : la carte flotte sur le dégradé plutôt que de commencer en
+          // Centré : la carte flotte sur le fond plutôt que de commencer en
           // haut. C'est le seul endroit où le contenu se centre — ailleurs, une
           // liste commence en haut.
           contentContainerStyle={{
@@ -59,7 +63,7 @@ export function AuthLayout({
           testID={testID}
         >
           {/*
-            La marque se pose sur le dégradé, au-dessus de la carte : c'est la
+            La marque se pose sur le fond, au-dessus de la carte : c'est la
             première chose qu'on voit d'un produit qu'on ne connaît pas encore.
             Elle porte son nom ici parce qu'aucun mot ne l'accompagne.
           */}
@@ -92,7 +96,7 @@ export function AuthLayout({
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </GradientBackground>
+    </View>
   );
 }
 

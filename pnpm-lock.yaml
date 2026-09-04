@@ -108,9 +108,6 @@ importers:
       expo-keep-awake:
         specifier: ~57.0.1
         version: 57.0.1(expo@57.0.18)(react@19.2.3)
-      expo-linear-gradient:
-        specifier: ~15.0.8
-        version: 15.0.8(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)
       expo-linking:
         specifier: ~57.0.8
         version: 57.0.8(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2)
@@ -229,9 +226,6 @@ importers:
       expo-image-picker:
         specifier: ^57.0.14
         version: 57.0.14(expo@57.0.18)
-      expo-linear-gradient:
-        specifier: ~15.0.8
-        version: 15.0.8(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)
       expo-linking:
         specifier: ~57.0.8
         version: 57.0.8(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2)
@@ -504,9 +498,6 @@ importers:
       '@types/react':
         specifier: ~19.2.2
         version: 19.2.18
-      expo-linear-gradient:
-        specifier: ~15.0.8
-        version: 15.0.8(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)
       jest:
         specifier: ^30.5.0
         version: 30.5.0(@types/node@22.20.1)(supports-color@10.2.2)
@@ -3265,13 +3256,6 @@ packages:
     peerDependencies:
       expo: '*'
       react: '*'
-
-  expo-linear-gradient@15.0.8:
-    resolution: {integrity: sha512-V2d8Wjn0VzhPHO+rrSBtcl+Fo+jUUccdlmQ6OoL9/XQB7Qk3d9lYrqKDJyccwDxmQT10JdST3Tmf2K52NLc3kw==}
-    peerDependencies:
-      expo: '*'
-      react: '*'
-      react-native: '*'
 
   expo-linking@57.0.8:
     resolution: {integrity: sha512-gv0ZNaF7tILbcvX8xinNbQr6GIGQStxeUAJseweP+LjC9ped7Wl6EeyIMBlDR83U6Da+8drVeqBQSMvwAXgytA==}
@@ -8908,12 +8892,6 @@ snapshots:
     dependencies:
       expo: 57.0.18(4c67990895f3488afb1e1e80811ccb84)
       react: 19.2.3
-
-  expo-linear-gradient@15.0.8(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3):
-    dependencies:
-      expo: 57.0.18(4c67990895f3488afb1e1e80811ccb84)
-      react: 19.2.3
-      react-native: 0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2)
 
   expo-linking@57.0.8(expo@57.0.18)(react-native@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.18)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2):
     dependencies:

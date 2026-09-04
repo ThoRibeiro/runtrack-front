@@ -40,7 +40,6 @@ export const runTheme: Theme = {
       text: palette.blue400,
       surface: palette.blue900,
       track: palette.night600,
-      gradientEnd: palette.blue500,
       onFillTrack: palette.onAccentTrack,
     },
 

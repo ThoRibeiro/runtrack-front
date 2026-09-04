@@ -19,8 +19,6 @@ export { FloatingIconButton } from './FloatingIconButton';
 export type { FloatingIconButtonProps } from './FloatingIconButton';
 export { FormField } from './FormField';
 export type { FormFieldBinding, FormFieldProps } from './FormField';
-export { GradientBackground } from './GradientBackground';
-export type { GradientBackgroundProps } from './GradientBackground';
 export { GroupedRows } from './GroupedRows';
 export type { GroupedRow, GroupedRowsProps } from './GroupedRows';
 export { Icon, iconNames } from './Icon';
